@@ -173,6 +173,11 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, config *v1alp
 			logrus.Errorf("update rke cluster %s state failure %s", rkecluster.Name, err.Error())
 		}
 	}
+	if rkecluster.Stats == v1alpha1.InitState {
+		// clear local state data
+		os.RemoveAll(clusterStatPath)
+	}
+
 	os.MkdirAll(clusterStatPath, 0755)
 
 	filePath := fmt.Sprintf("%s/cluster.yml", clusterStatPath)
