@@ -172,11 +172,21 @@ func (t *MasterURL) UnmarshalJSON(in []byte) error {
 	if err := json.Unmarshal([]byte(jsonStr), &info); err != nil {
 		return err
 	}
-	t.APIServerEndpoint = info["api_server_endpoint"].(string)
-	t.DashboardEndpoint = info["dashboard_endpoint"].(string)
-	t.IntranetAPIServerEndpoint = info["intranet_api_server_endpoint"].(string)
-	t.MiranaEndpoint = info["mirana_endpoint"].(string)
-	t.ReverseTunnelEndpoint = info["reverse_tunnel_endpoint"].(string)
+	if info["api_server_endpoint"] != nil {
+		t.APIServerEndpoint = info["api_server_endpoint"].(string)
+	}
+	if info["dashboard_endpoint"] != nil {
+		t.DashboardEndpoint = info["dashboard_endpoint"].(string)
+	}
+	if info["intranet_api_server_endpoint"] != nil {
+		t.IntranetAPIServerEndpoint = info["intranet_api_server_endpoint"].(string)
+	}
+	if info["mirana_endpoint"] != nil {
+		t.MiranaEndpoint = info["mirana_endpoint"].(string)
+	}
+	if info["reverse_tunnel_endpoint"] != nil {
+		t.ReverseTunnelEndpoint = info["reverse_tunnel_endpoint"].(string)
+	}
 	return nil
 }
 
