@@ -1,0 +1,179 @@
+[
+    {
+        "id": "create_rke_cluster",
+        "name": "创建RKE集群",
+        "request": {
+            "path": "/enterprise-server/api/v1/enterprises/{eid}/kclusters",
+            "params": [
+                {
+                    "key": "eid",
+                    "value": "1234567890"
+                }
+            ],
+            "method": "POST",
+            "body": {
+                "name": "A2",
+                "nodes": [
+                    {
+                        "ip": "39.101.67.34",
+                        "internalIP": "172.20.251.88",
+                        "roles": [
+                            "etcd",
+                            "controlplane",
+                            "worker"
+                        ]
+                    }
+                ],
+                "provider_name": "rke"
+            }
+        },
+        "response": [
+            {
+                "key": "status",
+                "value": 200
+            }
+        ],
+        "debug": true
+    },
+    {
+        "id": "create_custom_cluster",
+        "name": "创建自定义集群",
+        "request": {
+            "path": "/enterprise-server/api/v1/enterprises/{eid}/kclusters",
+            "params": [
+                {
+                    "key": "eid",
+                    "value": "1234567890"
+                }
+            ],
+            "method": "POST",
+            "body": {
+                "name": "C1",
+                "provider_name": "custom",
+                "kubeconfig": "apiVersion: v1\nkind: Config\nclusters:\n- cluster:\n    api-version: v1\n    certificate-authority-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM0VENDQWNtZ0F3SUJBZ0lCQURBTkJna3Foa2lHOXcwQkFRc0ZBREFTTVJBd0RnWURWUVFERXdkcmRXSmwKTFdOaE1CNFhEVEl4TURFeU1qQXpNekl3TTFvWERUTXhNREV5TURBek16SXdNMW93RWpFUU1BNEdBMVVFQXhNSAphM1ZpWlMxallUQ0NBU0l3RFFZSktvWklodmNOQVFFQkJRQURnZ0VQQURDQ0FRb0NnZ0VCQUxBQ1IwSnpmKzJ4CkRwb0JYSHUrNG83VVkrL3ZuUnd4bitySGU2V0hFOFYxcXp5czVrVlI0UWZBMDJaZldkdWlOZGhRbm9sYkVncDgKMklNcVRudTZLdHFoM1RWa2JZak91NktpVHdjNzFHUk5YT0o2N2Q1UndBdHJCVDJvV1pLVWdMeG4vajU3ZW94QwpBL1VaOW85MmhpQ09namNnSUJlajAvdVd0bEh2RFNhS1hZTy9rQnJkVnlQSEJjbGVncG44S3U2allmd2FzaDIxCkI5VnM3Rkd6bG54Wk1qNWVoQ3BiL0FjejByOXRDTHNVaDQwL1NVTkhNWHQzbkRCUG9wc0hQNnEvTEdRSzZPb3gKWXgxR3pDZG9DeW9pY0Rpd3JhanFoM1hSTnozNmV0ODZ5T09BeHdZQW9HdERTa2lFaGZFYnBvQkpDc1VicjBpZQp1OTJvOW9STGQyTUNBd0VBQWFOQ01FQXdEZ1lEVlIwUEFRSC9CQVFEQWdLa01BOEdBMVVkRXdFQi93UUZNQU1CCkFmOHdIUVlEVlIwT0JCWUVGS0l3WHlBT2hWMm5POWFyOFJnNENzWlpZS3ltTUEwR0NTcUdTSWIzRFFFQkN3VUEKQTRJQkFRQng2Tkw1SnBMQU9IOHlDVisxQ09mS0trZWVXSk9idWx6cVFLN2luYVprVjNaOXkyb2ZMcEF1YlZwYgpZSmhMaHJwS2c0SUVQcHJJMDdWSm4yckFGeUViVElTQXNpODgxandwZGIwcnlJSGIxdG1BQm1nb1NuVDVnUy8yCkpmK1JZRHl0cmJ4OXlYOVJWMXVXUFlLUzA2Vnk2Q1pPYVNxSGcwM041MlVBNnRPMWdCNUJXZDhSRGhRK0FjRDgKNStiSkt6SXZpem1BODhELzhXdDFlOThkdmFOSDhvT2dsVFRIQ0FwcEFKa3oreTBxVzBvMUo2bEhKVTl4WUs4ZgpUUTh2a0NrRXVFTjF4MUJBbGlPSkFUb2I5eGRSY2J1UzhVV20wU0V2SHFFMWF0ZDBFZmV1bzkvSFRYVVU0MEczCm1wNEV5MU51L0JheU44ODF0WEhpUXl4UzZ4TjIKLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\n    server: \"https://39.101.67.34:6443\"\n  name: \"A2\"\ncontexts:\n- context:\n    cluster: \"A2\"\n    user: \"kube-admin-A2\"\n  name: \"A2\"\ncurrent-context: \"A2\"\nusers:\n- name: \"kube-admin-A2\"\n  user:\n    client-certificate-data: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURDakNDQWZLZ0F3SUJBZ0lJWWx3aXFTRzVtVnd3RFFZSktvWklodmNOQVFFTEJRQXdFakVRTUE0R0ExVUUKQXhNSGEzVmlaUzFqWVRBZUZ3MHlNVEF4TWpJd016TXlNRE5hRncwek1UQXhNakF3TXpNeU1EUmFNQzR4RnpBVgpCZ05WQkFvVERuTjVjM1JsYlRwdFlYTjBaWEp6TVJNd0VRWURWUVFERXdwcmRXSmxMV0ZrYldsdU1JSUJJakFOCkJna3Foa2lHOXcwQkFRRUZBQU9DQVE4QU1JSUJDZ0tDQVFFQXJXQk15eEVDV2dkYnkwWEU1bXN3SUcxYW90amMKbDBobjRIS1VCUDkzUjNucEUwRzNOdEY5S1Uybnp0RmM5VG9nNStXNlVVUXF5dWhXL1hxUlkzTjA4STM4R0dvYQpJQ0V5dkRFRUlhZjh6WlIwekpvNUhaaHptSGE1K1ZGaUdZZWdBRzBIMlNJSndaU2NFVjVwaThTWmZINlIyQUxDCkM1cTQ3L3gzaTJZZTZ0blVpRHZ5RHZ0cFVoQzZaQk55KzhCcVpIQ21UQlF4YXRZcHhjOU40TWNyakw2bkVJWlcKQ0daaXdreUVnTlN1M2Y2alJmaS9Pd0RPZFczdkdtT3o1bDlvb3ZjQUNocStMRGRsYlV2VENOTUphSkliT1J2eQpIUFowcTJnSmZrenR0dUNkNWEwVm9GaFlVMnpxR1BXRWprZ1RROW1MZUtGckhrWEZrWTVlRUliaHl3SURBUUFCCm8wZ3dSakFPQmdOVkhROEJBZjhFQkFNQ0JhQXdFd1lEVlIwbEJBd3dDZ1lJS3dZQkJRVUhBd0l3SHdZRFZSMGoKQkJnd0ZvQVVvakJmSUE2RlhhYzcxcXZ4R0RnS3hsbGdyS1l3RFFZSktvWklodmNOQVFFTEJRQURnZ0VCQURHNQpFRHdDUjQxbnB2Sit2UHZLcTZDN1VaUEVxSzM5ZDQxYVh6WkhZNW1wTlQ2K3B4YkVKU2tWTGpaNEZiSGdXWnE2CjIycmxQaS9YT1VsREdKeU5TTmJNeGhjemp3N3JxN01paUF6bUNUOFZkQ2tkc1hCZXprd2RQWE15bUNOS1lHbFgKTWVURm14ZzNEQ2IxZlE5SGxQU2luNUVXbUNSRGtxYWpTWWhCa1dLbmdhVHZCMXdjcTgyYVZidmYwYjZaeFVKTQpDOTg5dzBueTFRcmxvbk1CMFc0UngySGkvMkVRaVVsWEEzVEJjMFJxbk00cGxsK2RaaGJCajZEeU1lMDJsaW1oCjA4TjA2VW9acEJhdkFsanhuTlpIK1ZET1F4clJmeEZxMjl5d2hLL0hFYkVDaHdpSWlVQk5xK0E3Uk9SSzlYNDUKdGNEZ1JTWU5YanZVQlRUU0twbz0KLS0tLS1FTkQgQ0VSVElGSUNBVEUtLS0tLQo=\n    client-key-data: LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQpNSUlFb3dJQkFBS0NBUUVBcldCTXl4RUNXZ2RieTBYRTVtc3dJRzFhb3RqY2wwaG40SEtVQlA5M1IzbnBFMEczCk50RjlLVTJuenRGYzlUb2c1K1c2VVVRcXl1aFcvWHFSWTNOMDhJMzhHR29hSUNFeXZERUVJYWY4elpSMHpKbzUKSFpoem1IYTUrVkZpR1llZ0FHMEgyU0lKd1pTY0VWNXBpOFNaZkg2UjJBTENDNXE0Ny94M2kyWWU2dG5VaUR2eQpEdnRwVWhDNlpCTnkrOEJxWkhDbVRCUXhhdFlweGM5TjRNY3JqTDZuRUlaV0NHWml3a3lFZ05TdTNmNmpSZmkvCk93RE9kVzN2R21PejVsOW9vdmNBQ2hxK0xEZGxiVXZUQ05NSmFKSWJPUnZ5SFBaMHEyZ0pma3p0dHVDZDVhMFYKb0ZoWVUyenFHUFdFamtnVFE5bUxlS0ZySGtYRmtZNWVFSWJoeXdJREFRQUJBb0lCQUZBUUFHWmwzR2dtcmNVWQoydXhzNHpTV1N4eVllSVdEOGpRN3RRNzV5ZU0vOE5ucnB1ZXhwZExGQVpFSUxaMHcwckZEN041S1ZGaVBJbHk3CmxSZ1A0UmlVK0sxdGtkTDBnYkZXRVVwWmdPeU9lY0ZpRnE0TUVKVi9makliMnVsZk1Bd0NUWFYvdW5HaVpzKysKZ1k4Qm9yOVMwNWFrNzJiY2REcWVvN1hEMnRNb01UdXBoTDhXMUFhdWFZZFZHRGFUNExFb0tBZDMxb0prOGc4NApueFRXL1lLVkIycXg4b3RWWjBYS3l3Uy9QYlJuZ3NVdGs1aUEwV1VUQWhjbERtVlhFakExSFdlVHc2NmlWbGh0CktkU2ErQnVjQitRSlA1Nno5SWxJeDk5eEtZQ3U3N0tFL3g5Tko5UTBzWE9TMXcwUEhKckVkVVpzaEUyS0dHckEKQWRoSGxvRUNnWUVBd2l6T0svM2orNjhJZURjYklEUXRJaU5NbklRT01iYXliSzFGT2xSSGRoWTdDYnM5anBDWgpvS3NDOFhiUnk2TmVDeEZzam00Z01YbWxiRTFDUkpsM2NaMnlkUXJMc1lQODk1S2NkN2trZGU5MnpPN2RxQ2JxCm8zNXNQVnVYM0MrSW43QktUYjBwdDJkMnRjUzBMVWxLTVZJbCtUKzRzd0VHZG9leW1oQ3JZbGtDZ1lFQTVKUXUKZjJtMTQwVTRLdnZJNDhTUUxQQzlnYUZSRURKUkxRNXZCYktkTVk3OVZvMHJURU1FUzAwUmlTbTYzV0RpbExiaApISVBqK3hCMEVIeUtuZGFBeFRpQUxuTjlndysyMVpJY29HTjRENWdRcHQ3NWtsNmlza1g2R0lqUWQ2RDh4T0QxCjBQeVhIc2RRT2hRenQzK3RuRXRzcHNVYnliRDhxNEVHRnNKRHVNTUNnWUJ1QUVJQVRBSEd5RDdORTdMTFNLTzAKN2podGhxWWY1YmNvdC9RNitobk52UVJQSEFMZ2EreU1SN1VRSTlid1BTbCtyYTFJOXZ4SDZ2a2E1SjNCRFF2TQprcURSaTM4Zm5uMUZwNG42alNrcG9ySXpvTEp6bXpCYjFMZnUvcCtHUG10d3c4Y2tTU0NENVJvc0dUWlZYV3FwCmpEYzAvN05idlIzek1pYXMvdnFJYVFLQmdGb3VIQ29vaXBvZnRRbEFUUUdQaTFJdnFKUjhFSDlUV3JOci9tRkIKRnNOMnBueC9OWlhnMnREYWx4Q0daakx4Qm5PbHN5cU0zbVV2R0p0b2gwZStXUTkyT3h3WWRHeEF4dUY3dzgrRApidHE0STlteUhzU2drWS9FQytlaUVwMGY1cG5HSnpWTWNsS3lUL1NhQTgxaGtoMFhwTVltL2MrVkJCcWx6TUV0CjQ0b0JBb0dCQUlwWXZXUXRoTWc0NlBaOXkxM09rVDZnbHQ2Rk5wcXRrNUVMbzhMckJkRng4RERLOG1Gd1MrdkoKS3RjMGlzYXhUNHhoeWdVaTdiYy9ST2Z1Mnk0cTFMMEJ1UkpZdmNyb1dZbHUyOTJvU213QTF1VWZtck1HdEJWYwpaQ2ppSXNIbHljL1VmR1Q3aGx3bHRZVTQyNWZIblRob0s3a1c3ZWhYYlgwOFRPdlRtbUhmCi0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg=="
+            }
+        },
+        "response": [
+            {
+                "key": "status",
+                "value": 200
+            }
+        ],
+        "debug": true
+    },
+    {
+        "id": "get_custom_cluster",
+        "name": "get clusters",
+        "request": {
+            "path": "/enterprise-server/api/v1/enterprises/{eid}/kclusters",
+            "params": [
+                {
+                    "key": "eid",
+                    "value": "1234567890"
+                }
+            ],
+            "query": {
+                "provider_name": "custom"
+            },
+            "timeout": 20
+        },
+        "response": [
+            {
+                "key": "status",
+                "value": 200
+            }
+        ],
+        "debug": true
+    },
+    {
+        "id": "get_rke_cluster",
+        "name": "get clusters",
+        "request": {
+            "path": "/enterprise-server/api/v1/enterprises/{eid}/kclusters",
+            "params": [
+                {
+                    "key": "eid",
+                    "value": "1234567890"
+                }
+            ],
+            "query": {
+                "provider_name": "rke"
+            },
+            "timeout": 20
+        },
+        "response": [
+            {
+                "key": "status",
+                "value": 200
+            }
+        ],
+        "debug": true
+    },
+    {
+        "id": "init_rainbond_cluster",
+        "name": "init rainbond cluster",
+        "request": {
+            "path": "/enterprise-server/api/v1/enterprises/{eid}/init-cluster",
+            "params": [
+                {
+                    "key": "eid",
+                    "value": "1234567890"
+                }
+            ],
+            "method": "POST",
+            "body": {
+                "providerName": "custom",
+                "clusterID": "ba173c2792ea41eeb2f33c8628d587a0",
+                "retry": true
+            }
+        },
+        "response": [
+            {
+                "key": "status",
+                "value": 200
+            }
+        ],
+        "debug": true
+    },
+    {
+        "id": "init_rainbond_cluster_status",
+        "name": "init rainbond cluster",
+        "request": {
+            "path": "/enterprise-server/api/v1/enterprises/{eid}/init-task/{clusterID}",
+            "params": [
+                {
+                    "key": "eid",
+                    "value": "1234567890"
+                },
+                {
+                    "key": "clusterID",
+                    "value": "80838452c101495ab056ee71d61e82e0"
+                }
+            ],
+            "query": {
+                "provider_name": "rke"
+            }
+        },
+        "response": [
+            {
+                "key": "status",
+                "value": 200
+            }
+        ],
+        "debug": true
+    },
+    {
+        "id": "get_init_cmd",
+        "name": "获取节点初始化命令",
+        "request": {
+            "path": "/enterprise-server/api/v1/init_node_cmd"
+        },
+        "response": [
+            {
+                "key": "status",
+                "value": 200
+            }
+        ],
+        "debug": true
+    }
+]

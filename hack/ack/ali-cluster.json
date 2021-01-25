@@ -1,0 +1,59 @@
+{
+    "name": "rainbond-cluster",
+    "cluster_type": "ManagedKubernetes",
+    "disable_rollback": true,
+    "timeout_mins": 60,
+    "kubernetes_version": "1.16.6-aliyun.1",
+    "region_id": "cn-huhehaote",
+    "snat_entry": true,
+    "cloud_monitor_flags": true,
+    "endpoint_public_access": true,
+    "deletion_protection": true,
+    "node_cidr_mask": "26",
+    "proxy_mode": "ipvs",
+    "tags": [],
+    "addons": [
+        {
+            "name": "flannel"
+        },
+        {
+            "name": "csi-plugin"
+        },
+        {
+            "name": "csi-provisioner"
+        },
+        {
+            "name": "nginx-ingress-controller",
+            "disabled": true
+        }
+    ],
+    "os_type": "Linux",
+    "platform": "CentOS",
+    "runtime": {
+        "name": "docker",
+        "version": "19.03.5"
+    },
+    "worker_instance_types": [
+        "ecs.g5.large"
+    ],
+    "num_of_nodes": 2,
+    "worker_system_disk_category": "cloud_efficiency",
+    "worker_system_disk_size": 120,
+    "worker_data_disks": [
+        {
+            "category": "cloud_efficiency",
+            "size": "200",
+            "encrypted": "false",
+            "auto_snapshot_policy_id": ""
+        }
+    ],
+    "worker_instance_charge_type": "PostPaid",
+    "vpcid": "vpc-hp3e8bnu7vwz9g60x55i5",
+    "container_cidr": "172.20.0.0/16",
+    "service_cidr": "172.21.0.0/20",
+    "vswitch_ids": [
+        "vsw-hp33r5keg2hazcqpak7pw"
+    ],
+    "login_password": "gr123465!",
+    "cpu_policy": "none"
+}
