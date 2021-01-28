@@ -21,6 +21,7 @@ package handler
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -465,7 +466,7 @@ func (e *ClusterHandler) GetInitNodeCmd(ctx *gin.Context) {
 // - application/json
 //
 // Responses:
-// 200: body:string
+// 200: body:GetLogContentRes
 func (e *ClusterHandler) GetLogContent(ctx *gin.Context) {
 	cluster, err := e.ClusterUsecase.GetCluster("rke", ctx.Param("eid"), ctx.Param("clusterID"))
 	if err != nil {
@@ -501,4 +502,36 @@ func (e *ClusterHandler) ReInstallKubernetesCluster(ctx *gin.Context) {
 		return
 	}
 	ginutil.JSON(ctx, task, nil)
+}
+
+//GetKubeConfig get kubernetes cluster config
+//
+// swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/kclusters/{clusterID}/kubeconfig cloud init
+//
+// GetRegionConfigReq
+//
+// Produces:
+// - application/json
+// Schemes: http
+// Consumes:
+// - application/json
+//
+// Responses:
+// 200: body:GetKubeConfigRes
+func (e *ClusterHandler) GetKubeConfig(ctx *gin.Context) {
+	var req v1.GetRegionConfigReq
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		logrus.Errorf("bind get rainbond region config failure %s", err.Error())
+		ginutil.JSON(ctx, nil, bcode.BadRequest)
+		return
+	}
+	kubeconfig, err := e.ClusterUsecase.GetKubeConfig(ctx.Param("eid"), ctx.Param("clusterID"), req.ProviderName)
+	if err != nil {
+		if strings.Contains(err.Error(), "record not found") {
+			ginutil.JSON(ctx, nil, bcode.NotFound)
+		}
+		ginutil.JSON(ctx, nil, err)
+		return
+	}
+	ginutil.JSON(ctx, v1.GetKubeConfigRes{Config: kubeconfig}, nil)
 }

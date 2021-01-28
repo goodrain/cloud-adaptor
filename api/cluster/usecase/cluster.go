@@ -372,6 +372,32 @@ func (c *ClusterUsecase) GetTaskRunningLists(eid string) ([]*models.InitRainbond
 	return tasks, nil
 }
 
+//GetKubeConfig get kube config file
+func (c *ClusterUsecase) GetKubeConfig(eid, clusterID, providerName string) (string, error) {
+	var ad adaptor.RainbondClusterAdaptor
+	var err error
+	if providerName != "rke" && providerName != "custom" {
+		accessKey, err := c.CloudAccessKeyRepo.GetByProviderAndEnterprise(providerName, eid)
+		if err != nil {
+			return "", bcode.ErrorNotFoundAccessKey
+		}
+		ad, err = factory.GetCloudFactory().GetRainbondClusterAdaptor(providerName, accessKey.AccessKey, accessKey.SecretKey)
+		if err != nil {
+			return "", bcode.ErrorProviderNotSupport
+		}
+	} else {
+		ad, err = factory.GetCloudFactory().GetRainbondClusterAdaptor(providerName, "", "")
+		if err != nil {
+			return "", bcode.ErrorProviderNotSupport
+		}
+	}
+	kube, err := ad.GetKubeConfig(clusterID)
+	if err != nil {
+		return "", err
+	}
+	return kube.Config, nil
+}
+
 //GetRegionConfig get region config
 func (c *ClusterUsecase) GetRegionConfig(eid, clusterID, providerName string) (map[string]string, error) {
 	var ad adaptor.RainbondClusterAdaptor

@@ -53,6 +53,7 @@ func (r *Router) NewRouter() *gin.Engine {
 	entv1.DELETE("/:eid/kclusters/:clusterID", r.ClusterHandler.DeleteKubernetesCluster)
 	entv1.POST("/:eid/kclusters/:clusterID/reinstall", r.ClusterHandler.ReInstallKubernetesCluster)
 	entv1.GET("/:eid/kclusters/:clusterID/createlog", r.ClusterHandler.GetLogContent)
+	entv1.GET("/:eid/kclusters/:clusterID/kubeconfig", r.ClusterHandler.GetKubeConfig)
 
 	entv1.POST("/:eid/accesskey", r.ClusterHandler.AddAccessKey)
 	entv1.GET("/:eid/accesskey", r.ClusterHandler.GetAccessKey)

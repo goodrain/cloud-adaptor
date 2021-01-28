@@ -162,3 +162,9 @@ type InitNodeCmdRes struct {
 type GetLogContentRes struct {
 	Content string `json:"content"`
 }
+
+//GetKubeConfigRes get kubernetes cluster kubeconfig file
+//swagger:model GetKubeConfigRes
+type GetKubeConfigRes struct {
+	Config string `json:"config"`
+}

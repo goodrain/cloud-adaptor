@@ -43,4 +43,5 @@ type Usecase interface {
 	GetRegionConfig(eid, clusterID, providerName string) (map[string]string, error)
 	UpdateInitRainbondTaskStatus(eid, taskID, status string) (*models.InitRainbondTask, error)
 	DeleteKubernetesCluster(eid, clusterID, provider string) error
+	GetKubeConfig(eid, clusterID, providerName string) (string, error)
 }
