@@ -160,6 +160,7 @@ func (c *customAdaptor) CreateCluster(v1alpha1.CreateClusterConfig) (*v1alpha1.C
 }
 
 func (c *customAdaptor) CreateRainbondKubernetes(ctx context.Context, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
+	rollback("CreateCluster", "", "success")
 	return nil
 }
 
