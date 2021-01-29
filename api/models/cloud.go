@@ -50,6 +50,17 @@ type InitRainbondTask struct {
 	Status       string `gorm:"column:status" json:"status"`
 }
 
+//UpdateKubernetesTask -
+type UpdateKubernetesTask struct {
+	Model
+	TaskID       string `gorm:"column:task_id" json:"taskID"`
+	ClusterID    string `gorm:"column:cluster_id" json:"clusterID"`
+	Provider     string `gorm:"column:provider_name" json:"providerName"`
+	NodeNumber   int    `gorm:"column:node_number" json:"nodeNumber"`
+	EnterpriseID string `gorm:"column:eid" json:"eid"`
+	Status       string `gorm:"column:status" json:"status"`
+}
+
 //TaskEvent task event
 type TaskEvent struct {
 	Model

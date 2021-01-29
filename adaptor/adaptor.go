@@ -53,6 +53,7 @@ type KubernetesClusterAdaptor interface {
 	CreateCluster(v1alpha1.CreateClusterConfig) (*v1alpha1.Cluster, error)
 	GetKubeConfig(clusterID string) (*v1alpha1.KubeConfig, error)
 	DeleteCluster(clusterID string) error
+	ExpansionNode(ctx context.Context, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster
 }
 
 //RainbondClusterAdaptor rainbond init adaptor

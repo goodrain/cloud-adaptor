@@ -119,6 +119,44 @@ func (e *ClusterHandler) AddKubernetesCluster(ctx *gin.Context) {
 	ginutil.JSON(ctx, task, nil)
 }
 
+// UpdateKubernetesCluster returns the information of .
+//
+// swagger:route POST /enterprise-server/api/v1/enterprises/{eid}/update-cluster cloud kcluster
+//
+// UpdateKubernetesReq
+//
+// Produces:
+// - application/json
+// Schemes: http
+// Consumes:
+// - application/json
+//
+// Responses:
+// 200: body:UpdateKubernetesRes
+// 400: body:Reponse
+// 500: body:Reponse
+func (e *ClusterHandler) UpdateKubernetesCluster(ctx *gin.Context) {
+	var req v1.UpdateKubernetesReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		logrus.Errorf("bind body param failure %s", err.Error())
+		ginutil.JSON(ctx, nil, bcode.BadRequest)
+		return
+	}
+	if req.Provider == "rke" {
+		if err := req.Nodes.Validate(); err != nil {
+			ginutil.JSON(ctx, nil, err)
+			return
+		}
+	}
+	eid := ctx.Param("eid")
+	task, err := e.ClusterUsecase.UpdateKubernetesCluster(eid, req)
+	if err != nil {
+		ginutil.JSON(ctx, task, err)
+		return
+	}
+	ginutil.JSON(ctx, task, nil)
+}
+
 // DeleteKubernetesCluster returns the information of .
 //
 // swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/kclusters/{clusterID} cloud kcluster
@@ -534,4 +572,48 @@ func (e *ClusterHandler) GetKubeConfig(ctx *gin.Context) {
 		return
 	}
 	ginutil.JSON(ctx, v1.GetKubeConfigRes{Config: kubeconfig}, nil)
+}
+
+// GetUpdateKubernetesTask returns the information of .
+//
+// swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/init-task/{clusterID} cloud init
+//
+// GetInitRainbondTaskReq
+//
+// Produces:
+// - application/json
+// Schemes: http
+// Consumes:
+// - application/json
+//
+// Responses:
+// 200: body:UpdateKubernetesRes
+// 400: body:Reponse
+// 500: body:Reponse
+func (e *ClusterHandler) GetUpdateKubernetesTask(ctx *gin.Context) {
+	eid := ctx.Param("eid")
+	clusterID := ctx.Param("clusterID")
+	var req v1.GetInitRainbondTaskReq
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		logrus.Errorf("bind get init rainbond task query failure %s", err.Error())
+		ginutil.JSON(ctx, nil, bcode.BadRequest)
+		return
+	}
+	task, err := e.ClusterUsecase.GetUpdateKubernetesTaskByClusterID(eid, clusterID, req.ProviderName)
+	if err != nil {
+		ginutil.JSON(ctx, nil, err)
+		return
+	}
+	var re v1.UpdateKubernetesRes
+	re.Task = task
+	if req.ProviderName == "rke" {
+		nodeList, err := e.ClusterUsecase.GetRKENodeList(eid, clusterID)
+		if err != nil {
+			ginutil.JSON(ctx, nil, err)
+			return
+		}
+		re.NodeList = nodeList
+	}
+
+	ginutil.JSON(ctx, re, nil)
 }

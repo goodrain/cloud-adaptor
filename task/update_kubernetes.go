@@ -27,13 +27,13 @@ import (
 	"goodrain.com/cloud-adaptor/adaptor/v1alpha1"
 )
 
-//CreateKubernetesCluster create cluster
-type CreateKubernetesCluster struct {
-	config *v1alpha1.KubernetesClusterConfig
+//UpdateKubernetesCluster update cluster
+type UpdateKubernetesCluster struct {
+	config *v1alpha1.ExpansionNode
 	result chan Message
 }
 
-func (c *CreateKubernetesCluster) rollback(step, message, status string) {
+func (c *UpdateKubernetesCluster) rollback(step, message, status string) {
 	if status == "failure" {
 		logrus.Errorf("%s failure, Message: %s", step, message)
 	}
@@ -41,7 +41,7 @@ func (c *CreateKubernetesCluster) rollback(step, message, status string) {
 }
 
 //Run run
-func (c *CreateKubernetesCluster) Run(ctx context.Context) {
+func (c *UpdateKubernetesCluster) Run(ctx context.Context) {
 	defer c.rollback("Close", "", "")
 	c.rollback("Init", "", "start")
 	// create adaptor
@@ -51,11 +51,11 @@ func (c *CreateKubernetesCluster) Run(ctx context.Context) {
 		return
 	}
 	c.rollback("Init", "cloud adaptor create success", "success")
-	// create cluster
-	adaptor.CreateRainbondKubernetes(ctx, c.config, c.rollback)
+	// update cluster
+	adaptor.ExpansionNode(ctx, c.config, c.rollback)
 }
 
 //GetChan get message chan
-func (c *CreateKubernetesCluster) GetChan() chan Message {
+func (c *UpdateKubernetesCluster) GetChan() chan Message {
 	return c.result
 }

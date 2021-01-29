@@ -18,3 +18,9 @@ type CreateKubernetesTaskHandler interface {
 	HandleMsg(ctx context.Context, createConfig task.KubernetesConfigMessage) error
 	HandleMessage(m *nsq.Message) error
 }
+
+//UpdateKubernetesTaskHandler -
+type UpdateKubernetesTaskHandler interface {
+	HandleMsg(ctx context.Context, createConfig task.UpdateKubernetesConfigMessage) error
+	HandleMessage(m *nsq.Message) error
+}

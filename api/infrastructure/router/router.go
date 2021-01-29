@@ -65,5 +65,7 @@ func (r *Router) NewRouter() *gin.Engine {
 	entv1.POST("/:eid/init-cluster", r.ClusterHandler.CreateInitRainbondTask)
 	entv1.PUT("/:eid/init-tasks/:taskID/status", r.ClusterHandler.UpdateInitRainbondTaskStatus)
 
+	entv1.POST("/:eid/update-cluster", r.ClusterHandler.UpdateKubernetesCluster)
+	entv1.GET("/:eid/update-cluster/:clusterID", r.ClusterHandler.GetUpdateKubernetesTask)
 	return e
 }

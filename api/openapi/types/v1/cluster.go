@@ -70,10 +70,30 @@ type CreateKubernetesReq struct {
 	KubeConfig string `json:"kubeconfig,omitempty"`
 }
 
+//UpdateKubernetesReq update kubernetes req
+//swagger:model UpdateKubernetesReq
+type UpdateKubernetesReq struct {
+	Provider           string            `json:"provider"`
+	ClusterID          string            `json:"clusterID"`
+	Nodes              v1alpha1.NodeList `json:"nodes,omitempty"`
+	WorkerResourceType string            `json:"workerResourceType,omitempty"`
+	WorkerNodeNum      int               `json:"workerNum,omitempty"`
+	MasterNodeNum      int               `json:"masterNodeNum,omitempty"`
+	ETCDNodeNum        int               `json:"etcdNodeNum,omitempty"`
+	InstanceType       string            `json:"instanceType,omitempty"`
+}
+
 //CreateKubernetesRes create kubernetes res
 //swagger:model CreateKubernetesRes
 type CreateKubernetesRes struct {
 	models.CreateKubernetesTask
+}
+
+//UpdateKubernetesRes create kubernetes res
+//swagger:model UpdateKubernetesRes
+type UpdateKubernetesRes struct {
+	Task     *models.UpdateKubernetesTask `json:"task"`
+	NodeList v1alpha1.NodeList            `json:"nodeList"`
 }
 
 //GetLastCreateKubernetesClusterTaskReq get last create kubernetes task

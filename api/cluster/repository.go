@@ -45,6 +45,14 @@ type InitRainbondTaskRepository interface {
 	GetTaskRunningLists(eid string) ([]*models.InitRainbondTask, error)
 }
 
+//UpdateKubernetesTaskRepository -
+type UpdateKubernetesTaskRepository interface {
+	Create(ent *models.UpdateKubernetesTask) error
+	GetTaskByClusterID(eid string, providerName, clusterID string) (*models.UpdateKubernetesTask, error)
+	UpdateStatus(eid string, taskID string, status string) error
+	GetTask(eid string, taskID string) (*models.UpdateKubernetesTask, error)
+}
+
 //TaskEventRepository task event
 type TaskEventRepository interface {
 	Create(ent *models.TaskEvent) error

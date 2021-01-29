@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"goodrain.com/cloud-adaptor/adaptor/v1alpha1"
+	"goodrain.com/cloud-adaptor/api/infrastructure/datastore"
 )
 
 func TestCreateCluster(t *testing.T) {
@@ -30,4 +31,25 @@ func TestCreateCluster(t *testing.T) {
 	// 	},
 	// })
 	// rke.CreateCluster(config)
+}
+
+func TestExpansionNode(t *testing.T) {
+	rke := &rkeAdaptor{
+		Repo: NewRKEClusterRepo(datastore.NewDB()),
+	}
+	rke.ExpansionNode(context.TODO(), &v1alpha1.ExpansionNode{
+		ClusterID: "local-104",
+		Nodes: v1alpha1.NodeList{
+			{
+				IP:    "192.168.56.104",
+				Roles: []string{"controlplane", "etcd", "worker"},
+			},
+			{
+				IP:    "192.168.56.103",
+				Roles: []string{"controlplane", "worker"},
+			},
+		},
+	}, func(step, message, status string) {
+		fmt.Printf("%s\t%s\t%s\n", step, message, status)
+	})
 }

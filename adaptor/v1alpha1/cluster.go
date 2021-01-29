@@ -257,10 +257,10 @@ func (n NodeList) Validate() error {
 type ConfigNode struct {
 	IP               string   `json:"ip"`
 	InternalAddress  string   `json:"internalIP,omitempty"`
-	SSHUser          string   `json:"ssh_user"`
-	SSHPort          int      `json:"ssh_port"`
-	DockerSocketPath string   `json:"docker_socket_path"`
-	Roles            []string `json:"roles"`
+	SSHUser          string   `json:"sshUser,omitempty"`
+	SSHPort          int      `json:"sshPort,omitempty"`
+	DockerSocketPath string   `json:"dockerSocketPath,omitempty"`
+	Roles            []string `json:"roles,omitempty"`
 }
 
 //ClusterType 集群类型
@@ -521,4 +521,19 @@ type AvailableResourceZone struct {
 	Status         string `json:"status"`
 	StatusCategory string `json:"statusCategory"`
 	ZoneID         string `json:"zoneID"`
+}
+
+//ExpansionNode expansion node
+type ExpansionNode struct {
+	Provider           string   `json:"provider"`
+	AccessKey          string   `json:"accessKey"`
+	SecretKey          string   `json:"secretKey"`
+	ClusterID          string   `json:"clusterID"`
+	Nodes              NodeList `json:"nodes,omitempty"`
+	WorkerResourceType string   `json:"workerResourceType,omitempty"`
+	WorkerNodeNum      int      `json:"workerNum,omitempty"`
+	MasterNodeNum      int      `json:"masterNodeNum,omitempty"`
+	ETCDNodeNum        int      `json:"etcdNodeNum,omitempty"`
+	InstanceType       string   `json:"instanceType,omitempty"`
+	DockerVersion      string   `json:"dockerVersion,omitempty"`
 }

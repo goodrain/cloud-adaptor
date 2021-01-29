@@ -35,6 +35,7 @@ import (
 type TaskProducer interface {
 	Start() error
 	SendCreateKuerbetesTask(config task.KubernetesConfigMessage) error
+	SendUpdateKuerbetesTask(config task.UpdateKubernetesConfigMessage) error
 	SendInitRainbondRegionTask(config task.InitRainbondConfigMessage) error
 	Stop()
 }
@@ -87,6 +88,10 @@ func (m *taskProducer) SendCreateKuerbetesTask(config task.KubernetesConfigMessa
 //SendInitRainbondRegionTask send init rainbond region task
 func (m *taskProducer) SendInitRainbondRegionTask(config task.InitRainbondConfigMessage) error {
 	return m.sendTask(constants.CloudInit, config)
+}
+
+func (m *taskProducer) SendUpdateKuerbetesTask(config task.UpdateKubernetesConfigMessage) error {
+	return m.sendTask(constants.CloudUpdate, config)
 }
 
 //Stop stop

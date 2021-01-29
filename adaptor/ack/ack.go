@@ -830,3 +830,7 @@ func (a *ackAdaptor) GetRainbondInitConfig(cluster *v1alpha1.Cluster, gateway, c
 func (a *ackAdaptor) DeleteCluster(clusterID string) error {
 	return nil
 }
+
+func (a *ackAdaptor) ExpansionNode(ctx context.Context, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
+	return nil
+}

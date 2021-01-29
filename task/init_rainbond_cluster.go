@@ -61,6 +61,7 @@ func (c *InitRainbondCluster) rollback(step, message, status string) {
 //Run run take time 214.10s
 func (c *InitRainbondCluster) Run(ctx context.Context) {
 	defer c.rollback("Close", "", "")
+	c.rollback("Init", "", "start")
 	// create adaptor
 	adaptor, err := factory.GetCloudFactory().GetRainbondClusterAdaptor(c.config.Provider, c.config.AccessKey, c.config.SecretKey)
 	if err != nil {

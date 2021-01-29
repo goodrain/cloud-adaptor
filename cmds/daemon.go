@@ -80,18 +80,19 @@ func runDaemon(ctx *cli.Context) error {
 
 	createChan := make(chan task.KubernetesConfigMessage, 10)
 	initChan := make(chan task.InitRainbondConfigMessage, 10)
-
+	updateChan := make(chan task.UpdateKubernetesConfigMessage, 10)
 	var taskProducer producer.TaskProducer
 	if os.Getenv("QUEUE_TYPE") == "nsq" {
 		taskProducer = producer.NewTaskProducer()
 		taskProducer.Start()
 	} else {
-		taskProducer = producer.NewTaskChannelProducer(createChan, initChan)
+		taskProducer = producer.NewTaskChannelProducer(createChan, initChan, updateChan)
 	}
 
 	clusterUsecase := clustersvc.NewClusterUsecase(taskProducer)
 	createKubernetesTaskHandler := NewCreateKubernetesTaskHandler(clusterUsecase)
 	cloudInitTaskHandler := NewCloudInitTaskHandler(clusterUsecase)
+	cloudUpdateTaskHandler := NewCloudUpdateTaskHandler(clusterUsecase)
 	graph, err := initObj(daemonCtx, db, taskProducer, clusterUsecase)
 	if err != nil {
 		log.Fatal(err)
@@ -101,7 +102,8 @@ func runDaemon(ctx *cli.Context) error {
 		msgConsumer := nsqc.NewTaskConsumer(config.C, createKubernetesTaskHandler, cloudInitTaskHandler)
 		go msgConsumer.Start()
 	} else {
-		msgConsumer := nsqc.NewTaskChannelConsumer(daemonCtx, createChan, initChan, createKubernetesTaskHandler, cloudInitTaskHandler)
+		msgConsumer := nsqc.NewTaskChannelConsumer(daemonCtx, createChan, initChan, updateChan,
+			createKubernetesTaskHandler, cloudInitTaskHandler, cloudUpdateTaskHandler)
 		go msgConsumer.Start()
 	}
 
@@ -142,6 +144,7 @@ func initObj(ctx context.Context, db *gorm.DB, taskProducer, clusterUsecase inte
 		&inject.Object{Value: clusterrepo.NewCloudAccessKeyRepo(nil)},
 		&inject.Object{Value: clusterrepo.NewCreateKubernetesTaskRepo(nil)},
 		&inject.Object{Value: clusterrepo.NewInitRainbondRegionTaskRepo(nil)},
+		&inject.Object{Value: clusterrepo.NewUpdateKubernetesTaskRepo(nil)},
 		&inject.Object{Value: clusterrepo.NewTaskEventRepo(nil)},
 		// openapi
 		&inject.Object{Value: openapihdl.NewClusterHandler()},

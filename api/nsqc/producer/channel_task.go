@@ -9,13 +9,15 @@ import (
 type taskChannelProducer struct {
 	createQueue chan task.KubernetesConfigMessage
 	initQueue   chan task.InitRainbondConfigMessage
+	updateQueue chan task.UpdateKubernetesConfigMessage
 }
 
 //NewTaskChannelProducer new task channel producer
-func NewTaskChannelProducer(createQueue chan task.KubernetesConfigMessage, initQueue chan task.InitRainbondConfigMessage) TaskProducer {
+func NewTaskChannelProducer(createQueue chan task.KubernetesConfigMessage, initQueue chan task.InitRainbondConfigMessage, updateQueue chan task.UpdateKubernetesConfigMessage) TaskProducer {
 	return &taskChannelProducer{
 		createQueue: createQueue,
 		initQueue:   initQueue,
+		updateQueue: updateQueue,
 	}
 }
 
@@ -32,6 +34,9 @@ func (c *taskChannelProducer) sendTask(topicName string, taskConfig interface{})
 	if topicName == constants.CloudInit {
 		c.initQueue <- taskConfig.(task.InitRainbondConfigMessage)
 	}
+	if topicName == constants.CloudUpdate {
+		c.updateQueue <- taskConfig.(task.UpdateKubernetesConfigMessage)
+	}
 	return nil
 }
 
@@ -43,6 +48,9 @@ func (c *taskChannelProducer) SendCreateKuerbetesTask(config task.KubernetesConf
 //SendInitRainbondRegionTask send init rainbond region task
 func (c *taskChannelProducer) SendInitRainbondRegionTask(config task.InitRainbondConfigMessage) error {
 	return c.sendTask(constants.CloudInit, config)
+}
+func (c *taskChannelProducer) SendUpdateKuerbetesTask(config task.UpdateKubernetesConfigMessage) error {
+	return c.sendTask(constants.CloudUpdate, config)
 }
 
 //Stop stop

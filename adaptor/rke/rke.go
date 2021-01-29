@@ -234,7 +234,7 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, config *v1alp
 	rollback("InitClusterConfig", filePath, "success")
 
 	// cluster install and up
-	rollback("InstallKubernetes", filePath, "start")
+	rollback("InstallKubernetes", "", "start")
 	APIURL, _, _, _, configs, err := r.ClusterUp(ctx, hosts.DialersOptions{}, flags, map[string]interface{}{})
 	if err != nil {
 		rkecluster.Stats = v1alpha1.InstallFailed
@@ -522,42 +522,124 @@ func (r *rkeAdaptor) GetKubeConfig(clusterID string) (*v1alpha1.KubeConfig, erro
 	return &v1alpha1.KubeConfig{Config: rkecluster.KubeConfig}, nil
 }
 
-func (r *rkeAdaptor) VPCList(regionID string) ([]*v1alpha1.VPC, error) {
-	return nil, nil
-}
+func (r *rkeAdaptor) ExpansionNode(ctx context.Context, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
+	//Check cluster local state file, if not exist, not support expansion node
+	rollback("InitClusterConfig", "", "start")
+	rkecluster, err := r.Repo.GetCluster(en.ClusterID)
+	if err != nil {
+		logrus.Errorf("get cluster meta info failure %s", err.Error())
+		rollback("InitClusterConfig", "Get cluster meta info failure", "failure")
+		return nil
+	}
+	configDir := "/tmp"
+	if os.Getenv("CONFIG_DIR") != "" {
+		configDir = os.Getenv("CONFIG_DIR")
+	}
+	clusterStatPath := fmt.Sprintf("%s/rke/%s", configDir, rkecluster.Name)
 
-func (r *rkeAdaptor) CreateVPC(v *v1alpha1.VPC) error {
-	return nil
-}
+	os.MkdirAll(clusterStatPath, 0755)
+	var rkeConfig v3.RancherKubernetesEngineConfig
+	filePath := fmt.Sprintf("%s/cluster.yml", clusterStatPath)
+	configFileByte, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		logrus.Errorf("read cluster %s config file failure %s ", en.ClusterID, err.Error())
+		rollback("InitClusterConfig", "can not parse cluster config file", "failure")
+		return nil
+	}
+	err = yaml.Unmarshal(configFileByte, &rkeConfig)
+	if err != nil {
+		logrus.Errorf("read cluster %s config file failure %s ", en.ClusterID, err.Error())
+		rollback("InitClusterConfig", "can not parse cluster config file", "failure")
+		return nil
+	}
+	clusterStatFile := fmt.Sprintf("%s/rke/%s/cluster.rkestate", configDir, rkecluster.Name)
+	_, err = os.Stat(clusterStatFile)
+	if err != nil {
+		logrus.Errorf("read cluster %s state file failure %s ", en.ClusterID, err.Error())
+		rollback("InitClusterConfig", "state file not exist, can not support expansion node", "failure")
+		return nil
+	}
+	//generate new cluster config file
+	var nodeMaps = make(map[string]v3.RKEConfigNode, len(en.Nodes))
+	for _, node := range en.Nodes {
+		nodeMaps[node.IP] = v3.RKEConfigNode{
+			NodeName: "",
+			Address:  node.IP,
+			Port: func() string {
+				if node.SSHPort != 0 {
+					return fmt.Sprintf("%d", node.SSHPort)
+				}
+				return "22"
+			}(),
+			DockerSocket: node.DockerSocketPath,
+			User: func() string {
+				if node.SSHUser != "" {
+					return node.SSHUser
+				}
+				return "docker"
+			}(),
+			SSHKeyPath:      "~/.ssh/id_rsa",
+			Role:            node.Roles,
+			InternalAddress: node.InternalAddress,
+		}
+	}
+	rkeConfig.Nodes = func() []v3.RKEConfigNode {
+		var nodes []v3.RKEConfigNode
+		for k := range nodeMaps {
+			nodes = append(nodes, nodeMaps[k])
+		}
+		return nodes
+	}()
+	if err := os.Rename(filePath, filePath+".bak"); err != nil {
+		rollback("InitClusterConfig", err.Error(), "failure")
+		logrus.Errorf("move old cluster config file failure %s", err.Error())
+		return nil
+	}
+	out, _ := yaml.Marshal(rkeConfig)
+	if err := ioutil.WriteFile(filePath, out, 0755); err != nil {
+		rollback("InitClusterConfig", err.Error(), "failure")
+		logrus.Errorf("write rke cluster config file failure %s", err.Error())
+		os.Rename(filePath+".bak", filePath)
+		return nil
+	}
+	// set install log out
+	logPath := fmt.Sprintf("%s/create.log", clusterStatPath)
+	// svae old log
+	os.Rename(logPath, logPath+"."+time.Now().Format(time.RFC3339))
+	writer, err := os.OpenFile(logPath, os.O_WRONLY|os.O_CREATE, 0755)
+	if err != nil {
+		logrus.Errorf("open create cluster log file %s failure %s", logPath, err.Error())
+	}
+	logger := logrus.New()
+	if writer != nil {
+		defer writer.Close()
+		logger.Out = writer
+	}
+	ctx = log.SetLogger(ctx, logger)
 
-func (r *rkeAdaptor) DeleteVPC(regionID, vpcID string) error {
-	return nil
-}
+	//up cluster
+	flags := cluster.GetExternalFlags(false, false, false, false, "", filePath)
+	if err := cmd.ClusterInit(ctx, &rkeConfig, hosts.DialersOptions{}, flags); err != nil {
+		rollback("InitClusterConfig", err.Error(), "failure")
+		return nil
+	}
+	rollback("InitClusterConfig", "", "success")
 
-func (r *rkeAdaptor) DescribeVPC(regionID, vpcID string) (*v1alpha1.VPC, error) {
-	return nil, nil
-}
-
-func (r *rkeAdaptor) CreateVSwitch(v *v1alpha1.VSwitch) error {
-	return nil
-}
-
-func (r *rkeAdaptor) DescribeVSwitch(regionID, vswitchID string) (*v1alpha1.VSwitch, error) {
-	return nil, nil
-}
-
-func (r *rkeAdaptor) DeleteVSwitch(regionID, vswitchID string) error {
-	return nil
-}
-
-func (r *rkeAdaptor) ListZones(regionID string) ([]*v1alpha1.Zone, error) {
-	return nil, nil
-}
-
-func (r *rkeAdaptor) ListInstanceType(regionID string) ([]*v1alpha1.InstanceType, error) {
-	return nil, nil
-}
-
-func (r *rkeAdaptor) CreateDB(db *v1alpha1.Database) error {
-	return nil
+	// cluster install and up
+	rollback("UpdateKubernetes", filePath, "start")
+	_, _, _, _, _, err = r.ClusterUp(ctx, hosts.DialersOptions{}, flags, map[string]interface{}{})
+	if err != nil {
+		rollback("UpdateKubernetes", err.Error(), "failure")
+		return nil
+	}
+	nodeList, _ := json.Marshal(en.Nodes)
+	rkecluster.NodeList = string(nodeList)
+	if err := r.Repo.Update(rkecluster); err != nil {
+		logrus.Errorf("update rke cluster node failure %s", err.Error())
+		rollback("UpdateKubernetes", "update cluster meta info failure", "failure")
+		return nil
+	}
+	rollback("UpdateKubernetes", "", "success")
+	clu, _ := r.DescribeCluster(rkecluster.ClusterID)
+	return clu
 }

@@ -12,18 +12,30 @@ type taskChannelConsumer struct {
 	ctx                         context.Context
 	createQueue                 chan task.KubernetesConfigMessage
 	initQueue                   chan task.InitRainbondConfigMessage
+	updateQueue                 chan task.UpdateKubernetesConfigMessage
 	createKubernetesTaskHandler handler.CreateKubernetesTaskHandler
 	cloudInitTaskHandler        handler.CloudInitTaskHandler
+	cloudUpdateTaskHandler      handler.UpdateKubernetesTaskHandler
 }
 
 // NewTaskChannelConsumer creates a new consumer.
-func NewTaskChannelConsumer(ctx context.Context, createQueue chan task.KubernetesConfigMessage, initQueue chan task.InitRainbondConfigMessage, createHandler handler.CreateKubernetesTaskHandler, initHandler handler.CloudInitTaskHandler) TaskConsumer {
+func NewTaskChannelConsumer(
+	ctx context.Context,
+	createQueue chan task.KubernetesConfigMessage,
+	initQueue chan task.InitRainbondConfigMessage,
+	updateQueue chan task.UpdateKubernetesConfigMessage,
+	createHandler handler.CreateKubernetesTaskHandler,
+	initHandler handler.CloudInitTaskHandler,
+	cloudUpdateTaskHandler handler.UpdateKubernetesTaskHandler,
+) TaskConsumer {
 	return &taskChannelConsumer{
 		ctx:                         ctx,
 		createQueue:                 createQueue,
 		initQueue:                   initQueue,
+		updateQueue:                 updateQueue,
 		createKubernetesTaskHandler: createHandler,
 		cloudInitTaskHandler:        initHandler,
+		cloudUpdateTaskHandler:      cloudUpdateTaskHandler,
 	}
 }
 
@@ -37,6 +49,8 @@ func (c *taskChannelConsumer) Start() error {
 			c.createKubernetesTaskHandler.HandleMsg(c.ctx, createMsg)
 		case initMsg := <-c.initQueue:
 			c.cloudInitTaskHandler.HandleMsg(c.ctx, initMsg)
+		case updateMsg := <-c.updateQueue:
+			c.cloudUpdateTaskHandler.HandleMsg(c.ctx, updateMsg)
 		}
 	}
 }

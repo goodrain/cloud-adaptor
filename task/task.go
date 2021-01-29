@@ -39,6 +39,13 @@ type KubernetesConfigMessage struct {
 	KubernetesConfig *v1alpha1.KubernetesClusterConfig `json:"kubernetes_config,omitempty"`
 }
 
+//UpdateKubernetesConfigMessage -
+type UpdateKubernetesConfigMessage struct {
+	EnterpriseID string                  `json:"enterprise_id,omitempty"`
+	TaskID       string                  `json:"task_id,omitempty"`
+	Config       *v1alpha1.ExpansionNode `json:"config,omitempty"`
+}
+
 //InitRainbondConfigMessage nsq message
 type InitRainbondConfigMessage struct {
 	EnterpriseID       string              `json:"enterprise_id,omitempty"`
@@ -57,6 +64,15 @@ func (i InitRainbondConfigMessage) GetEvent(m *Message) EventMessage {
 
 //GetEvent get event
 func (i KubernetesConfigMessage) GetEvent(m *Message) EventMessage {
+	return EventMessage{
+		EnterpriseID: i.EnterpriseID,
+		TaskID:       i.TaskID,
+		Message:      m,
+	}
+}
+
+//GetEvent get event
+func (i UpdateKubernetesConfigMessage) GetEvent(m *Message) EventMessage {
 	return EventMessage{
 		EnterpriseID: i.EnterpriseID,
 		TaskID:       i.TaskID,
@@ -90,6 +106,9 @@ type Type string
 //CreateKubernetesTask create kubernetes task
 var CreateKubernetesTask Type = "create_kubernetes"
 
+//UpdateKubernetesTask update kubernetes task
+var UpdateKubernetesTask Type = "update_kubernetes"
+
 //InitRainbondClusterTask init rainbond cluster task
 var InitRainbondClusterTask Type = "init_rainbond_cluster"
 
@@ -108,6 +127,12 @@ func CreateTask(taskType Type, config interface{}) (Task, error) {
 			return nil, fmt.Errorf("config must be *InitRainbondConfig")
 		}
 		return &InitRainbondCluster{result: make(chan Message, 10), config: cconfig}, nil
+	case UpdateKubernetesTask:
+		cconfig, ok := config.(*v1alpha1.ExpansionNode)
+		if !ok {
+			return nil, fmt.Errorf("config must be *v1alpha1.ExpansionNode")
+		}
+		return &UpdateKubernetesCluster{result: make(chan Message, 10), config: cconfig}, nil
 	}
 	return nil, fmt.Errorf("task type not support")
 }

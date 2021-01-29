@@ -11,4 +11,6 @@ const (
 	CloudInit = "cloud-init"
 	// CloudCreate Cloud resource create constant
 	CloudCreate = "cloud-create"
+	// CloudUpdate -
+	CloudUpdate = "cloud-update"
 )

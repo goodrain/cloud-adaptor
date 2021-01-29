@@ -52,4 +52,7 @@ var (
 	ErrClusterNotAllowDelete = newByMessage(400, 7015, "cluster can not be delete")
 	//ErrNotSupportReInstall -
 	ErrNotSupportReInstall = newByMessage(400, 7016, "cluster can not support reinstall")
+
+	//ErrNotSupportUpdateKubernetes -
+	ErrNotSupportUpdateKubernetes = newByMessage(400, 7017, "cluster can not support update kubernetes")
 )

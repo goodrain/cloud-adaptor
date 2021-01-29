@@ -162,3 +162,7 @@ func (c *customAdaptor) CreateCluster(v1alpha1.CreateClusterConfig) (*v1alpha1.C
 func (c *customAdaptor) CreateRainbondKubernetes(ctx context.Context, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	return nil
 }
+
+func (c *customAdaptor) ExpansionNode(ctx context.Context, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
+	return nil
+}

@@ -166,3 +166,7 @@ func (t *tkeAdaptor) CreateRainbondKubernetes(ctx context.Context, config *v1alp
 func (t *tkeAdaptor) GetRainbondInitConfig(cluster *v1alpha1.Cluster, gateway, chaos []*rainbondv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.RainbondInitConfig {
 	return nil
 }
+
+func (t *tkeAdaptor) ExpansionNode(ctx context.Context, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
+	return nil
+}

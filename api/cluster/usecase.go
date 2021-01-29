@@ -44,4 +44,7 @@ type Usecase interface {
 	UpdateInitRainbondTaskStatus(eid, taskID, status string) (*models.InitRainbondTask, error)
 	DeleteKubernetesCluster(eid, clusterID, provider string) error
 	GetKubeConfig(eid, clusterID, providerName string) (string, error)
+	UpdateKubernetesCluster(eid string, req v1.UpdateKubernetesReq) (*models.UpdateKubernetesTask, error)
+	GetUpdateKubernetesTaskByClusterID(eid, clusterID, providerName string) (*models.UpdateKubernetesTask, error)
+	GetRKENodeList(eid, clusterID string) (v1alpha1.NodeList, error)
 }
