@@ -54,7 +54,10 @@ func GetDefaultRKECreateClusterConfig(config KubernetesClusterConfig) CreateClus
 		networkMode = config.NetworkMode
 	}
 	var rkeConfig = &v3.RancherKubernetesEngineConfig{
-		ClusterName: config.ClusterName,
+		//default 45, Depending on network and node configuration factors, the startup time may be long.
+		//so, We need to expand the timeout to 5 minutes
+		AddonJobTimeout: 60 * 5,
+		ClusterName:     config.ClusterName,
 		Nodes: func() []v3.RKEConfigNode {
 			var nodes []v3.RKEConfigNode
 			for k := range nodeMaps {

@@ -166,8 +166,11 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, config *v1alp
 	clusterStatPath := fmt.Sprintf("%s/rke/%s", configDir, config.ClusterName)
 
 	if rkecluster.Stats == v1alpha1.InstallFailed {
+		//TODO: This action will result in an inconsistency with the configuration of the node
+		// if the configuration such as the SSL certificate has been passed to the node.
+
 		// clear local state data
-		os.RemoveAll(clusterStatPath)
+		// os.RemoveAll(clusterStatPath)
 		rkecluster.Stats = v1alpha1.InitState
 		if err := r.Repo.Update(rkecluster); err != nil {
 			logrus.Errorf("update rke cluster %s state failure %s", rkecluster.Name, err.Error())
