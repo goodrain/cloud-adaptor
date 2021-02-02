@@ -75,8 +75,10 @@ func GetOrMakeSSHRSA() (string, error) {
 	home := homedir.HomeDir()
 	idRsaPath := path.Join(home, ".ssh", "id_rsa")
 	idRsaPubPath := path.Join(home, ".ssh", "id_rsa.pub")
-	_, err := os.Stat(idRsaPubPath)
-	if os.IsNotExist(err) {
+	stat, err := os.Stat(idRsaPubPath)
+	if os.IsNotExist(err) || stat.IsDir() {
+		os.Remove(idRsaPath)
+		os.Remove(idRsaPubPath)
 		private, pub, err := MakeSSHKeyPair()
 		if err != nil {
 			return "", fmt.Errorf("create ssh rsa failure %s", err.Error())
