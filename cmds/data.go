@@ -13,7 +13,7 @@ import (
 var dataCommand = &cli.Command{
 	Name: "data",
 	Subcommands: []*cli.Command{
-		&cli.Command{
+		{
 			Name: "export",
 			Flags: append(dbInfoFlag,
 				&cli.StringFlag{
@@ -25,7 +25,7 @@ var dataCommand = &cli.Command{
 			Action: exportData,
 			Usage:  "export adaptor all data",
 		},
-		&cli.Command{
+		{
 			Name: "import",
 			Flags: append(dbInfoFlag,
 				&cli.StringFlag{
@@ -45,7 +45,7 @@ func exportData(ctx *cli.Context) error {
 	db := datastore.NewDB()
 	defer func() { _ = db.Close() }()
 
-	var result models.ListModelData
+	var result models.BackupListModelData
 	db.Table(db.NewScope(&models.CloudAccessKey{}).TableName()).Scan(&result.CloudAccessKeys)
 	db.Table(db.NewScope(&models.CreateKubernetesTask{}).TableName()).Scan(&result.CreateKubernetesTasks)
 	db.Table(db.NewScope(&models.InitRainbondTask{}).TableName()).Scan(&result.InitRainbondTasks)
@@ -71,7 +71,7 @@ func importData(ctx *cli.Context) error {
 		return cli.Exit(err, 1)
 	}
 
-	var data models.ListModelData
+	var data models.BackupListModelData
 	err = json.Unmarshal(bytes, &data)
 	if err != nil {
 		return cli.Exit(err, 1)

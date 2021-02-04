@@ -12,6 +12,7 @@ import (
 type Router struct {
 	Config         *config.Config        `inject:""`
 	ClusterHandler *oahan.ClusterHandler `inject:""`
+	SystemHandler  *oahan.SystemHandler  `inject:""`
 }
 
 // New creates a new router.
@@ -44,6 +45,8 @@ func (r *Router) NewRouter() *gin.Engine {
 	g := e.Group(constants.Service)
 	// openapi
 	apiv1 := g.Group("/api/v1")
+	apiv1.GET("/backup", r.SystemHandler.Backup)
+	apiv1.POST("/recover", r.SystemHandler.Recover)
 	apiv1.GET("/init_node_cmd", r.ClusterHandler.GetInitNodeCmd)
 	entv1 := apiv1.Group("/enterprises")
 	// cluster
