@@ -79,6 +79,10 @@ func (s SystemHandler) Backup(ctx *gin.Context) {
 		configDir = os.Getenv("CONFIG_DIR")
 	}
 	rkeDir := path.Join(configDir, "rke")
+	_, err = os.Stat(rkeDir)
+	if err != nil {
+		os.MkdirAll(rkeDir, 0755)
+	}
 	tarPackgeFile := path.Join(backupTmpPath, "rke.tar.gz")
 	cmd := exec.Command("tar", "-czf", tarPackgeFile, "./")
 	cmd.Dir = rkeDir
