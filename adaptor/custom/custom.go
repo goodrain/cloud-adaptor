@@ -150,6 +150,9 @@ func (c *customAdaptor) GetRainbondInitConfig(cluster *v1alpha1.Cluster, gateway
 					re = append(re, n.InternalIP)
 				}
 			}
+			if len(re) == 0 {
+				re = append(re, kubeAPIHOST)
+			}
 			return
 		}(),
 	}
