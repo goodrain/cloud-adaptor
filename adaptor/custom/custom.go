@@ -3,8 +3,6 @@ package custom
 import (
 	"context"
 	"fmt"
-	"net"
-	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -16,6 +14,7 @@ import (
 	"goodrain.com/cloud-adaptor/api/infrastructure/datastore"
 	"goodrain.com/cloud-adaptor/api/models"
 	"goodrain.com/cloud-adaptor/library/bcode"
+	"goodrain.com/cloud-adaptor/util"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -134,14 +133,7 @@ func (c *customAdaptor) GetRainbondInitConfig(cluster *v1alpha1.Cluster, gateway
 				return cluster.EIP
 			}
 			// Preferably use the IP address of KubeAPI as the EIP
-			var kubeAPIHOST = ""
-			url, _ := url.Parse(cluster.MasterURL.APIServerEndpoint)
-			if url != nil {
-				kubeAPIIP := net.ParseIP(url.Host)
-				if kubeAPIIP != nil {
-					kubeAPIHOST = url.Host
-				}
-			}
+			kubeAPIHOST := util.GetIPByURL(cluster.MasterURL.APIServerEndpoint)
 			for _, n := range gateway {
 				if n.ExternalIP != "" {
 					re = append(re, n.ExternalIP)
@@ -150,7 +142,7 @@ func (c *customAdaptor) GetRainbondInitConfig(cluster *v1alpha1.Cluster, gateway
 					re = append(re, n.InternalIP)
 				}
 			}
-			if len(re) == 0 {
+			if len(re) == 0 && kubeAPIHOST != "" {
 				re = append(re, kubeAPIHOST)
 			}
 			return

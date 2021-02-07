@@ -20,6 +20,9 @@ package util
 
 import (
 	"math/rand"
+	"net"
+	"net/url"
+	"strings"
 	"time"
 )
 
@@ -37,4 +40,20 @@ func RandString(len int) string {
 		bytes[i] = byte(b)
 	}
 	return string(bytes)
+}
+
+//GetIPByURL get ip by url
+func GetIPByURL(u string) string {
+	url, _ := url.Parse(u)
+	if url != nil {
+		hostIP := strings.Split(url.Host, ":")
+		var ip string
+		if len(hostIP) > 0 {
+			ip = hostIP[0]
+		}
+		if net.ParseIP(ip) != nil {
+			return ip
+		}
+	}
+	return ""
 }
