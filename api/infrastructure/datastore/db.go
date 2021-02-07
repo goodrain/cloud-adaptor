@@ -13,6 +13,7 @@ import (
 	"github.com/go-sql-driver/mysql"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"github.com/sirupsen/logrus"
 )
 
 var databaseType = "sqlite3"
@@ -33,6 +34,7 @@ func init() {
 
 // NewDB creates a new gorm.DB
 func NewDB() *gorm.DB {
+	var db *gorm.DB
 	if databaseType == "mysql" {
 		mySQLConfig := &mysql.Config{
 			User:                 config.C.DB.User,
@@ -44,18 +46,26 @@ func NewDB() *gorm.DB {
 			ParseTime:            true,
 			Loc:                  time.Local,
 		}
-
-		db, err := gorm.Open(databaseType, mySQLConfig.FormatDSN())
+		retry := 10
+		for retry > 0 {
+			var err error
+			db, err = gorm.Open(databaseType, mySQLConfig.FormatDSN())
+			if err != nil {
+				logrus.Errorf("open db connection failure %s, will retry", err.Error())
+				time.Sleep(time.Second * 3)
+				retry--
+				continue
+			}
+			break
+		}
+	} else {
+		os.MkdirAll(databasePath, 0755)
+		var err error
+		databaseFilePath := path.Join(databasePath, "db.sqlite3")
+		db, err = gorm.Open(databaseType, databaseFilePath)
 		if err != nil {
 			log.Fatalln(err)
 		}
-		return db
-	}
-	os.MkdirAll(databasePath, 0755)
-	databaseFilePath := path.Join(databasePath, "db.sqlite3")
-	db, err := gorm.Open(databaseType, databaseFilePath)
-	if err != nil {
-		log.Fatalln(err)
 	}
 	gdb = db
 	return db
