@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"strconv"
 
 	"github.com/sirupsen/logrus"
 	cli "github.com/urfave/cli/v2"
@@ -26,28 +27,55 @@ type NSQConfig struct {
 
 // DB holds configurations for database.
 type DB struct {
-	Addr string
+	Host string
 	Port int
 	User string
 	Pass string
 	Name string
 }
 
+func parseByEnvAndCtx(ctx *cli.Context, name, envName string) string {
+	if os.Getenv(envName) != "" {
+		return os.Getenv(envName)
+	}
+	return ctx.String(name)
+}
+
+func parseBoolByEnvAndCtx(ctx *cli.Context, name, envName string) bool {
+	if os.Getenv(envName) != "" {
+		parsed, err := strconv.ParseBool(os.Getenv(envName))
+		if err == nil {
+			return parsed
+		}
+	}
+	return ctx.Bool(name)
+}
+
+func parseIntByEnvAndCtx(ctx *cli.Context, name, envName string) int {
+	if os.Getenv(envName) != "" {
+		parsed, err := strconv.Atoi(os.Getenv(envName))
+		if err == nil {
+			return parsed
+		}
+	}
+	return ctx.Int(name)
+}
+
 //GetDefaultConfig get default config
 func GetDefaultConfig(ctx *cli.Context) *Config {
 	return &Config{
-		TestMode: ctx.Bool("testMode"),
-		LogLevel: ctx.String("logLevel"),
+		TestMode: parseBoolByEnvAndCtx(ctx, "testMode", "TEST_MODE"),
+		LogLevel: parseByEnvAndCtx(ctx, "logLevel", "LOG_LEVEL"),
 		NSQConfig: &NSQConfig{
-			NsqLookupdAddress: ctx.String("nsq-lookupd-server"),
-			NsqdAddress:       ctx.String("nsqd-server"),
+			NsqLookupdAddress: parseByEnvAndCtx(ctx, "nsq-lookupd-server", "NSQ_LOOKUPD_SERVER"),
+			NsqdAddress:       parseByEnvAndCtx(ctx, "nsqd-server", "NSQD_SERVER"),
 		},
 		DB: &DB{
-			Addr: ctx.String("dbAddr"),
-			Port: ctx.Int("dbPort"),
-			User: ctx.String("dbUser"),
-			Pass: ctx.String("dbPass"),
-			Name: ctx.String("dbName"),
+			Host: parseByEnvAndCtx(ctx, "dbAddr", "MYSQL_HOST"),
+			Port: parseIntByEnvAndCtx(ctx, "dbPort", "MYSQL_PORT"),
+			User: parseByEnvAndCtx(ctx, "dbUser", "MYSQL_USER"),
+			Pass: parseByEnvAndCtx(ctx, "dbPass", "MYSQL_PASS"),
+			Name: parseByEnvAndCtx(ctx, "dbName", "MYSQL_DB"),
 		},
 	}
 }

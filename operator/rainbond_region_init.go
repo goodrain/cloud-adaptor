@@ -165,6 +165,9 @@ func (r *RainbondRegionInit) createRainbondCR(kubeClient *kubernetes.Clientset, 
 			InstallMode:             "WithoutPackage",
 		},
 	}
+	if initConfig.ETCDConfig != nil && len(initConfig.ETCDConfig.Endpoints) > 0 {
+		cluster.Spec.EtcdConfig = initConfig.ETCDConfig
+	}
 	if initConfig.RegionDatabase != nil && initConfig.RegionDatabase.Host != "" {
 		cluster.Spec.RegionDatabase = &rainbondv1alpha1.Database{
 			Host:     initConfig.RegionDatabase.Host,

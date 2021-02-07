@@ -463,6 +463,7 @@ type RainbondInitConfig struct {
 	RainbondCIVersion string
 	ClusterID         string
 	RegionDatabase    *Database
+	ETCDConfig        *rainbondv1alpha1.EtcdConfig
 	NasServer         string
 	SuffixHTTPHost    string
 	GatewayNodes      []*rainbondv1alpha1.K8sNode

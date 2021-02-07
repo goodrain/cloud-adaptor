@@ -1,6 +1,7 @@
 package datastore
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"path"
@@ -37,7 +38,7 @@ func NewDB() *gorm.DB {
 			User:                 config.C.DB.User,
 			Passwd:               config.C.DB.Pass,
 			Net:                  "tcp",
-			Addr:                 config.C.DB.Addr,
+			Addr:                 fmt.Sprintf("%s:%d", config.C.DB.Host, config.C.DB.Port),
 			DBName:               config.C.DB.Name,
 			AllowNativePasswords: true,
 			ParseTime:            true,
