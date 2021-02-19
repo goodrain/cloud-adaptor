@@ -2,6 +2,7 @@ package custom
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
@@ -16,6 +17,7 @@ import (
 	"goodrain.com/cloud-adaptor/library/bcode"
 	"goodrain.com/cloud-adaptor/util"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/version"
 )
 
 type customAdaptor struct {
@@ -76,14 +78,19 @@ func (c *customAdaptor) DescribeCluster(clusterID string) (*v1alpha1.Cluster, er
 	if err != nil {
 		return cluster, fmt.Errorf("create kube client failure %s", err.Error())
 	}
-	vinfo, err := client.ServerVersion()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer cancel()
+	versionByte, err := client.RESTClient().Get().AbsPath("/version").DoRaw(ctx)
 	if err != nil {
-		return cluster, fmt.Errorf("get cluster version failure  %s", err.Error())
+		return cluster, fmt.Errorf("get cluster version failure %s", err.Error())
 	}
+	var vinfo version.Info
+	json.Unmarshal(versionByte, &vinfo)
 	cluster.KubernetesVersion = vinfo.String()
 	cluster.CurrentVersion = vinfo.String()
 	cluster.MasterURL.APIServerEndpoint, _ = kc.KubeServer()
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+
+	ctx, cancel = context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 	nodes, err := client.CoreV1().Nodes().List(ctx, v1.ListOptions{})
 	if err != nil {

@@ -58,3 +58,9 @@ type TaskEventRepository interface {
 	Create(ent *models.TaskEvent) error
 	ListEvent(eid, taskID string) ([]*models.TaskEvent, error)
 }
+
+//RainbondClusterConfigRepository -
+type RainbondClusterConfigRepository interface {
+	Create(ent *models.RainbondClusterConfig) error
+	Get(clusterID string) (*models.RainbondClusterConfig, error)
+}

@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ghodss/yaml"
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 
@@ -40,7 +41,7 @@ import (
 	"goodrain.com/cloud-adaptor/api/nsqc/producer"
 	"goodrain.com/cloud-adaptor/library/bcode"
 
-	// "goodrain.com/cloud-adaptor/util/slackutil"
+	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
 	"goodrain.com/cloud-adaptor/util/uuidutil"
 
 	v1 "goodrain.com/cloud-adaptor/api/openapi/types/v1"
@@ -48,13 +49,14 @@ import (
 
 // ClusterUsecase cluster manage usecase
 type ClusterUsecase struct {
-	DB                       *gorm.DB                               `inject:""`
-	CloudAccessKeyRepo       cluster.CloudAccesskeyRepository       `inject:""`
-	CreateKubernetesTaskRepo cluster.CreateKubernetesTaskRepository `inject:""`
-	InitRainbondTaskRepo     cluster.InitRainbondTaskRepository     `inject:""`
-	UpdateKubernetesTaskRepo cluster.UpdateKubernetesTaskRepository `inject:""`
-	TaskEventRepo            cluster.TaskEventRepository            `inject:""`
-	TaskProducer             producer.TaskProducer                  `inject:""`
+	DB                        *gorm.DB                                `inject:""`
+	CloudAccessKeyRepo        cluster.CloudAccesskeyRepository        `inject:""`
+	CreateKubernetesTaskRepo  cluster.CreateKubernetesTaskRepository  `inject:""`
+	InitRainbondTaskRepo      cluster.InitRainbondTaskRepository      `inject:""`
+	UpdateKubernetesTaskRepo  cluster.UpdateKubernetesTaskRepository  `inject:""`
+	TaskEventRepo             cluster.TaskEventRepository             `inject:""`
+	TaskProducer              producer.TaskProducer                   `inject:""`
+	RainbondClusterConfigRepo cluster.RainbondClusterConfigRepository `inject:""`
 }
 
 // NewClusterUsecase new cluster usecase
@@ -316,7 +318,7 @@ func (c *ClusterUsecase) GetByProviderAndEnterprise(providerName, eid string) (*
 }
 
 //CreateTaskEvent create task event
-func (c *ClusterUsecase) CreateTaskEvent(em *task.EventMessage) (*models.TaskEvent, error) {
+func (c *ClusterUsecase) CreateTaskEvent(em *v1.EventMessage) (*models.TaskEvent, error) {
 	if em.Message == nil {
 		return nil, fmt.Errorf("message is nil")
 	}
@@ -628,4 +630,47 @@ func (c *ClusterUsecase) InstallCluster(eid, clusterID string) (*models.CreateKu
 	}
 	logrus.Infof("send create kubernetes task %s to queue", newTask.TaskID)
 	return newTask, nil
+}
+
+//SetRainbondClusterConfig set rainbond cluster config
+func (c *ClusterUsecase) SetRainbondClusterConfig(eid, clusterID, config string) error {
+	var rbcc rainbondv1alpha1.RainbondCluster
+	if err := yaml.Unmarshal([]byte(config), &rbcc); err != nil {
+		logrus.Errorf("unmarshal rainbond config failure %s", err.Error())
+		return bcode.ErrConfigInvalid
+	}
+	return c.RainbondClusterConfigRepo.Create(&models.RainbondClusterConfig{ClusterID: clusterID, Config: config})
+}
+
+//GetRainbondClusterConfig get rainbond cluster config
+func (c *ClusterUsecase) GetRainbondClusterConfig(eid, clusterID string) (*rainbondv1alpha1.RainbondCluster, error) {
+	rcc, _ := c.RainbondClusterConfigRepo.Get(clusterID)
+	var rbcc rainbondv1alpha1.RainbondCluster
+	rbcc.Name = "rainbondcluster"
+	rbcc.Spec.EtcdConfig = &rainbondv1alpha1.EtcdConfig{}
+	rbcc.Spec.RegionDatabase = &rainbondv1alpha1.Database{
+		Host: "127.0.0.1",
+		Port: 3306,
+	}
+	rbcc.Spec.ImageHub = &rainbondv1alpha1.ImageHub{}
+	rbcc.Spec.NodesForGateway = []*rainbondv1alpha1.K8sNode{}
+	rbcc.Spec.NodesForChaos = []*rainbondv1alpha1.K8sNode{}
+	rbcc.Spec.RainbondVolumeSpecRWO = &rainbondv1alpha1.RainbondVolumeSpec{
+		StorageClassName:       "",
+		StorageClassParameters: &rainbondv1alpha1.StorageClassParameters{},
+		CSIPlugin:              &rainbondv1alpha1.CSIPluginSource{},
+	}
+	rbcc.Spec.RainbondVolumeSpecRWX = &rainbondv1alpha1.RainbondVolumeSpec{
+		StorageClassName:       "",
+		StorageClassParameters: &rainbondv1alpha1.StorageClassParameters{},
+		CSIPlugin:              &rainbondv1alpha1.CSIPluginSource{},
+	}
+	rbcc.Spec.SuffixHTTPHost = ""
+	rbcc.Spec.GatewayIngressIPs = []string{}
+	if rcc != nil {
+		if err := yaml.Unmarshal([]byte(rcc.Config), &rbcc); err != nil {
+			logrus.Errorf("unmarshal rainbond config failure %s", err.Error())
+		}
+	}
+	return &rbcc, nil
 }

@@ -82,7 +82,11 @@ func (r *rkeAdaptor) DeleteCluster(clusterID string) error {
 	return r.Repo.DeleteCluster(clusterID)
 }
 
-func (r *rkeAdaptor) GetRainbondInitConfig(cluster *v1alpha1.Cluster, gateway, chaos []*rainbondv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.RainbondInitConfig {
+func (r *rkeAdaptor) GetRainbondInitConfig(
+	cluster *v1alpha1.Cluster,
+	gateway, chaos []*rainbondv1alpha1.K8sNode,
+	rollback func(step, message, status string),
+) *v1alpha1.RainbondInitConfig {
 	return &v1alpha1.RainbondInitConfig{
 		EnableHA: func() bool {
 			if cluster.Size > 3 {
@@ -93,6 +97,7 @@ func (r *rkeAdaptor) GetRainbondInitConfig(cluster *v1alpha1.Cluster, gateway, c
 		ClusterID:    cluster.ClusterID,
 		GatewayNodes: gateway,
 		ChaosNodes:   chaos,
+		ETCDConfig:   &rainbondv1alpha1.EtcdConfig{},
 		EIPs: func() (re []string) {
 			if len(cluster.EIP) > 0 {
 				return cluster.EIP
@@ -178,7 +183,7 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, config *v1alp
 	}
 	if rkecluster.Stats == v1alpha1.InitState {
 		// clear local state data
-		os.RemoveAll(clusterStatPath)
+		//os.RemoveAll(clusterStatPath)
 	}
 
 	os.MkdirAll(clusterStatPath, 0755)

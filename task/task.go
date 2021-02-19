@@ -20,16 +20,16 @@ package task
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"goodrain.com/cloud-adaptor/adaptor/v1alpha1"
+	v1 "goodrain.com/cloud-adaptor/api/openapi/types/v1"
 )
 
 //Task Asynchronous tasks
 type Task interface {
 	Run(ctx context.Context)
-	GetChan() chan Message
+	GetChan() chan v1.Message
 }
 
 //KubernetesConfigMessage nsq message
@@ -54,8 +54,8 @@ type InitRainbondConfigMessage struct {
 }
 
 //GetEvent get event
-func (i InitRainbondConfigMessage) GetEvent(m *Message) EventMessage {
-	return EventMessage{
+func (i InitRainbondConfigMessage) GetEvent(m *v1.Message) v1.EventMessage {
+	return v1.EventMessage{
 		EnterpriseID: i.EnterpriseID,
 		TaskID:       i.TaskID,
 		Message:      m,
@@ -63,8 +63,8 @@ func (i InitRainbondConfigMessage) GetEvent(m *Message) EventMessage {
 }
 
 //GetEvent get event
-func (i KubernetesConfigMessage) GetEvent(m *Message) EventMessage {
-	return EventMessage{
+func (i KubernetesConfigMessage) GetEvent(m *v1.Message) v1.EventMessage {
+	return v1.EventMessage{
 		EnterpriseID: i.EnterpriseID,
 		TaskID:       i.TaskID,
 		Message:      m,
@@ -72,32 +72,12 @@ func (i KubernetesConfigMessage) GetEvent(m *Message) EventMessage {
 }
 
 //GetEvent get event
-func (i UpdateKubernetesConfigMessage) GetEvent(m *Message) EventMessage {
-	return EventMessage{
+func (i UpdateKubernetesConfigMessage) GetEvent(m *v1.Message) v1.EventMessage {
+	return v1.EventMessage{
 		EnterpriseID: i.EnterpriseID,
 		TaskID:       i.TaskID,
 		Message:      m,
 	}
-}
-
-//EventMessage event nsq message
-type EventMessage struct {
-	EnterpriseID string
-	TaskID       string
-	Message      *Message
-}
-
-//Body make body
-func (e *EventMessage) Body() []byte {
-	b, _ := json.Marshal(e)
-	return b
-}
-
-//Message task exec log message
-type Message struct {
-	StepType string `json:"type"`
-	Message  string `json:"message"`
-	Status   string `json:"status"`
 }
 
 //Type task type
@@ -120,19 +100,19 @@ func CreateTask(taskType Type, config interface{}) (Task, error) {
 		if !ok {
 			return nil, fmt.Errorf("config must be *v1alpha1.KubernetesClusterConfig")
 		}
-		return &CreateKubernetesCluster{result: make(chan Message, 10), config: cconfig}, nil
+		return &CreateKubernetesCluster{result: make(chan v1.Message, 10), config: cconfig}, nil
 	case InitRainbondClusterTask:
 		cconfig, ok := config.(*InitRainbondConfig)
 		if !ok {
 			return nil, fmt.Errorf("config must be *InitRainbondConfig")
 		}
-		return &InitRainbondCluster{result: make(chan Message, 10), config: cconfig}, nil
+		return &InitRainbondCluster{result: make(chan v1.Message, 10), config: cconfig}, nil
 	case UpdateKubernetesTask:
 		cconfig, ok := config.(*v1alpha1.ExpansionNode)
 		if !ok {
 			return nil, fmt.Errorf("config must be *v1alpha1.ExpansionNode")
 		}
-		return &UpdateKubernetesCluster{result: make(chan Message, 10), config: cconfig}, nil
+		return &UpdateKubernetesCluster{result: make(chan v1.Message, 10), config: cconfig}, nil
 	}
 	return nil, fmt.Errorf("task type not support")
 }

@@ -25,3 +25,10 @@ type CustomCluster struct {
 	KubeConfig string `gorm:"column:kubeConfig,type:text" json:"kubeConfig,omitempty"`
 	EIP        string `gorm:"column:eip" json:"eip,omitempty"`
 }
+
+//RainbondClusterConfig rainbond cluster config
+type RainbondClusterConfig struct {
+	Model
+	ClusterID string `gorm:"column:clusterID" json:"clusterID,omitempty"`
+	Config    string `gorm:"column:config,type:text" json:"config,omitempty"`
+}

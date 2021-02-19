@@ -19,6 +19,8 @@
 package v1
 
 import (
+	"encoding/json"
+
 	"goodrain.com/cloud-adaptor/adaptor/v1alpha1"
 	"goodrain.com/cloud-adaptor/api/models"
 )
@@ -187,4 +189,29 @@ type GetLogContentRes struct {
 //swagger:model GetKubeConfigRes
 type GetKubeConfigRes struct {
 	Config string `json:"config"`
+}
+
+//EventMessage event nsq message
+type EventMessage struct {
+	EnterpriseID string
+	TaskID       string
+	Message      *Message
+}
+
+//Body make body
+func (e *EventMessage) Body() []byte {
+	b, _ := json.Marshal(e)
+	return b
+}
+
+//Message task exec log message
+type Message struct {
+	StepType string `json:"type"`
+	Message  string `json:"message"`
+	Status   string `json:"status"`
+}
+
+//SetRainbondClusterConfigReq -
+type SetRainbondClusterConfigReq struct {
+	Config string `json:"config" binding:"required"`
 }

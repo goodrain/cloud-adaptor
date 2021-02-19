@@ -23,7 +23,7 @@ import (
 	"time"
 
 	nsq "github.com/nsqio/go-nsq"
-	"goodrain.com/cloud-adaptor/task"
+	v1 "goodrain.com/cloud-adaptor/api/openapi/types/v1"
 )
 
 func TestSendEvent(t *testing.T) {
@@ -86,19 +86,19 @@ func TestSendEvent(t *testing.T) {
 	// 	},
 	// })
 	// time.Sleep(time.Second * 2)
-	eventHandler.Event(task.EventMessage{
+	eventHandler.Event(v1.EventMessage{
 		EnterpriseID: "73376e85bd09060430d4bb61ba9f6612",
 		TaskID:       "f2ab56ed612c4d9594e086327d8c22b7",
-		Message: &task.Message{
+		Message: &v1.Message{
 			StepType: "InitRainbondRegionRegionConfig",
 			Message:  "",
 			Status:   "success",
 		},
 	})
-	eventHandler.Event(task.EventMessage{
+	eventHandler.Event(v1.EventMessage{
 		EnterpriseID: "73376e85bd09060430d4bb61ba9f6612",
 		TaskID:       "f2ab56ed612c4d9594e086327d8c22b7",
-		Message: &task.Message{
+		Message: &v1.Message{
 			StepType: "InitRainbondRegion",
 			Message:  "",
 			Status:   "success",

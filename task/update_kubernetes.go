@@ -25,19 +25,20 @@ import (
 	"github.com/sirupsen/logrus"
 	"goodrain.com/cloud-adaptor/adaptor/factory"
 	"goodrain.com/cloud-adaptor/adaptor/v1alpha1"
+	v1 "goodrain.com/cloud-adaptor/api/openapi/types/v1"
 )
 
 //UpdateKubernetesCluster update cluster
 type UpdateKubernetesCluster struct {
 	config *v1alpha1.ExpansionNode
-	result chan Message
+	result chan v1.Message
 }
 
 func (c *UpdateKubernetesCluster) rollback(step, message, status string) {
 	if status == "failure" {
 		logrus.Errorf("%s failure, Message: %s", step, message)
 	}
-	c.result <- Message{StepType: step, Message: message, Status: status}
+	c.result <- v1.Message{StepType: step, Message: message, Status: status}
 }
 
 //Run run
@@ -56,6 +57,6 @@ func (c *UpdateKubernetesCluster) Run(ctx context.Context) {
 }
 
 //GetChan get message chan
-func (c *UpdateKubernetesCluster) GetChan() chan Message {
+func (c *UpdateKubernetesCluster) GetChan() chan v1.Message {
 	return c.result
 }

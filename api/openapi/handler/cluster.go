@@ -23,6 +23,7 @@ import (
 	"io/ioutil"
 	"strings"
 
+	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"goodrain.com/cloud-adaptor/api/cluster"
@@ -30,7 +31,6 @@ import (
 	"goodrain.com/cloud-adaptor/library/bcode"
 	"goodrain.com/cloud-adaptor/util/ginutil"
 	"goodrain.com/cloud-adaptor/util/ssh"
-	yaml "gopkg.in/yaml.v2"
 )
 
 // ClusterHandler -
@@ -616,4 +616,38 @@ func (e *ClusterHandler) GetUpdateKubernetesTask(ctx *gin.Context) {
 	}
 
 	ginutil.JSON(ctx, re, nil)
+}
+
+//GetRainbondClusterConfig -
+func (e *ClusterHandler) GetRainbondClusterConfig(ctx *gin.Context) {
+	eid := ctx.Param("eid")
+	clusterID := ctx.Param("clusterID")
+	config, err := e.ClusterUsecase.GetRainbondClusterConfig(eid, clusterID)
+	if err != nil {
+		ginutil.JSON(ctx, nil, err)
+		return
+	}
+	out, _ := yaml.Marshal(config)
+	re := v1.SetRainbondClusterConfigReq{
+		Config: string(out),
+	}
+	ginutil.JSON(ctx, re, nil)
+}
+
+//SetRainbondClusterConfig -
+func (e *ClusterHandler) SetRainbondClusterConfig(ctx *gin.Context) {
+	eid := ctx.Param("eid")
+	clusterID := ctx.Param("clusterID")
+	var req v1.SetRainbondClusterConfigReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		logrus.Errorf("bind update init status failure %s", err.Error())
+		ginutil.JSON(ctx, nil, bcode.BadRequest)
+		return
+	}
+	err := e.ClusterUsecase.SetRainbondClusterConfig(eid, clusterID, req.Config)
+	if err != nil {
+		ginutil.JSON(ctx, nil, err)
+		return
+	}
+	ginutil.JSON(ctx, nil, nil)
 }

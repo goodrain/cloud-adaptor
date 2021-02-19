@@ -10,9 +10,10 @@ require (
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/facebookgo/structtag v0.0.0-20150214074306-217e25fb9691 // indirect
 	github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4 // indirect
+	github.com/ghodss/yaml v1.0.0
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-sql-driver/mysql v1.5.0
-	github.com/goodrain/rainbond-operator v1.3.1-0.20210205050742-5abef0398d48
+	github.com/goodrain/rainbond-operator v1.3.1-0.20210219083730-ace748ab2a49
 	github.com/jinzhu/gorm v1.9.16
 	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
 	github.com/nsqio/go-nsq v1.0.8

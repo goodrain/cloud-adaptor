@@ -85,4 +85,5 @@ func AutoMigrate(db *gorm.DB) {
 	db.AutoMigrate(&models.RKECluster{})
 	db.AutoMigrate(&models.CustomCluster{})
 	db.AutoMigrate(&models.UpdateKubernetesTask{})
+	db.AutoMigrate(&models.RainbondClusterConfig{})
 }

@@ -19,10 +19,10 @@
 package cluster
 
 import (
+	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
 	"goodrain.com/cloud-adaptor/adaptor/v1alpha1"
 	"goodrain.com/cloud-adaptor/api/models"
 	v1 "goodrain.com/cloud-adaptor/api/openapi/types/v1"
-	"goodrain.com/cloud-adaptor/task"
 )
 
 //Usecase represents the cluster's usecases
@@ -33,7 +33,7 @@ type Usecase interface {
 	InstallCluster(eid, clusterID string) (*models.CreateKubernetesTask, error)
 	AddAccessKey(eid string, key v1.AddAccessKey) (*models.CloudAccessKey, error)
 	GetByProviderAndEnterprise(providerName, eid string) (*models.CloudAccessKey, error)
-	CreateTaskEvent(em *task.EventMessage) (*models.TaskEvent, error)
+	CreateTaskEvent(em *v1.EventMessage) (*models.TaskEvent, error)
 	ListTaskEvent(eid, taskID string) ([]*models.TaskEvent, error)
 	GetLastCreateKubernetesTask(eid, providerName string) (*models.CreateKubernetesTask, error)
 	GetCreateKubernetesTask(eid, taskID string) (*models.CreateKubernetesTask, error)
@@ -47,4 +47,6 @@ type Usecase interface {
 	UpdateKubernetesCluster(eid string, req v1.UpdateKubernetesReq) (*models.UpdateKubernetesTask, error)
 	GetUpdateKubernetesTaskByClusterID(eid, clusterID, providerName string) (*models.UpdateKubernetesTask, error)
 	GetRKENodeList(eid, clusterID string) (v1alpha1.NodeList, error)
+	SetRainbondClusterConfig(eid, clusterID, config string) error
+	GetRainbondClusterConfig(eid, clusterID string) (*rainbondv1alpha1.RainbondCluster, error)
 }

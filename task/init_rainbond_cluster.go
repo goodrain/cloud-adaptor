@@ -30,6 +30,7 @@ import (
 	"github.com/rancher/rke/k8s"
 	"github.com/sirupsen/logrus"
 	"goodrain.com/cloud-adaptor/adaptor/factory"
+	typesv1 "goodrain.com/cloud-adaptor/api/openapi/types/v1"
 	"goodrain.com/cloud-adaptor/operator"
 	"goodrain.com/cloud-adaptor/version"
 	v1 "k8s.io/api/core/v1"
@@ -48,14 +49,14 @@ type InitRainbondConfig struct {
 //InitRainbondCluster init rainbond cluster
 type InitRainbondCluster struct {
 	config *InitRainbondConfig
-	result chan Message
+	result chan typesv1.Message
 }
 
 func (c *InitRainbondCluster) rollback(step, message, status string) {
 	if status == "failure" {
 		logrus.Errorf("%s failure, Message: %s", step, message)
 	}
-	c.result <- Message{StepType: step, Message: message, Status: status}
+	c.result <- typesv1.Message{StepType: step, Message: message, Status: status}
 }
 
 //Run run take time 214.10s
@@ -257,7 +258,7 @@ func (c *InitRainbondCluster) Stop() error {
 }
 
 //GetChan get message chan
-func (c *InitRainbondCluster) GetChan() chan Message {
+func (c *InitRainbondCluster) GetChan() chan typesv1.Message {
 	return c.result
 }
 

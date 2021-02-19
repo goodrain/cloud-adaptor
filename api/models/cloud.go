@@ -74,11 +74,12 @@ type TaskEvent struct {
 
 // BackupListModelData list all model data
 type BackupListModelData struct {
-	CloudAccessKeys       []CloudAccessKey       `json:"cloud_access_keys"`
-	CreateKubernetesTasks []CreateKubernetesTask `json:"create_kubernetes_tasks"`
-	InitRainbondTasks     []InitRainbondTask     `json:"init_rainbond_tasks"`
-	TaskEvents            []TaskEvent            `json:"task_events"`
-	UpdateKubernetesTasks []UpdateKubernetesTask `json:"update_kubernetes_tasks"`
-	CustomClusters        []CustomCluster        `json:"custom_clusters"`
-	RKEClusters           []RKECluster           `json:"rke_clusters"`
+	CloudAccessKeys        []CloudAccessKey        `json:"cloud_access_keys"`
+	CreateKubernetesTasks  []CreateKubernetesTask  `json:"create_kubernetes_tasks"`
+	InitRainbondTasks      []InitRainbondTask      `json:"init_rainbond_tasks"`
+	TaskEvents             []TaskEvent             `json:"task_events"`
+	UpdateKubernetesTasks  []UpdateKubernetesTask  `json:"update_kubernetes_tasks"`
+	CustomClusters         []CustomCluster         `json:"custom_clusters"`
+	RKEClusters            []RKECluster            `json:"rke_clusters"`
+	RainbondClusterConfigs []RainbondClusterConfig `json:"rainbond_cluster_configs"`
 }

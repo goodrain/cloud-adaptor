@@ -62,7 +62,7 @@ func (s SystemHandler) Backup(ctx *gin.Context) {
 	s.DB.Table(s.DB.NewScope(&models.UpdateKubernetesTask{}).TableName()).Scan(&result.UpdateKubernetesTasks)
 	s.DB.Table(s.DB.NewScope(&models.CustomCluster{}).TableName()).Scan(&result.CustomClusters)
 	s.DB.Table(s.DB.NewScope(&models.RKECluster{}).TableName()).Scan(&result.RKEClusters)
-
+	s.DB.Table(s.DB.NewScope(&models.RainbondClusterConfig{}).TableName()).Scan(&result.RainbondClusterConfigs)
 	data, err := json.Marshal(result)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
@@ -259,6 +259,11 @@ func (s SystemHandler) Recover(c *gin.Context) {
 			for _, rkeCluster := range data.RKEClusters {
 				if err := tx.Create(&rkeCluster).Error; err != nil {
 					return fmt.Errorf("recover rkeCluster failure %s", err.Error())
+				}
+			}
+			for _, rcc := range data.RainbondClusterConfigs {
+				if err := tx.Create(&rcc).Error; err != nil {
+					return fmt.Errorf("recover rainbondClusterConfigs failure %s", err.Error())
 				}
 			}
 			logrus.Infof("recover db backup data success")

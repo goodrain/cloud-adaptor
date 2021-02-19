@@ -33,6 +33,7 @@ import (
 	cli "github.com/urfave/cli/v2"
 	"goodrain.com/cloud-adaptor/api/cluster"
 	"goodrain.com/cloud-adaptor/api/handler"
+	v1 "goodrain.com/cloud-adaptor/api/openapi/types/v1"
 	"goodrain.com/cloud-adaptor/task"
 	"goodrain.com/cloud-adaptor/util/constants"
 )
@@ -152,7 +153,7 @@ func (h *cloudInitTaskHandler) HandleMsg(ctx context.Context, initConfig task.In
 	initTask, err := task.CreateTask(task.InitRainbondClusterTask, initConfig.InitRainbondConfig)
 	if err != nil {
 		logrus.Errorf("create task failure %s", err.Error())
-		h.eventHandler.HandleEvent(initConfig.GetEvent(&task.Message{
+		h.eventHandler.HandleEvent(initConfig.GetEvent(&v1.Message{
 			StepType: "CreateTask",
 			Message:  err.Error(),
 			Status:   "failure",
@@ -227,7 +228,7 @@ func (h *createKubernetesTaskHandler) HandleMsg(ctx context.Context, createConfi
 	initTask, err := task.CreateTask(task.CreateKubernetesTask, createConfig.KubernetesConfig)
 	if err != nil {
 		logrus.Errorf("create task failure %s", err.Error())
-		h.eventHandler.HandleEvent(createConfig.GetEvent(&task.Message{
+		h.eventHandler.HandleEvent(createConfig.GetEvent(&v1.Message{
 			StepType: "CreateTask",
 			Message:  err.Error(),
 			Status:   "failure",
@@ -287,7 +288,7 @@ type CallBackEvent struct {
 }
 
 //Event send event
-func (c *CallBackEvent) Event(e task.EventMessage) error {
+func (c *CallBackEvent) Event(e v1.EventMessage) error {
 	if err := c.eventProducer.Publish(c.TopicName, e.Body()); err != nil {
 		if err := c.eventProducer.Publish(c.TopicName, e.Body()); err != nil {
 			return err
@@ -298,7 +299,7 @@ func (c *CallBackEvent) Event(e task.EventMessage) error {
 }
 
 // HandleEvent -
-func (c *CallBackEvent) HandleEvent(msg task.EventMessage) error {
+func (c *CallBackEvent) HandleEvent(msg v1.EventMessage) error {
 	if _, err := c.ClusterUsecase.CreateTaskEvent(&msg); err != nil {
 		logrus.Errorf("save event message failure %s", err.Error())
 		// return err, retry
@@ -331,7 +332,7 @@ func (h *cloudUpdateTaskHandler) HandleMsg(ctx context.Context, config task.Upda
 	initTask, err := task.CreateTask(task.UpdateKubernetesTask, config.Config)
 	if err != nil {
 		logrus.Errorf("create task failure %s", err.Error())
-		h.eventHandler.HandleEvent(config.GetEvent(&task.Message{
+		h.eventHandler.HandleEvent(config.GetEvent(&v1.Message{
 			StepType: "CreateTask",
 			Message:  err.Error(),
 			Status:   "failure",

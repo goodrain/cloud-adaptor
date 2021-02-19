@@ -145,6 +145,7 @@ func initObj(ctx context.Context, db *gorm.DB, taskProducer, clusterUsecase inte
 		&inject.Object{Value: clusterrepo.NewCreateKubernetesTaskRepo(nil)},
 		&inject.Object{Value: clusterrepo.NewInitRainbondRegionTaskRepo(nil)},
 		&inject.Object{Value: clusterrepo.NewUpdateKubernetesTaskRepo(nil)},
+		&inject.Object{Value: clusterrepo.NewRainbondClusterConfigRepo(nil)},
 		&inject.Object{Value: clusterrepo.NewTaskEventRepo(nil)},
 		// openapi
 		&inject.Object{Value: openapihdl.NewClusterHandler()},

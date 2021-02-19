@@ -15,9 +15,13 @@ import (
 	"github.com/goodrain/rainbond-operator/util/rbdutil"
 	"github.com/goodrain/rainbond-operator/util/retryutil"
 	"github.com/goodrain/rainbond-operator/util/suffixdomain"
+	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"goodrain.com/cloud-adaptor/adaptor/v1alpha1"
+	"goodrain.com/cloud-adaptor/api/cluster/repository"
+	"goodrain.com/cloud-adaptor/api/infrastructure/datastore"
 	"goodrain.com/cloud-adaptor/version"
+	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -151,19 +155,37 @@ func (r *RainbondRegionInit) InitRainbondRegion(initConfig *v1alpha1.RainbondIni
 func (r *RainbondRegionInit) createRainbondCR(kubeClient *kubernetes.Clientset, client client.Client, initConfig *v1alpha1.RainbondInitConfig) error {
 	// create rainbond cluster resource
 	//TODO: define etcd config by RainbondInitConfig
+	rcc, err := repository.NewRainbondClusterConfigRepo(datastore.GetGDB()).Get(initConfig.ClusterID)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		logrus.Errorf("get rainbond cluster config failure", err.Error())
+	}
 	cluster := &rainbondv1alpha1.RainbondCluster{
 		Spec: rainbondv1alpha1.RainbondClusterSpec{
 			InstallVersion:          initConfig.RainbondVersion,
 			CIVersion:               initConfig.RainbondCIVersion,
 			EnableHA:                initConfig.EnableHA,
-			ConfigCompleted:         true,
 			RainbondImageRepository: version.InstallImageRepo,
 			SuffixHTTPHost:          initConfig.SuffixHTTPHost,
 			NodesForChaos:           initConfig.ChaosNodes,
 			NodesForGateway:         initConfig.GatewayNodes,
 			GatewayIngressIPs:       initConfig.EIPs,
-			InstallMode:             "WithoutPackage",
 		},
+	}
+	if rcc != nil {
+		if err := yaml.Unmarshal([]byte(rcc.Config), cluster); err != nil {
+			logrus.Errorf("Unmarshal rainbond config failure %s", err.Error())
+		}
+	}
+	cluster.Spec.InstallMode = "WithoutPackage"
+	cluster.Spec.ConfigCompleted = true
+	if cluster.Spec.InstallVersion == "" {
+		cluster.Spec.InstallVersion = initConfig.RainbondVersion
+	}
+	if cluster.Spec.CIVersion == "" {
+		cluster.Spec.CIVersion = initConfig.RainbondCIVersion
+	}
+	if cluster.Spec.RainbondImageRepository == "" {
+		cluster.Spec.RainbondImageRepository = version.InstallImageRepo
 	}
 	if initConfig.ETCDConfig != nil && len(initConfig.ETCDConfig.Endpoints) > 0 {
 		cluster.Spec.EtcdConfig = initConfig.ETCDConfig

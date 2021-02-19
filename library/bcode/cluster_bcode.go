@@ -55,4 +55,7 @@ var (
 
 	//ErrNotSupportUpdateKubernetes -
 	ErrNotSupportUpdateKubernetes = newByMessage(400, 7017, "cluster can not support update kubernetes")
+
+	//ErrConfigInvalid -
+	ErrConfigInvalid = newByMessage(400, 7018, "rainbond cluster config is invalid")
 )
