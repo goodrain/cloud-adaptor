@@ -37,6 +37,9 @@ func NewTaskEventRepo(db *gorm.DB) cluster.TaskEventRepository {
 
 //Create create an event
 func (t *TaskEventRepo) Create(te *models.TaskEvent) error {
+	if len(te.Message) > 512 {
+		te.Message = te.Message[:512]
+	}
 	var old models.TaskEvent
 	if err := t.DB.Where("eid = ? and task_id=? and step_type=?", te.EnterpriseID, te.TaskID, te.StepType).Find(&old).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {

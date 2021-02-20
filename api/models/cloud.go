@@ -67,7 +67,7 @@ type TaskEvent struct {
 	TaskID       string `gorm:"column:task_id" json:"taskID"`
 	EnterpriseID string `gorm:"column:eid" json:"eid"`
 	StepType     string `gorm:"column:step_type" json:"type"`
-	Message      string `gorm:"column:message" json:"message"`
+	Message      string `gorm:"column:message;size:512" json:"message"`
 	Status       string `gorm:"column:status" json:"status"`
 	EventID      string `gorm:"column:event_id" json:"eventID"`
 }

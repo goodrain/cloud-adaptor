@@ -114,6 +114,7 @@ func runDaemon(ctx *cli.Context) error {
 	}
 
 	r := mr.NewRouter()
+	gin.SetMode(gin.ReleaseMode)
 	r.Use(gin.Recovery())
 	go r.Run(ctx.String("listen"))
 
