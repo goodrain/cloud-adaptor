@@ -68,6 +68,9 @@ func NewDB() *gorm.DB {
 		}
 	}
 	gdb = db
+	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
+		return "adaptor_" + defaultTableName
+	}
 	return db
 }
 
