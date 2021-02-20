@@ -651,3 +651,21 @@ func (e *ClusterHandler) SetRainbondClusterConfig(ctx *gin.Context) {
 	}
 	ginutil.JSON(ctx, nil, nil)
 }
+
+//UninstallRegion -
+func (e *ClusterHandler) UninstallRegion(ctx *gin.Context) {
+	eid := ctx.Param("eid")
+	clusterID := ctx.Param("clusterID")
+	var req v1.UninstallRegionReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		logrus.Errorf("bind update init status failure %s", err.Error())
+		ginutil.JSON(ctx, nil, bcode.BadRequest)
+		return
+	}
+	err := e.ClusterUsecase.UninstallRainbondRegion(eid, clusterID, req.ProviderName)
+	if err != nil {
+		ginutil.JSON(ctx, nil, err)
+		return
+	}
+	ginutil.JSON(ctx, nil, nil)
+}

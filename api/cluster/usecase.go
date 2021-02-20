@@ -49,4 +49,5 @@ type Usecase interface {
 	GetRKENodeList(eid, clusterID string) (v1alpha1.NodeList, error)
 	SetRainbondClusterConfig(eid, clusterID, config string) error
 	GetRainbondClusterConfig(eid, clusterID string) (*rainbondv1alpha1.RainbondCluster, error)
+	UninstallRainbondRegion(eid, clusterID, provider string) error
 }

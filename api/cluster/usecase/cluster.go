@@ -21,6 +21,7 @@ package usecase
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -510,7 +511,7 @@ func (c *ClusterUsecase) GetRegionConfig(eid, clusterID, providerName string) (m
 	status, err := rri.GetRainbondRegionStatus(clusterID)
 	if err != nil {
 		logrus.Errorf("get rainbond region status failure %s", err.Error())
-		return nil, bcode.ErrorKubeAPI
+		return nil, bcode.ErrorGetRegionStatus
 	}
 	if status.RegionConfig != nil {
 		configMap := status.RegionConfig
@@ -651,6 +652,7 @@ func (c *ClusterUsecase) GetRainbondClusterConfig(eid, clusterID string) (*rainb
 	rbcc.Spec.RegionDatabase = &rainbondv1alpha1.Database{
 		Host: "127.0.0.1",
 		Port: 3306,
+		Name: "region",
 	}
 	rbcc.Spec.ImageHub = &rainbondv1alpha1.ImageHub{}
 	rbcc.Spec.NodesForGateway = []*rainbondv1alpha1.K8sNode{}
@@ -673,4 +675,45 @@ func (c *ClusterUsecase) GetRainbondClusterConfig(eid, clusterID string) (*rainb
 		}
 	}
 	return &rbcc, nil
+}
+
+//UninstallRainbondRegion uninstall rainbond region
+func (c *ClusterUsecase) UninstallRainbondRegion(eid, clusterID, provider string) error {
+	if os.Getenv("DISABLE_UNINSTALL_REGION") == "true" {
+		logrus.Info("uninstall rainbond region is disable")
+		return nil
+	}
+	var ad adaptor.RainbondClusterAdaptor
+	var err error
+	if provider != "rke" && provider != "custom" {
+		accessKey, err := c.CloudAccessKeyRepo.GetByProviderAndEnterprise(provider, eid)
+		if err != nil {
+			return bcode.ErrorNotFoundAccessKey
+		}
+		ad, err = factory.GetCloudFactory().GetRainbondClusterAdaptor(provider, accessKey.AccessKey, accessKey.SecretKey)
+		if err != nil {
+			return bcode.ErrorProviderNotSupport
+		}
+	} else {
+		ad, err = factory.GetCloudFactory().GetRainbondClusterAdaptor(provider, "", "")
+		if err != nil {
+			return bcode.ErrorProviderNotSupport
+		}
+	}
+	kubeconfig, err := ad.GetKubeConfig(clusterID)
+	if err != nil {
+		return err
+	}
+	rri := operator.NewRainbondRegionInit(*kubeconfig)
+	go func() {
+		logrus.Infof("start uninstall cluster %s by provider %s", clusterID, provider)
+		if err := rri.UninstallRegion(clusterID); err != nil {
+			logrus.Errorf("uninstall region %s failure %s", err.Error())
+		}
+		if err := c.InitRainbondTaskRepo.DeleteTask(eid, provider, clusterID); err != nil {
+			logrus.Errorf("delete region init task failure %s", err.Error())
+		}
+		logrus.Infof("complete uninstall cluster %s by provider %s", clusterID, provider)
+	}()
+	return nil
 }

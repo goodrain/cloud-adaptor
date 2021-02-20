@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ghodss/yaml"
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
 	"github.com/goodrain/rainbond-operator/util/commonutil"
 	"github.com/goodrain/rainbond-operator/util/constants"
@@ -21,7 +22,6 @@ import (
 	"goodrain.com/cloud-adaptor/api/cluster/repository"
 	"goodrain.com/cloud-adaptor/api/infrastructure/datastore"
 	"goodrain.com/cloud-adaptor/version"
-	"gopkg.in/yaml.v2"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
@@ -172,9 +172,13 @@ func (r *RainbondRegionInit) createRainbondCR(kubeClient *kubernetes.Clientset, 
 		},
 	}
 	if rcc != nil {
+		logrus.Info("use custom rainbondcluster config")
 		if err := yaml.Unmarshal([]byte(rcc.Config), cluster); err != nil {
 			logrus.Errorf("Unmarshal rainbond config failure %s", err.Error())
 		}
+	}
+	if cluster.Spec.EtcdConfig != nil && len(cluster.Spec.EtcdConfig.Endpoints) == 0 {
+		cluster.Spec.EtcdConfig = nil
 	}
 	cluster.Spec.InstallMode = "WithoutPackage"
 	cluster.Spec.ConfigCompleted = true
@@ -215,7 +219,28 @@ func (r *RainbondRegionInit) createRainbondCR(kubeClient *kubernetes.Clientset, 
 			},
 		}
 	}
-	if cluster.Spec.RainbondVolumeSpecRWX == nil {
+	// handle volume spec
+	if cluster.Spec.RainbondVolumeSpecRWX != nil {
+		if cluster.Spec.RainbondVolumeSpecRWX.CSIPlugin != nil {
+			if cluster.Spec.RainbondVolumeSpecRWX.CSIPlugin.AliyunCloudDisk == nil &&
+				cluster.Spec.RainbondVolumeSpecRWX.CSIPlugin.AliyunNas == nil &&
+				cluster.Spec.RainbondVolumeSpecRWX.CSIPlugin.NFS == nil {
+				cluster.Spec.RainbondVolumeSpecRWX.CSIPlugin = nil
+			}
+		}
+	}
+	if cluster.Spec.RainbondVolumeSpecRWO != nil {
+		if cluster.Spec.RainbondVolumeSpecRWO.CSIPlugin != nil {
+			if cluster.Spec.RainbondVolumeSpecRWO.CSIPlugin.AliyunCloudDisk == nil &&
+				cluster.Spec.RainbondVolumeSpecRWO.CSIPlugin.AliyunNas == nil &&
+				cluster.Spec.RainbondVolumeSpecRWO.CSIPlugin.NFS == nil {
+				cluster.Spec.RainbondVolumeSpecRWO.CSIPlugin = nil
+			}
+		}
+	}
+	if cluster.Spec.RainbondVolumeSpecRWX == nil ||
+		(cluster.Spec.RainbondVolumeSpecRWX.CSIPlugin == nil &&
+			cluster.Spec.RainbondVolumeSpecRWX.StorageClassName == "") {
 		cluster.Spec.RainbondVolumeSpecRWX = &rainbondv1alpha1.RainbondVolumeSpec{
 			CSIPlugin: &rainbondv1alpha1.CSIPluginSource{
 				NFS: &rainbondv1alpha1.NFSCSIPluginSource{},
@@ -439,5 +464,20 @@ func (r *RainbondRegionInit) UninstallRegion(clusterID string) error {
 			return fmt.Errorf("delete namespace %s failure: %v", r.namespace, err)
 		}
 	}
-	return nil
+	ticker := time.NewTicker(time.Second * 5)
+	timer := time.NewTimer(time.Minute * 10)
+	defer timer.Stop()
+	defer ticker.Stop()
+	for {
+		if _, err := coreClient.CoreV1().Namespaces().Get(ctx, r.namespace, metav1.GetOptions{}); err != nil {
+			if k8sErrors.IsNotFound(err) {
+				return nil
+			}
+		}
+		select {
+		case <-timer.C:
+			return fmt.Errorf("waiting namespace deleted timeout")
+		case <-ticker.C:
+		}
+	}
 }

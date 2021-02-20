@@ -91,3 +91,12 @@ func (c *InitRainbondRegionTaskRepo) GetTaskRunningLists(eid string) ([]*models.
 	}
 	return list, nil
 }
+
+//DeleteTask -
+func (c *InitRainbondRegionTaskRepo) DeleteTask(eid string, providerName, clusterID string) error {
+	var old models.InitRainbondTask
+	if err := c.DB.Where("eid = ? and provider_name=? and cluster_id=?", eid, providerName, clusterID).Delete(&old).Error; err != nil {
+		return err
+	}
+	return nil
+}

@@ -42,6 +42,7 @@ type InitRainbondTaskRepository interface {
 	GetTaskByClusterID(eid string, providerName, clusterID string) (*models.InitRainbondTask, error)
 	UpdateStatus(eid string, taskID string, status string) error
 	GetTask(eid string, taskID string) (*models.InitRainbondTask, error)
+	DeleteTask(eid string, providerName, clusterID string) error
 	GetTaskRunningLists(eid string) ([]*models.InitRainbondTask, error)
 }
 

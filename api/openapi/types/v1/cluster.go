@@ -215,3 +215,8 @@ type Message struct {
 type SetRainbondClusterConfigReq struct {
 	Config string `json:"config" binding:"required"`
 }
+
+//UninstallRegionReq -
+type UninstallRegionReq struct {
+	ProviderName string `json:"provider_name" binding:"required"`
+}

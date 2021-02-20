@@ -58,4 +58,7 @@ var (
 
 	//ErrConfigInvalid -
 	ErrConfigInvalid = newByMessage(400, 7018, "rainbond cluster config is invalid")
+
+	//ErrorGetRegionStatus -
+	ErrorGetRegionStatus = newByMessage(400, 7019, "can not get region status")
 )

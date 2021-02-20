@@ -198,7 +198,7 @@ func (o *Operator) genComponentClaims(cluster *v1alpha1.RainbondCluster) map[str
 	name2Claim["rbd-node"] = newClaim("rbd-node")
 	name2Claim["rbd-node"].isInit = isInit
 
-	if cluster.Spec.EtcdConfig == nil {
+	if cluster.Spec.EtcdConfig == nil || len(cluster.Spec.EtcdConfig.Endpoints) == 0 {
 		claim := newClaim("rbd-etcd")
 		claim.imageName = "etcd"
 		claim.version = "v3.3.18"

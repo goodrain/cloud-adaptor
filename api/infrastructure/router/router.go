@@ -59,6 +59,7 @@ func (r *Router) NewRouter() *gin.Engine {
 	entv1.GET("/:eid/kclusters/:clusterID/kubeconfig", r.ClusterHandler.GetKubeConfig)
 	entv1.GET("/:eid/kclusters/:clusterID/rainbondcluster", r.ClusterHandler.GetRainbondClusterConfig)
 	entv1.PUT("/:eid/kclusters/:clusterID/rainbondcluster", r.ClusterHandler.SetRainbondClusterConfig)
+	entv1.POST("/:eid/kclusters/:clusterID/uninstall", r.ClusterHandler.UninstallRegion)
 
 	entv1.POST("/:eid/accesskey", r.ClusterHandler.AddAccessKey)
 	entv1.GET("/:eid/accesskey", r.ClusterHandler.GetAccessKey)
