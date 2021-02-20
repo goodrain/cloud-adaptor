@@ -1,0 +1,3 @@
+port: 8080
+envs: 
+  LISTEN: 0.0.0.0:${PORT}

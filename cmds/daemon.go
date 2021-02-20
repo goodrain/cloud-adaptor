@@ -62,6 +62,7 @@ var daemonCommand = &cli.Command{
 			Aliases: []string{"l"},
 			Value:   "127.0.0.1:8080",
 			Usage:   "daemon server listen address",
+			EnvVars: []string{"LISTEN"},
 		},
 	}, dbInfoFlag...),
 	Action: runDaemon,
