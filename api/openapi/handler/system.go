@@ -197,85 +197,92 @@ func (s SystemHandler) Recover(c *gin.Context) {
 		logrus.Errorf("read db backup file failure ", err.Error())
 	} else {
 		logrus.Infof("start recover db backup data")
-		tx := s.DB.Begin()
-		if func() error {
-			var data models.BackupListModelData
-			err = json.Unmarshal(bytes, &data)
-			if err != nil {
-				logrus.Errorf("unmarshal db backup file failure ", err.Error())
-			}
-			if err := tx.Delete(&models.CloudAccessKey{}).Error; err != nil {
-				return err
-			}
-			if err := tx.Delete(&models.CreateKubernetesTask{}).Error; err != nil {
-				return err
-			}
-			if err := tx.Delete(&models.InitRainbondTask{}).Error; err != nil {
-				return err
-			}
-			if err := tx.Delete(&models.UpdateKubernetesTask{}).Error; err != nil {
-				return err
-			}
-			if err := tx.Delete(&models.TaskEvent{}).Error; err != nil {
-				return err
-			}
-			if err := tx.Delete(&models.CustomCluster{}).Error; err != nil {
-				return err
-			}
-			if err := tx.Delete(&models.RKECluster{}).Error; err != nil {
-				return err
-			}
-			for _, accessKey := range data.CloudAccessKeys {
-				if err := tx.Create(&accessKey).Error; err != nil {
-					return fmt.Errorf("recover accessKey failure %s", err.Error())
+		func() {
+			tx := s.DB.Begin()
+			defer func() {
+				if err := recover(); err != nil {
+					tx.Rollback()
 				}
-			}
-			for _, createTask := range data.CreateKubernetesTasks {
-				if err := tx.Create(&createTask).Error; err != nil {
-					return fmt.Errorf("recover createTask failure %s", err.Error())
+			}()
+			if func() error {
+				var data models.BackupListModelData
+				err = json.Unmarshal(bytes, &data)
+				if err != nil {
+					logrus.Errorf("unmarshal db backup file failure ", err.Error())
 				}
-			}
-			for _, initTask := range data.InitRainbondTasks {
-				if err := tx.Create(&initTask).Error; err != nil {
-					return fmt.Errorf("recover initTask failure %s", err.Error())
+				if err := tx.Delete(&models.CloudAccessKey{}).Error; err != nil {
+					return err
 				}
-			}
-			for _, taskEvent := range data.TaskEvents {
-				if err := tx.Create(&taskEvent).Error; err != nil {
-					return fmt.Errorf("recover taskEvent failure %s", err.Error())
+				if err := tx.Delete(&models.CreateKubernetesTask{}).Error; err != nil {
+					return err
 				}
-			}
+				if err := tx.Delete(&models.InitRainbondTask{}).Error; err != nil {
+					return err
+				}
+				if err := tx.Delete(&models.UpdateKubernetesTask{}).Error; err != nil {
+					return err
+				}
+				if err := tx.Delete(&models.TaskEvent{}).Error; err != nil {
+					return err
+				}
+				if err := tx.Delete(&models.CustomCluster{}).Error; err != nil {
+					return err
+				}
+				if err := tx.Delete(&models.RKECluster{}).Error; err != nil {
+					return err
+				}
+				for _, accessKey := range data.CloudAccessKeys {
+					if err := tx.Create(&accessKey).Error; err != nil {
+						return fmt.Errorf("recover accessKey failure %s", err.Error())
+					}
+				}
+				for _, createTask := range data.CreateKubernetesTasks {
+					if err := tx.Create(&createTask).Error; err != nil {
+						return fmt.Errorf("recover createTask failure %s", err.Error())
+					}
+				}
+				for _, initTask := range data.InitRainbondTasks {
+					if err := tx.Create(&initTask).Error; err != nil {
+						return fmt.Errorf("recover initTask failure %s", err.Error())
+					}
+				}
+				for _, taskEvent := range data.TaskEvents {
+					if err := tx.Create(&taskEvent).Error; err != nil {
+						return fmt.Errorf("recover taskEvent failure %s", err.Error())
+					}
+				}
 
-			for _, updateTask := range data.UpdateKubernetesTasks {
-				if err := tx.Create(&updateTask).Error; err != nil {
-					return fmt.Errorf("recover updateTask failure %s", err.Error())
+				for _, updateTask := range data.UpdateKubernetesTasks {
+					if err := tx.Create(&updateTask).Error; err != nil {
+						return fmt.Errorf("recover updateTask failure %s", err.Error())
+					}
 				}
-			}
-			for _, customCluster := range data.CustomClusters {
-				if err := tx.Create(&customCluster).Error; err != nil {
-					return fmt.Errorf("recover customCluster failure %s", err.Error())
+				for _, customCluster := range data.CustomClusters {
+					if err := tx.Create(&customCluster).Error; err != nil {
+						return fmt.Errorf("recover customCluster failure %s", err.Error())
+					}
 				}
-			}
-			for _, rkeCluster := range data.RKEClusters {
-				if err := tx.Create(&rkeCluster).Error; err != nil {
-					return fmt.Errorf("recover rkeCluster failure %s", err.Error())
+				for _, rkeCluster := range data.RKEClusters {
+					if err := tx.Create(&rkeCluster).Error; err != nil {
+						return fmt.Errorf("recover rkeCluster failure %s", err.Error())
+					}
 				}
-			}
-			for _, rcc := range data.RainbondClusterConfigs {
-				if err := tx.Create(&rcc).Error; err != nil {
-					return fmt.Errorf("recover rainbondClusterConfigs failure %s", err.Error())
+				for _, rcc := range data.RainbondClusterConfigs {
+					if err := tx.Create(&rcc).Error; err != nil {
+						return fmt.Errorf("recover rainbondClusterConfigs failure %s", err.Error())
+					}
 				}
+				logrus.Infof("recover db backup data success")
+				return nil
+			}(); err != nil {
+				tx.Rollback()
+				logrus.Errorf("recover db data failure %s", err.Error())
 			}
-			logrus.Infof("recover db backup data success")
-			return nil
-		}(); err != nil {
-			tx.Rollback()
-			logrus.Errorf("recover db data failure %s", err.Error())
-		}
-		if err := tx.Commit().Error; err != nil {
-			tx.Rollback()
-			logrus.Errorf("recover db data failure %s", err.Error())
-		}
+			if err := tx.Commit().Error; err != nil {
+				tx.Rollback()
+				logrus.Errorf("recover db data failure %s", err.Error())
+			}
+		}()
 	}
 	c.JSON(http.StatusOK, gin.H{
 		"status": "ok",
