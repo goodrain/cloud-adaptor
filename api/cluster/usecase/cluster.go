@@ -657,16 +657,6 @@ func (c *ClusterUsecase) GetRainbondClusterConfig(eid, clusterID string) (*rainb
 	rbcc.Spec.ImageHub = &rainbondv1alpha1.ImageHub{}
 	rbcc.Spec.NodesForGateway = []*rainbondv1alpha1.K8sNode{}
 	rbcc.Spec.NodesForChaos = []*rainbondv1alpha1.K8sNode{}
-	rbcc.Spec.RainbondVolumeSpecRWO = &rainbondv1alpha1.RainbondVolumeSpec{
-		StorageClassName:       "",
-		StorageClassParameters: &rainbondv1alpha1.StorageClassParameters{},
-		CSIPlugin:              &rainbondv1alpha1.CSIPluginSource{},
-	}
-	rbcc.Spec.RainbondVolumeSpecRWX = &rainbondv1alpha1.RainbondVolumeSpec{
-		StorageClassName:       "",
-		StorageClassParameters: &rainbondv1alpha1.StorageClassParameters{},
-		CSIPlugin:              &rainbondv1alpha1.CSIPluginSource{},
-	}
 	rbcc.Spec.SuffixHTTPHost = ""
 	rbcc.Spec.GatewayIngressIPs = []string{}
 	if rcc != nil {

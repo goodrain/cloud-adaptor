@@ -237,6 +237,9 @@ func (r *RainbondRegionInit) createRainbondCR(kubeClient *kubernetes.Clientset, 
 				cluster.Spec.RainbondVolumeSpecRWO.CSIPlugin = nil
 			}
 		}
+		if cluster.Spec.RainbondVolumeSpecRWO.CSIPlugin == nil && cluster.Spec.RainbondVolumeSpecRWO.StorageClassName == "" {
+			cluster.Spec.RainbondVolumeSpecRWO = nil
+		}
 	}
 	if cluster.Spec.RainbondVolumeSpecRWX == nil ||
 		(cluster.Spec.RainbondVolumeSpecRWX.CSIPlugin == nil &&

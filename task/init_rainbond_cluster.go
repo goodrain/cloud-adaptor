@@ -163,14 +163,12 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 		if err != nil {
 			if errors.IsNotFound(err) {
 				c.rollback("InitRainbondRegion", err.Error(), "failure")
+				return
 			}
 			logrus.Errorf("get rainbond region status failure %s", err.Error())
 		}
 		if status == nil {
 			continue
-		}
-		if status.RainbondCluster == nil {
-
 		}
 		if status.OperatorReady && !operatorMessage {
 			c.rollback("InitRainbondRegionOperator", "", "success")
