@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rainbond-operator
+  namespace: rbd-system
+  labels:
+    control-plane: rainbond-operator
+spec:
+  selector:
+    matchLabels:
+      control-plane: rainbond-operator
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        control-plane: rainbond-operator
+    spec:
+      serviceAccountName: rainbond-operator
+      volumes:
+        - name: dockersock
+          hostPath:
+            path: /var/run
+            type: Directory
+      containers:
+        - command:
+            - /manager
+          args:
+            - --leader-elect
+            - --zap-log-level=4
+          image: registry.cn-hangzhou.aliyuncs.com/goodrain/rainbond-operator:v2.0.0
+          imagePullPolicy: IfNotPresent
+          name: rainbond-operator
+          securityContext:
+            allowPrivilegeEscalation: false
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8081
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 64Mi
+          volumeMounts:
+            - mountPath: /var/run
+              name: dockersock
+      terminationGracePeriodSeconds: 10

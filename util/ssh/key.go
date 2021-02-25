@@ -73,6 +73,9 @@ func MakeSSHKeyPair() (string, string, error) {
 //GetOrMakeSSHRSA get or make ssh rsa
 func GetOrMakeSSHRSA() (string, error) {
 	home := homedir.HomeDir()
+	if _, err := os.Stat(path.Join(home, ".ssh")); err != nil && os.IsNotExist(err) {
+		os.MkdirAll(path.Join(home, ".ssh"), 0700)
+	}
 	idRsaPath := path.Join(home, ".ssh", "id_rsa")
 	idRsaPubPath := path.Join(home, ".ssh", "id_rsa.pub")
 	stat, err := os.Stat(idRsaPubPath)

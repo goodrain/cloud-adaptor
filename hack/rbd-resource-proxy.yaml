@@ -1,0 +1,16 @@
+apiVersion: rainbond.io/v1alpha1
+kind: RbdComponent
+metadata:
+  creationTimestamp: '2021-02-24T02:06:33Z'
+  generation: 2
+  labels:
+    belongTo: rainbond-operator
+    creator: Rainbond
+    name: rbd-resource-proxy
+  name: rbd-resource-proxy
+  namespace: rbd-system
+spec:
+  image: registry.cn-hangzhou.aliyuncs.com/goodrain/rbd-resource-proxy:v5.3.0-release
+  imagePullPolicy: IfNotPresent
+  priorityComponent: false
+  replicas: 1
