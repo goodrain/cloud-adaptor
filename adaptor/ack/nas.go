@@ -64,7 +64,7 @@ func (a *ackAdaptor) CreateNAS(clusterID, regionID, zoneID string) (string, erro
 	response, createErr := client.CreateFileSystem(request)
 	if createErr != nil {
 		if real, ok := createErr.(*errors.ServerError); ok {
-			if real.ErrorCode() == "InvalidAZone.NotFound" {
+			if real.ErrorCode() == "InvalidZone.NotFound" || real.ErrorCode() == "InvaildZone.NotExist" {
 				logrus.Infof("because of %s, select nas zone in region %s ", real.Message(), regionID)
 				// select other zone
 				zone, err := a.GetNasZone(regionID)
