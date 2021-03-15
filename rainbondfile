@@ -3,3 +3,7 @@ ports:
    protocol: http
 envs: 
   LISTEN: 0.0.0.0:${PORT}
+  DB_PATH=/app/data/cloudadaptor
+  CHART_PATH=/app/chart
+  CONFIG_DIR=/app/data/cloudadaptor
+  HELM_PATH=/app/helm
