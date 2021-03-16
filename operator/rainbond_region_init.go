@@ -182,6 +182,10 @@ func (r *RainbondRegionInit) createRainbondCR(kubeClient *kubernetes.Clientset, 
 	}
 	cluster.Spec.InstallMode = "WithoutPackage"
 	cluster.Spec.ConfigCompleted = true
+	// image hub must be nil, where not define
+	if cluster.Spec.ImageHub != nil && cluster.Spec.ImageHub.Domain == "" {
+		cluster.Spec.ImageHub = nil
+	}
 	if cluster.Spec.InstallVersion == "" {
 		cluster.Spec.InstallVersion = initConfig.RainbondVersion
 	}
