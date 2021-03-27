@@ -7,3 +7,4 @@ envs:
   CHART_PATH=/app/chart
   CONFIG_DIR=/app/data/cloudadaptor
   HELM_PATH=/app/helm
+  GIN_MODE=release

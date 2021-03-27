@@ -39,6 +39,7 @@ var CORSMidle = func(f gin.HandlerFunc) gin.HandlerFunc {
 
 // NewRouter creates a new Router
 func (r *Router) NewRouter() *gin.Engine {
+	gin.SetMode(gin.ReleaseMode)
 	e := gin.Default()
 	e.OPTIONS("/*path", CORSMidle(func(ctx *gin.Context) {}))
 

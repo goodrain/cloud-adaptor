@@ -92,13 +92,15 @@ func (s SystemHandler) Backup(ctx *gin.Context) {
 		return
 	}
 	//backup ssh key
-	tarSSHPackgeFile := path.Join(backupTmpPath, "ssh.tar.gz")
-	scmd := exec.Command("tar", "-czf", tarSSHPackgeFile, "./id_rsa", "./id_rsa.pub")
-	scmd.Dir = path.Join(homedir.HomeDir(), ".ssh")
-	if err := scmd.Run(); err != nil {
-		logrus.Errorf("write backup ssh file failure %s", err.Error())
-		ginutil.JSON(ctx, nil, err)
-		return
+	if _, err := os.Stat(path.Join(homedir.HomeDir(), ".ssh", "id_rsa")); err == nil {
+		tarSSHPackgeFile := path.Join(backupTmpPath, "ssh.tar.gz")
+		scmd := exec.Command("tar", "-czf", tarSSHPackgeFile, "./id_rsa", "./id_rsa.pub")
+		scmd.Dir = path.Join(homedir.HomeDir(), ".ssh")
+		if err := scmd.Run(); err != nil {
+			logrus.Errorf("write backup ssh file failure %s", err.Error())
+			ginutil.JSON(ctx, nil, err)
+			return
+		}
 	}
 	// create packege
 	backupTmpFile := "/tmp/cloud_adaptor_data.tar.gz"

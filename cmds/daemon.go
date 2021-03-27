@@ -107,15 +107,14 @@ func runDaemon(ctx *cli.Context) error {
 			createKubernetesTaskHandler, cloudInitTaskHandler, cloudUpdateTaskHandler)
 		go msgConsumer.Start()
 	}
-
 	mr, err := GetRouter(graph)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	r := mr.NewRouter()
-	gin.SetMode(gin.ReleaseMode)
 	r.Use(gin.Recovery())
+	logrus.Infof("start listen %s", ctx.String("listen"))
 	go r.Run(ctx.String("listen"))
 
 	term := make(chan os.Signal)
