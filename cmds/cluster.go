@@ -34,20 +34,20 @@ import (
 var clusterCommand = &cli.Command{
 	Name: "cluster",
 	Subcommands: []*cli.Command{
-		&cli.Command{
+		{
 			Name:    "list",
 			Aliases: []string{"l"},
 			Flags:   defatltFlag,
 			Action:  listCluster,
 			Usage:   "list all cluster",
 		},
-		&cli.Command{
+		{
 			Name:   "get",
 			Flags:  defatltFlag,
 			Action: getCluster,
 			Usage:  "show one cluster info, `get <CLUSTER_ID>`",
 		},
-		&cli.Command{
+		{
 			Name:    "create",
 			Aliases: []string{"c"},
 			Flags: append(defatltFlag, &cli.StringFlag{
@@ -85,13 +85,13 @@ var clusterCommand = &cli.Command{
 			Action: createCluster,
 			Usage:  "create a cluster",
 		},
-		&cli.Command{
+		{
 			Name:   "region-config",
 			Flags:  defatltFlag,
 			Action: getClusterRegion,
 			Usage:  "get rainbond region info in cluster, `region <CLUSTER_ID>`",
 		},
-		&cli.Command{
+		{
 			Name:   "init-status",
 			Flags:  defatltFlag,
 			Action: getClusterRegionInitStatus,
@@ -121,7 +121,7 @@ func listCluster(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	clusters, err := adaptor.ClusterList()
+	clusters, err := adaptor.ClusterList("cli")
 	if err != nil {
 		return cli.NewExitError(err, 1)
 	}
@@ -143,7 +143,7 @@ func getCluster(ctx *cli.Context) error {
 	if clusterID == "" {
 		return cli.Exit("clusterID must be set, eg cluster <CLUSTER_ID>", 1)
 	}
-	cluster, err := adaptor.DescribeCluster(clusterID)
+	cluster, err := adaptor.DescribeCluster("cli", clusterID)
 	if err != nil {
 		return cli.Exit(err, 1)
 	}
@@ -266,8 +266,9 @@ func createCluster(ctx *cli.Context) error {
 		InstanceType:  instanceType,
 		VpcID:         vpcID,
 		VSwitchID:     vswitchID,
+		EnterpriseID:  "cli",
 	})
-	_, err = adaptor.CreateCluster(clusterConfig)
+	_, err = adaptor.CreateCluster("cli", clusterConfig)
 	if err != nil {
 		return cli.Exit(err, 1)
 	}
@@ -285,7 +286,7 @@ func getClusterRegion(ctx *cli.Context) error {
 	if clusterID == "" {
 		return cli.Exit("clusterID must be set, eg region <CLUSTER_ID>", 1)
 	}
-	kubeConfig, err := adaptor.GetKubeConfig(clusterID)
+	kubeConfig, err := adaptor.GetKubeConfig("cli", clusterID)
 	if err != nil {
 		return cli.Exit(err, 1)
 	}
@@ -321,7 +322,7 @@ func getClusterRegionInitStatus(ctx *cli.Context) error {
 	if clusterID == "" {
 		return cli.Exit("clusterID must be set, eg region <CLUSTER_ID>", 1)
 	}
-	kubeConfig, err := adaptor.GetKubeConfig(clusterID)
+	kubeConfig, err := adaptor.GetKubeConfig("cli", clusterID)
 	if err != nil {
 		return cli.Exit(err, 1)
 	}
