@@ -135,10 +135,6 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 	initConfig.RainbondVersion = version.RainbondRegionVersion
 	// init rainbond
 	c.rollback("InitRainbondRegionOperator", "", "start")
-	if len(initConfig.EIPs) == 0 {
-		c.rollback("InitRainbondRegionOperator", "can not select eip", "failure")
-		return
-	}
 	rri := operator.NewRainbondRegionInit(*kubeConfig)
 	if err := rri.InitRainbondRegion(initConfig); err != nil {
 		c.rollback("InitRainbondRegionOperator", err.Error(), "failure")
