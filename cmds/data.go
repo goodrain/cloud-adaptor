@@ -5,9 +5,9 @@ import (
 	"io/ioutil"
 
 	cli "github.com/urfave/cli/v2"
-	"goodrain.com/cloud-adaptor/api/config"
-	"goodrain.com/cloud-adaptor/api/infrastructure/datastore"
-	"goodrain.com/cloud-adaptor/api/models"
+	"goodrain.com/cloud-adaptor/cmd/cloud-adaptor/config"
+	"goodrain.com/cloud-adaptor/internal/data/model"
+	"goodrain.com/cloud-adaptor/pkg/infrastructure/datastore"
 )
 
 var dataCommand = &cli.Command{
@@ -45,11 +45,11 @@ func exportData(ctx *cli.Context) error {
 	db := datastore.NewDB()
 	defer func() { _ = db.Close() }()
 
-	var result models.BackupListModelData
-	db.Table(db.NewScope(&models.CloudAccessKey{}).TableName()).Scan(&result.CloudAccessKeys)
-	db.Table(db.NewScope(&models.CreateKubernetesTask{}).TableName()).Scan(&result.CreateKubernetesTasks)
-	db.Table(db.NewScope(&models.InitRainbondTask{}).TableName()).Scan(&result.InitRainbondTasks)
-	db.Table(db.NewScope(&models.TaskEvent{}).TableName()).Scan(&result.TaskEvents)
+	var result model.BackupListModelData
+	db.Table(db.NewScope(&model.CloudAccessKey{}).TableName()).Scan(&result.CloudAccessKeys)
+	db.Table(db.NewScope(&model.CreateKubernetesTask{}).TableName()).Scan(&result.CreateKubernetesTasks)
+	db.Table(db.NewScope(&model.InitRainbondTask{}).TableName()).Scan(&result.InitRainbondTasks)
+	db.Table(db.NewScope(&model.TaskEvent{}).TableName()).Scan(&result.TaskEvents)
 
 	data, err := json.Marshal(result)
 	if err != nil {
@@ -71,7 +71,7 @@ func importData(ctx *cli.Context) error {
 		return cli.Exit(err, 1)
 	}
 
-	var data models.BackupListModelData
+	var data model.BackupListModelData
 	err = json.Unmarshal(bytes, &data)
 	if err != nil {
 		return cli.Exit(err, 1)

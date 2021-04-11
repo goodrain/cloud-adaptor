@@ -14,6 +14,8 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/goodrain/rainbond-operator v1.3.1-0.20210316113733-75a870bf2a51
+	github.com/google/wire v0.5.0
+	github.com/jinzhu/copier v0.2.8 // indirect
 	github.com/jinzhu/gorm v1.9.16
 	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect
 	github.com/nsqio/go-nsq v1.0.8

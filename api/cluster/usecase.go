@@ -20,32 +20,32 @@ package cluster
 
 import (
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
-	"goodrain.com/cloud-adaptor/adaptor/v1alpha1"
-	"goodrain.com/cloud-adaptor/api/models"
-	v1 "goodrain.com/cloud-adaptor/api/openapi/types/v1"
+	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
+	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
+	"goodrain.com/cloud-adaptor/internal/model"
 )
 
 //Usecase represents the cluster's usecases
 type Usecase interface {
 	ListKubernetesCluster(string, v1.ListKubernetesCluster) ([]*v1alpha1.Cluster, error)
 	GetCluster(provider, eid, clusterID string) (*v1alpha1.Cluster, error)
-	CreateKubernetesCluster(eid string, req v1.CreateKubernetesReq) (*models.CreateKubernetesTask, error)
-	InstallCluster(eid, clusterID string) (*models.CreateKubernetesTask, error)
-	AddAccessKey(eid string, key v1.AddAccessKey) (*models.CloudAccessKey, error)
-	GetByProviderAndEnterprise(providerName, eid string) (*models.CloudAccessKey, error)
-	CreateTaskEvent(em *v1.EventMessage) (*models.TaskEvent, error)
-	ListTaskEvent(eid, taskID string) ([]*models.TaskEvent, error)
-	GetLastCreateKubernetesTask(eid, providerName string) (*models.CreateKubernetesTask, error)
-	GetCreateKubernetesTask(eid, taskID string) (*models.CreateKubernetesTask, error)
-	InitRainbondRegion(eid string, req v1.InitRainbondRegionReq) (*models.InitRainbondTask, error)
-	GetTaskRunningLists(eid string) ([]*models.InitRainbondTask, error)
-	GetInitRainbondTaskByClusterID(eid, clusterID, providerName string) (*models.InitRainbondTask, error)
+	CreateKubernetesCluster(eid string, req v1.CreateKubernetesReq) (*model.CreateKubernetesTask, error)
+	InstallCluster(eid, clusterID string) (*model.CreateKubernetesTask, error)
+	AddAccessKey(eid string, key v1.AddAccessKey) (*model.CloudAccessKey, error)
+	GetByProviderAndEnterprise(providerName, eid string) (*model.CloudAccessKey, error)
+	CreateTaskEvent(em *v1.EventMessage) (*model.TaskEvent, error)
+	ListTaskEvent(eid, taskID string) ([]*model.TaskEvent, error)
+	GetLastCreateKubernetesTask(eid, providerName string) (*model.CreateKubernetesTask, error)
+	GetCreateKubernetesTask(eid, taskID string) (*model.CreateKubernetesTask, error)
+	InitRainbondRegion(eid string, req v1.InitRainbondRegionReq) (*model.InitRainbondTask, error)
+	GetTaskRunningLists(eid string) ([]*model.InitRainbondTask, error)
+	GetInitRainbondTaskByClusterID(eid, clusterID, providerName string) (*model.InitRainbondTask, error)
 	GetRegionConfig(eid, clusterID, providerName string) (map[string]string, error)
-	UpdateInitRainbondTaskStatus(eid, taskID, status string) (*models.InitRainbondTask, error)
+	UpdateInitRainbondTaskStatus(eid, taskID, status string) (*model.InitRainbondTask, error)
 	DeleteKubernetesCluster(eid, clusterID, provider string) error
 	GetKubeConfig(eid, clusterID, providerName string) (string, error)
-	UpdateKubernetesCluster(eid string, req v1.UpdateKubernetesReq) (*models.UpdateKubernetesTask, error)
-	GetUpdateKubernetesTaskByClusterID(eid, clusterID, providerName string) (*models.UpdateKubernetesTask, error)
+	UpdateKubernetesCluster(eid string, req v1.UpdateKubernetesReq) (*model.UpdateKubernetesTask, error)
+	GetUpdateKubernetesTaskByClusterID(eid, clusterID, providerName string) (*model.UpdateKubernetesTask, error)
 	GetRKENodeList(eid, clusterID string) (v1alpha1.NodeList, error)
 	SetRainbondClusterConfig(eid, clusterID, config string) error
 	GetRainbondClusterConfig(eid, clusterID string) (*rainbondv1alpha1.RainbondCluster, error)

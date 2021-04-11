@@ -4,7 +4,7 @@ import (
 	"context"
 
 	nsq "github.com/nsqio/go-nsq"
-	"goodrain.com/cloud-adaptor/task"
+	"goodrain.com/cloud-adaptor/internal/task"
 )
 
 // CloudInitTaskHandler -

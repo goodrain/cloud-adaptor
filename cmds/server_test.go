@@ -23,7 +23,7 @@ import (
 	"time"
 
 	nsq "github.com/nsqio/go-nsq"
-	v1 "goodrain.com/cloud-adaptor/api/openapi/types/v1"
+	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 )
 
 func TestSendEvent(t *testing.T) {

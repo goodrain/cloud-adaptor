@@ -31,11 +31,11 @@ import (
 	"github.com/prometheus/common/log"
 	"github.com/sirupsen/logrus"
 	cli "github.com/urfave/cli/v2"
+	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/api/cluster"
 	"goodrain.com/cloud-adaptor/api/handler"
-	v1 "goodrain.com/cloud-adaptor/api/openapi/types/v1"
-	"goodrain.com/cloud-adaptor/task"
-	"goodrain.com/cloud-adaptor/util/constants"
+	"goodrain.com/cloud-adaptor/internal/task"
+	"goodrain.com/cloud-adaptor/pkg/util/constants"
 )
 
 var serverCommand = &cli.Command{

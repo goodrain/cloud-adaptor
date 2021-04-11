@@ -22,7 +22,7 @@ import (
 	"fmt"
 
 	cli "github.com/urfave/cli/v2"
-	"goodrain.com/cloud-adaptor/util"
+	"goodrain.com/cloud-adaptor/pkg/util"
 )
 
 var vpcCommand = &cli.Command{

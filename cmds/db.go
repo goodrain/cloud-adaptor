@@ -22,8 +22,8 @@ import (
 	"fmt"
 
 	cli "github.com/urfave/cli/v2"
-	"goodrain.com/cloud-adaptor/adaptor/v1alpha1"
-	"goodrain.com/cloud-adaptor/util"
+	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
+	"goodrain.com/cloud-adaptor/pkg/util"
 )
 
 var dbCommand = &cli.Command{
