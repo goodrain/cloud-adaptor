@@ -20,15 +20,19 @@ package main
 
 import (
 	"context"
+	"os"
+	"os/signal"
+	"syscall"
+
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	cli "github.com/urfave/cli/v2"
 	"goodrain.com/cloud-adaptor/cmd/cloud-adaptor/config"
 	"goodrain.com/cloud-adaptor/internal/handler"
+	"goodrain.com/cloud-adaptor/internal/nsqc"
+	"goodrain.com/cloud-adaptor/internal/task"
+	"goodrain.com/cloud-adaptor/internal/types"
 	"goodrain.com/cloud-adaptor/pkg/infrastructure/datastore"
-	"os"
-	"os/signal"
-	"syscall"
 )
 
 func main() {
@@ -78,7 +82,7 @@ func main() {
 }
 
 func run(c *cli.Context) error {
-	_, cancel := context.WithCancel(c.Context)
+	ctx, cancel := context.WithCancel(c.Context)
 	defer cancel()
 
 	config.Parse(c)
@@ -88,41 +92,17 @@ func run(c *cli.Context) error {
 	defer func() { _ = db.Close() }()
 	datastore.AutoMigrate(db)
 
-	//createChan := make(chan task.KubernetesConfigMessage, 10)
-	//initChan := make(chan task.InitRainbondConfigMessage, 10)
-	//updateChan := make(chan task.UpdateKubernetesConfigMessage, 10)
-	//var taskProducer producer.TaskProducer
-	//if os.Getenv("QUEUE_TYPE") == "nsq" {
-	//	taskProducer = producer.NewTaskProducer()
-	//	taskProducer.Start()
-	//} else {
-	//	taskProducer = producer.NewTaskChannelProducer(createChan, initChan, updateChan)
-	//}
+	createChan := make(chan types.KubernetesConfigMessage, 10)
+	initChan := make(chan types.InitRainbondConfigMessage, 10)
+	updateChan := make(chan types.UpdateKubernetesConfigMessage, 10)
 
-	//clusterUsecase := clustersvc.NewClusterUsecase(taskProducer)
-	//createKubernetesTaskHandler := NewCreateKubernetesTaskHandler(clusterUsecase)
-	//cloudInitTaskHandler := NewCloudInitTaskHandler(clusterUsecase)
-	//cloudUpdateTaskHandler := NewCloudUpdateTaskHandler(clusterUsecase)
-	//graph, err := initObj(ctx, db, taskProducer, clusterUsecase)
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
-	//
-	//if os.Getenv("QUEUE_TYPE") == "nsq" {
-	//	msgConsumer := nsqc.NewTaskConsumer(config.C, createKubernetesTaskHandler, cloudInitTaskHandler)
-	//	go msgConsumer.Start()
-	//} else {
-	//	msgConsumer := nsqc.NewTaskChannelConsumer(ctx, createChan, initChan, updateChan,
-	//		createKubernetesTaskHandler, cloudInitTaskHandler, cloudUpdateTaskHandler)
-	//	go msgConsumer.Start()
-	//}
-
-	r, err := initGin(db, nil)
+	engine, err := initApp(ctx, db, createChan, initChan, updateChan)
 	if err != nil {
 		return err
 	}
+
 	logrus.Infof("start listen %s", c.String("listen"))
-	go r.Run(c.String("listen"))
+	go engine.Run(c.String("listen"))
 
 	term := make(chan os.Signal)
 	signal.Notify(term, os.Interrupt, syscall.SIGTERM)
@@ -134,8 +114,19 @@ func run(c *cli.Context) error {
 	return nil
 }
 
-func newGinEngine(router *handler.Router) *gin.Engine {
-	r := router.NewRouter()
-	r.Use(gin.Recovery())
-	return r
+func newApp(ctx context.Context,
+	router *handler.Router,
+	createQueue chan types.KubernetesConfigMessage,
+	initQueue chan types.InitRainbondConfigMessage,
+	updateQueue chan types.UpdateKubernetesConfigMessage,
+	createHandler task.CreateKubernetesTaskHandler,
+	initHandler task.CloudInitTaskHandler,
+	cloudUpdateTaskHandler task.UpdateKubernetesTaskHandler) *gin.Engine {
+	engine := router.NewRouter()
+	engine.Use(gin.Recovery())
+
+	msgConsumer := nsqc.NewTaskChannelConsumer(ctx, createQueue, initQueue, updateQueue, createHandler, initHandler, cloudUpdateTaskHandler)
+	go msgConsumer.Start()
+
+	return engine
 }

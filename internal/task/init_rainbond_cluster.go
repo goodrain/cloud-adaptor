@@ -22,43 +22,44 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"fmt"
-	"net/http"
-	"time"
 
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
+	"github.com/nsqio/go-nsq"
 	"github.com/rancher/rke/k8s"
 	"github.com/sirupsen/logrus"
-	typesv1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
+	"goodrain.com/cloud-adaptor/internal/biz"
+	"goodrain.com/cloud-adaptor/internal/types"
+	"goodrain.com/cloud-adaptor/pkg/util/constants"
+	v1 "k8s.io/api/core/v1"
+
+	//"goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
+	"net/http"
+	"runtime/debug"
+	"time"
+
+	apiv1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
 	"goodrain.com/cloud-adaptor/internal/data"
 	"goodrain.com/cloud-adaptor/internal/operator"
 	"goodrain.com/cloud-adaptor/pkg/infrastructure/datastore"
 	"goodrain.com/cloud-adaptor/version"
-	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-//InitRainbondConfig init rainbond region config
-type InitRainbondConfig struct {
-	ClusterID string `json:"cluster_id"`
-	AccessKey string `json:"access_key"`
-	SecretKey string `json:"secret_key"`
-	Provider  string `json:"provider"`
-}
-
 //InitRainbondCluster init rainbond cluster
 type InitRainbondCluster struct {
-	config *InitRainbondConfig
-	result chan typesv1.Message
+	config *types.InitRainbondConfig
+	result chan apiv1.Message
 }
 
 func (c *InitRainbondCluster) rollback(step, message, status string) {
 	if status == "failure" {
 		logrus.Errorf("%s failure, Message: %s", step, message)
 	}
-	c.result <- typesv1.Message{StepType: step, Message: message, Status: status}
+	c.result <- apiv1.Message{StepType: step, Message: message, Status: status}
 }
 
 //Run run take time 214.10s
@@ -258,7 +259,7 @@ func (c *InitRainbondCluster) Stop() error {
 }
 
 //GetChan get message chan
-func (c *InitRainbondCluster) GetChan() chan typesv1.Message {
+func (c *InitRainbondCluster) GetChan() chan apiv1.Message {
 	return c.result
 }
 
@@ -318,4 +319,85 @@ func checkAPIHealthy(configmap *v1.ConfigMap) bool {
 		return true
 	}
 	return false
+}
+
+//cloudInitTaskHandler cloud init task handler
+type cloudInitTaskHandler struct {
+	eventHandler *CallBackEvent
+	handledTask  map[string]string
+}
+
+// NewCloudInitTaskHandler -
+func NewCloudInitTaskHandler(clusterUsecase *biz.ClusterUsecase) CloudInitTaskHandler {
+	return &cloudInitTaskHandler{
+		eventHandler: &CallBackEvent{TopicName: constants.CloudInit, ClusterUsecase: clusterUsecase},
+		handledTask:  make(map[string]string),
+	}
+}
+
+// HandleMsg -
+func (h *cloudInitTaskHandler) HandleMsg(ctx context.Context, initConfig types.InitRainbondConfigMessage) error {
+	if _, exist := h.handledTask[initConfig.TaskID]; exist {
+		logrus.Infof("task %s is running or complete,ignore", initConfig.TaskID)
+		return nil
+	}
+	initTask, err := CreateTask(InitRainbondClusterTask, initConfig.InitRainbondConfig)
+	if err != nil {
+		logrus.Errorf("create task failure %s", err.Error())
+		h.eventHandler.HandleEvent(initConfig.GetEvent(&apiv1.Message{
+			StepType: "CreateTask",
+			Message:  err.Error(),
+			Status:   "failure",
+		}))
+		return nil
+	}
+	// Asynchronous execution to prevent message consumption from taking too long.
+	// Idempotent consumption of messages is not currently supported
+	go h.run(ctx, initTask, initConfig)
+	h.handledTask[initConfig.TaskID] = "running"
+	return nil
+}
+
+// HandleMessage implements the Handler interface.
+// Returning a non-nil error will automatically send a REQ command to NSQ to re-queue the message.
+func (h *cloudInitTaskHandler) HandleMessage(m *nsq.Message) error {
+	if len(m.Body) == 0 {
+		// Returning nil will automatically send a FIN command to NSQ to mark the message as processed.
+		return nil
+	}
+	var initConfig types.InitRainbondConfigMessage
+	if err := json.Unmarshal(m.Body, &initConfig); err != nil {
+		logrus.Errorf("unmarshal init rainbond config message failure %s", err.Error())
+		return nil
+	}
+	if err := h.HandleMsg(context.Background(), initConfig); err != nil {
+		logrus.Errorf("handle init rainbond config message failure %s", err.Error())
+		return nil
+	}
+	return nil
+}
+
+func (h *cloudInitTaskHandler) run(ctx context.Context, initTask Task, initConfig types.InitRainbondConfigMessage) {
+	defer func() {
+		h.handledTask[initConfig.TaskID] = "complete"
+	}()
+	defer func() {
+		if err := recover(); err != nil {
+			debug.PrintStack()
+		}
+	}()
+	closeChan := make(chan struct{})
+	go func() {
+		defer close(closeChan)
+		for message := range initTask.GetChan() {
+			if message.StepType == "Close" {
+				return
+			}
+			h.eventHandler.HandleEvent(initConfig.GetEvent(&message))
+		}
+	}()
+	initTask.Run(ctx)
+	//waiting message handle complete
+	<-closeChan
+	logrus.Infof("init rainbond region task %s handle success", initConfig.TaskID)
 }

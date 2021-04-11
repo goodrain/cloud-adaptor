@@ -20,12 +20,18 @@ package task
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"runtime/debug"
 
+	"github.com/nsqio/go-nsq"
 	"github.com/sirupsen/logrus"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
+	"goodrain.com/cloud-adaptor/internal/biz"
+	"goodrain.com/cloud-adaptor/internal/types"
+	"goodrain.com/cloud-adaptor/pkg/util/constants"
 )
 
 //UpdateKubernetesCluster update cluster
@@ -59,4 +65,84 @@ func (c *UpdateKubernetesCluster) Run(ctx context.Context) {
 //GetChan get message chan
 func (c *UpdateKubernetesCluster) GetChan() chan v1.Message {
 	return c.result
+}
+
+type cloudUpdateTaskHandler struct {
+	eventHandler *CallBackEvent
+	handledTask  map[string]string
+}
+
+// NewCloudUpdateTaskHandler -
+func NewCloudUpdateTaskHandler(clusterUsecase *biz.ClusterUsecase) UpdateKubernetesTaskHandler {
+	return &cloudUpdateTaskHandler{
+		eventHandler: &CallBackEvent{TopicName: constants.CloudInit, ClusterUsecase: clusterUsecase},
+		handledTask:  make(map[string]string),
+	}
+}
+
+// HandleMsg -
+func (h *cloudUpdateTaskHandler) HandleMsg(ctx context.Context, config types.UpdateKubernetesConfigMessage) error {
+	if _, exist := h.handledTask[config.TaskID]; exist {
+		logrus.Infof("task %s is running or complete,ignore", config.TaskID)
+		return nil
+	}
+	initTask, err := CreateTask(UpdateKubernetesTask, config.Config)
+	if err != nil {
+		logrus.Errorf("create task failure %s", err.Error())
+		h.eventHandler.HandleEvent(config.GetEvent(&v1.Message{
+			StepType: "CreateTask",
+			Message:  err.Error(),
+			Status:   "failure",
+		}))
+		return nil
+	}
+	// Asynchronous execution to prevent message consumption from taking too long.
+	// Idempotent consumption of messages is not currently supported
+	go h.run(ctx, initTask, config)
+	h.handledTask[config.TaskID] = "running"
+	return nil
+}
+
+// HandleMessage implements the Handler interface.
+// Returning a non-nil error will automatically send a REQ command to NSQ to re-queue the message.
+func (h *cloudUpdateTaskHandler) HandleMessage(m *nsq.Message) error {
+	if len(m.Body) == 0 {
+		// Returning nil will automatically send a FIN command to NSQ to mark the message as processed.
+		return nil
+	}
+	var initConfig types.UpdateKubernetesConfigMessage
+	if err := json.Unmarshal(m.Body, &initConfig); err != nil {
+		logrus.Errorf("unmarshal init rainbond config message failure %s", err.Error())
+		return nil
+	}
+	if err := h.HandleMsg(context.Background(), initConfig); err != nil {
+		logrus.Errorf("handle init rainbond config message failure %s", err.Error())
+		return nil
+	}
+	return nil
+}
+
+func (h *cloudUpdateTaskHandler) run(ctx context.Context, initTask Task, initConfig types.UpdateKubernetesConfigMessage) {
+	defer func() {
+		h.handledTask[initConfig.TaskID] = "complete"
+	}()
+	defer func() {
+		if err := recover(); err != nil {
+			debug.PrintStack()
+		}
+	}()
+	closeChan := make(chan struct{})
+	go func() {
+		defer close(closeChan)
+		for message := range initTask.GetChan() {
+			if message.StepType == "Close" {
+				return
+			}
+			h.eventHandler.HandleEvent(initConfig.GetEvent(&message))
+		}
+	}()
+	initTask.Run(ctx)
+	//waiting message handle complete
+	<-closeChan
+	logrus.Infof("update kubernetes task %s handle success", initConfig.TaskID)
 }

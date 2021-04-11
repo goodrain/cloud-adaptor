@@ -3,30 +3,30 @@ package nsqc
 import (
 	"context"
 
-	"goodrain.com/cloud-adaptor/api/handler"
 	"goodrain.com/cloud-adaptor/internal/task"
+	"goodrain.com/cloud-adaptor/internal/types"
 )
 
 // Consumer -
 type taskChannelConsumer struct {
 	ctx                         context.Context
-	createQueue                 chan task.KubernetesConfigMessage
-	initQueue                   chan task.InitRainbondConfigMessage
-	updateQueue                 chan task.UpdateKubernetesConfigMessage
-	createKubernetesTaskHandler handler.CreateKubernetesTaskHandler
-	cloudInitTaskHandler        handler.CloudInitTaskHandler
-	cloudUpdateTaskHandler      handler.UpdateKubernetesTaskHandler
+	createQueue                 chan types.KubernetesConfigMessage
+	initQueue                   chan types.InitRainbondConfigMessage
+	updateQueue                 chan types.UpdateKubernetesConfigMessage
+	createKubernetesTaskHandler task.CreateKubernetesTaskHandler
+	cloudInitTaskHandler        task.CloudInitTaskHandler
+	cloudUpdateTaskHandler      task.UpdateKubernetesTaskHandler
 }
 
 // NewTaskChannelConsumer creates a new consumer.
 func NewTaskChannelConsumer(
 	ctx context.Context,
-	createQueue chan task.KubernetesConfigMessage,
-	initQueue chan task.InitRainbondConfigMessage,
-	updateQueue chan task.UpdateKubernetesConfigMessage,
-	createHandler handler.CreateKubernetesTaskHandler,
-	initHandler handler.CloudInitTaskHandler,
-	cloudUpdateTaskHandler handler.UpdateKubernetesTaskHandler,
+	createQueue chan types.KubernetesConfigMessage,
+	initQueue chan types.InitRainbondConfigMessage,
+	updateQueue chan types.UpdateKubernetesConfigMessage,
+	createHandler task.CreateKubernetesTaskHandler,
+	initHandler task.CloudInitTaskHandler,
+	cloudUpdateTaskHandler task.UpdateKubernetesTaskHandler,
 ) TaskConsumer {
 	return &taskChannelConsumer{
 		ctx:                         ctx,

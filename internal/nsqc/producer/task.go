@@ -22,21 +22,19 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/sirupsen/logrus"
-
 	nsq "github.com/nsqio/go-nsq"
-
+	"github.com/sirupsen/logrus"
 	"goodrain.com/cloud-adaptor/cmd/cloud-adaptor/config"
-	"goodrain.com/cloud-adaptor/internal/task"
+	"goodrain.com/cloud-adaptor/internal/types"
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
 )
 
 //TaskProducer task producer
 type TaskProducer interface {
 	Start() error
-	SendCreateKuerbetesTask(config task.KubernetesConfigMessage) error
-	SendUpdateKuerbetesTask(config task.UpdateKubernetesConfigMessage) error
-	SendInitRainbondRegionTask(config task.InitRainbondConfigMessage) error
+	SendCreateKuerbetesTask(config types.KubernetesConfigMessage) error
+	SendUpdateKuerbetesTask(config types.UpdateKubernetesConfigMessage) error
+	SendInitRainbondRegionTask(config types.InitRainbondConfigMessage) error
 	Stop()
 }
 
@@ -81,16 +79,16 @@ func (m *taskProducer) sendTask(topicName string, taskConfig interface{}) error 
 }
 
 //SendCreateKuerbetesTask send create kubernetes task
-func (m *taskProducer) SendCreateKuerbetesTask(config task.KubernetesConfigMessage) error {
+func (m *taskProducer) SendCreateKuerbetesTask(config types.KubernetesConfigMessage) error {
 	return m.sendTask(constants.CloudCreate, config)
 }
 
 //SendInitRainbondRegionTask send init rainbond region task
-func (m *taskProducer) SendInitRainbondRegionTask(config task.InitRainbondConfigMessage) error {
+func (m *taskProducer) SendInitRainbondRegionTask(config types.InitRainbondConfigMessage) error {
 	return m.sendTask(constants.CloudInit, config)
 }
 
-func (m *taskProducer) SendUpdateKuerbetesTask(config task.UpdateKubernetesConfigMessage) error {
+func (m *taskProducer) SendUpdateKuerbetesTask(config types.UpdateKubernetesConfigMessage) error {
 	return m.sendTask(constants.CloudUpdate, config)
 }
 

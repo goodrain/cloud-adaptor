@@ -33,7 +33,6 @@ import (
 	cli "github.com/urfave/cli/v2"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/api/cluster"
-	"goodrain.com/cloud-adaptor/api/handler"
 	"goodrain.com/cloud-adaptor/internal/task"
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
 )
@@ -137,7 +136,7 @@ type cloudInitTaskHandler struct {
 }
 
 // NewCloudInitTaskHandler -
-func NewCloudInitTaskHandler(clusterUsecase cluster.Usecase) handler.CloudInitTaskHandler {
+func NewCloudInitTaskHandler(clusterUsecase cluster.Usecase) task.CloudInitTaskHandler {
 	return &cloudInitTaskHandler{
 		eventHandler: &CallBackEvent{TopicName: constants.CloudInit, ClusterUsecase: clusterUsecase},
 		handledTask:  make(map[string]string),
@@ -217,7 +216,7 @@ type createKubernetesTaskHandler struct {
 }
 
 // NewCreateKubernetesTaskHandler -
-func NewCreateKubernetesTaskHandler(clusterUsecase cluster.Usecase) handler.CreateKubernetesTaskHandler {
+func NewCreateKubernetesTaskHandler(clusterUsecase cluster.Usecase) task.CreateKubernetesTaskHandler {
 	return &createKubernetesTaskHandler{
 		eventHandler: &CallBackEvent{TopicName: constants.CloudCreate, ClusterUsecase: clusterUsecase},
 	}
@@ -316,7 +315,7 @@ type cloudUpdateTaskHandler struct {
 }
 
 // NewCloudUpdateTaskHandler -
-func NewCloudUpdateTaskHandler(clusterUsecase cluster.Usecase) handler.UpdateKubernetesTaskHandler {
+func NewCloudUpdateTaskHandler(clusterUsecase cluster.Usecase) task.UpdateKubernetesTaskHandler {
 	return &cloudUpdateTaskHandler{
 		eventHandler: &CallBackEvent{TopicName: constants.CloudInit, ClusterUsecase: clusterUsecase},
 		handledTask:  make(map[string]string),

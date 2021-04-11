@@ -22,62 +22,19 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/wire"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
+	"goodrain.com/cloud-adaptor/internal/types"
 )
+
+// ProviderSet is task providers.
+var ProviderSet = wire.NewSet(NewCreateKubernetesTaskHandler, NewCloudInitTaskHandler, NewCloudUpdateTaskHandler)
 
 //Task Asynchronous tasks
 type Task interface {
 	Run(ctx context.Context)
 	GetChan() chan v1.Message
-}
-
-//KubernetesConfigMessage nsq message
-type KubernetesConfigMessage struct {
-	EnterpriseID     string                            `json:"enterprise_id,omitempty"`
-	TaskID           string                            `json:"task_id,omitempty"`
-	KubernetesConfig *v1alpha1.KubernetesClusterConfig `json:"kubernetes_config,omitempty"`
-}
-
-//UpdateKubernetesConfigMessage -
-type UpdateKubernetesConfigMessage struct {
-	EnterpriseID string                  `json:"enterprise_id,omitempty"`
-	TaskID       string                  `json:"task_id,omitempty"`
-	Config       *v1alpha1.ExpansionNode `json:"config,omitempty"`
-}
-
-//InitRainbondConfigMessage nsq message
-type InitRainbondConfigMessage struct {
-	EnterpriseID       string              `json:"enterprise_id,omitempty"`
-	TaskID             string              `json:"task_id,omitempty"`
-	InitRainbondConfig *InitRainbondConfig `json:"init_rainbond_config,omitempty"`
-}
-
-//GetEvent get event
-func (i InitRainbondConfigMessage) GetEvent(m *v1.Message) v1.EventMessage {
-	return v1.EventMessage{
-		EnterpriseID: i.EnterpriseID,
-		TaskID:       i.TaskID,
-		Message:      m,
-	}
-}
-
-//GetEvent get event
-func (i KubernetesConfigMessage) GetEvent(m *v1.Message) v1.EventMessage {
-	return v1.EventMessage{
-		EnterpriseID: i.EnterpriseID,
-		TaskID:       i.TaskID,
-		Message:      m,
-	}
-}
-
-//GetEvent get event
-func (i UpdateKubernetesConfigMessage) GetEvent(m *v1.Message) v1.EventMessage {
-	return v1.EventMessage{
-		EnterpriseID: i.EnterpriseID,
-		TaskID:       i.TaskID,
-		Message:      m,
-	}
 }
 
 //Type task type
@@ -102,7 +59,7 @@ func CreateTask(taskType Type, config interface{}) (Task, error) {
 		}
 		return &CreateKubernetesCluster{result: make(chan v1.Message, 10), config: cconfig}, nil
 	case InitRainbondClusterTask:
-		cconfig, ok := config.(*InitRainbondConfig)
+		cconfig, ok := config.(*types.InitRainbondConfig)
 		if !ok {
 			return nil, fmt.Errorf("config must be *InitRainbondConfig")
 		}

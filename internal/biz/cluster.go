@@ -38,7 +38,7 @@ import (
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/internal/nsqc/producer"
 	"goodrain.com/cloud-adaptor/internal/operator"
-	"goodrain.com/cloud-adaptor/internal/task"
+	"goodrain.com/cloud-adaptor/internal/types"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
 )
@@ -56,7 +56,8 @@ type ClusterUsecase struct {
 }
 
 // NewClusterUsecase new cluster usecase
-func NewClusterUsecase(db *gorm.DB, taskProducer producer.TaskProducer,
+func NewClusterUsecase(db *gorm.DB,
+	taskProducer producer.TaskProducer,
 	cloudAccessKeyRepo data.CloudAccesskeyRepository,
 	CreateKubernetesTaskRepo data.CreateKubernetesTaskRepository,
 	InitRainbondTaskRepo data.InitRainbondTaskRepository,
@@ -150,7 +151,7 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 		return nil, bcode.ServerErr
 	}
 	//send task
-	taskReq := task.KubernetesConfigMessage{
+	taskReq := types.KubernetesConfigMessage{
 		EnterpriseID: eid,
 		TaskID:       newTask.TaskID,
 		KubernetesConfig: &v1alpha1.KubernetesClusterConfig{
@@ -204,10 +205,10 @@ func (c *ClusterUsecase) InitRainbondRegion(eid string, req v1.InitRainbondRegio
 		logrus.Errorf("create init rainbond task failure %s", err.Error())
 		return nil, bcode.ServerErr
 	}
-	initTask := task.InitRainbondConfigMessage{
+	initTask := types.InitRainbondConfigMessage{
 		EnterpriseID: eid,
 		TaskID:       newTask.TaskID,
-		InitRainbondConfig: &task.InitRainbondConfig{
+		InitRainbondConfig: &types.InitRainbondConfig{
 			ClusterID: newTask.ClusterID,
 			Provider:  newTask.Provider,
 		}}
@@ -247,7 +248,7 @@ func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubern
 		return nil, bcode.ServerErr
 	}
 	//send task
-	taskReq := task.UpdateKubernetesConfigMessage{
+	taskReq := types.UpdateKubernetesConfigMessage{
 		EnterpriseID: eid,
 		TaskID:       newTask.TaskID,
 		Config: &v1alpha1.ExpansionNode{
@@ -628,7 +629,7 @@ func (c *ClusterUsecase) InstallCluster(eid, clusterID string) (*model.CreateKub
 	var nodes v1alpha1.NodeList
 	json.Unmarshal([]byte(cluster.NodeList), &nodes)
 	//send task
-	taskReq := task.KubernetesConfigMessage{
+	taskReq := types.KubernetesConfigMessage{
 		EnterpriseID: eid,
 		TaskID:       newTask.TaskID,
 		KubernetesConfig: &v1alpha1.KubernetesClusterConfig{

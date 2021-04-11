@@ -6,18 +6,22 @@
 package main
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"goodrain.com/cloud-adaptor/internal/biz"
 	"goodrain.com/cloud-adaptor/internal/data"
 	"goodrain.com/cloud-adaptor/internal/handler"
 	"goodrain.com/cloud-adaptor/internal/nsqc/producer"
+	"goodrain.com/cloud-adaptor/internal/task"
+	"goodrain.com/cloud-adaptor/internal/types"
 )
 
 // Injectors from wire.go:
 
-// initGin init gin engine..
-func initGin(db *gorm.DB, taskProducer producer.TaskProducer) (*gin.Engine, error) {
+// initApp init the application.
+func initApp(contextContext context.Context, db *gorm.DB, arg chan types.KubernetesConfigMessage, arg2 chan types.InitRainbondConfigMessage, arg3 chan types.UpdateKubernetesConfigMessage) (*gin.Engine, error) {
+	taskProducer := producer.NewTaskChannelProducer(arg, arg2, arg3)
 	cloudAccesskeyRepository := data.NewCloudAccessKeyRepo(db)
 	createKubernetesTaskRepository := data.NewCreateKubernetesTaskRepo(db)
 	initRainbondTaskRepository := data.NewInitRainbondRegionTaskRepo(db)
@@ -27,6 +31,9 @@ func initGin(db *gorm.DB, taskProducer producer.TaskProducer) (*gin.Engine, erro
 	clusterUsecase := biz.NewClusterUsecase(db, taskProducer, cloudAccesskeyRepository, createKubernetesTaskRepository, initRainbondTaskRepository, updateKubernetesTaskRepository, taskEventRepository, rainbondClusterConfigRepository)
 	clusterHandler := handler.NewClusterHandler(clusterUsecase)
 	router := handler.NewRouter(clusterHandler)
-	engine := newGinEngine(router)
+	createKubernetesTaskHandler := task.NewCreateKubernetesTaskHandler(clusterUsecase)
+	cloudInitTaskHandler := task.NewCloudInitTaskHandler(clusterUsecase)
+	updateKubernetesTaskHandler := task.NewCloudUpdateTaskHandler(clusterUsecase)
+	engine := newApp(contextContext, router, arg, arg2, arg3, createKubernetesTaskHandler, cloudInitTaskHandler, updateKubernetesTaskHandler)
 	return engine, nil
 }

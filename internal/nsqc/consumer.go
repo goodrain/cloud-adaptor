@@ -7,8 +7,8 @@ import (
 
 	"github.com/nsqio/go-nsq"
 	"github.com/prometheus/common/log"
-	"goodrain.com/cloud-adaptor/api/handler"
 	"goodrain.com/cloud-adaptor/cmd/cloud-adaptor/config"
+	"goodrain.com/cloud-adaptor/internal/task"
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
 )
 
@@ -20,12 +20,12 @@ type TaskConsumer interface {
 // taskConsumer -
 type taskConsumer struct {
 	config                      *config.Config
-	createKubernetesTaskHandler handler.CreateKubernetesTaskHandler
-	cloudInitTaskHandler        handler.CloudInitTaskHandler
+	createKubernetesTaskHandler task.CreateKubernetesTaskHandler
+	cloudInitTaskHandler        task.CloudInitTaskHandler
 }
 
 // NewTaskConsumer creates a new consumer.
-func NewTaskConsumer(config *config.Config, createHandler handler.CreateKubernetesTaskHandler, initHandler handler.CloudInitTaskHandler) TaskConsumer {
+func NewTaskConsumer(config *config.Config, createHandler task.CreateKubernetesTaskHandler, initHandler task.CloudInitTaskHandler) TaskConsumer {
 	return &taskConsumer{
 		config:                      config,
 		createKubernetesTaskHandler: createHandler,

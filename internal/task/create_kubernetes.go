@@ -20,12 +20,18 @@ package task
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"runtime/debug"
 
+	"github.com/nsqio/go-nsq"
 	"github.com/sirupsen/logrus"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
+	"goodrain.com/cloud-adaptor/internal/biz"
+	"goodrain.com/cloud-adaptor/internal/types"
+	"goodrain.com/cloud-adaptor/pkg/util/constants"
 )
 
 //CreateKubernetesCluster create cluster
@@ -59,4 +65,74 @@ func (c *CreateKubernetesCluster) Run(ctx context.Context) {
 //GetChan get message chan
 func (c *CreateKubernetesCluster) GetChan() chan v1.Message {
 	return c.result
+}
+
+//createKubernetesTaskHandler create kubernetes task handler
+type createKubernetesTaskHandler struct {
+	eventHandler   *CallBackEvent
+	clusterUsecase *biz.ClusterUsecase
+}
+
+// NewCreateKubernetesTaskHandler -
+func NewCreateKubernetesTaskHandler(clusterUsecase *biz.ClusterUsecase) CreateKubernetesTaskHandler {
+	return &createKubernetesTaskHandler{
+		eventHandler: &CallBackEvent{TopicName: constants.CloudCreate, ClusterUsecase: clusterUsecase},
+	}
+}
+
+// HandleMsg -
+func (h *createKubernetesTaskHandler) HandleMsg(ctx context.Context, createConfig types.KubernetesConfigMessage) error {
+	initTask, err := CreateTask(CreateKubernetesTask, createConfig.KubernetesConfig)
+	if err != nil {
+		logrus.Errorf("create task failure %s", err.Error())
+		h.eventHandler.HandleEvent(createConfig.GetEvent(&v1.Message{
+			StepType: "CreateTask",
+			Message:  err.Error(),
+			Status:   "failure",
+		}))
+		return nil
+	}
+	go h.run(ctx, initTask, createConfig)
+	return nil
+}
+
+// HandleMessage implements the Handler interface.
+// Returning a non-nil error will automatically send a REQ command to NSQ to re-queue the message.
+func (h *createKubernetesTaskHandler) HandleMessage(m *nsq.Message) error {
+	if len(m.Body) == 0 {
+		// Returning nil will automatically send a FIN command to NSQ to mark the message as processed.
+		return nil
+	}
+	var createConfig types.KubernetesConfigMessage
+	if err := json.Unmarshal(m.Body, &createConfig); err != nil {
+		logrus.Errorf("unmarshal create kubernetes config message failure %s", err.Error())
+		return nil
+	}
+	if err := h.HandleMsg(context.Background(), createConfig); err != nil {
+		logrus.Errorf("handle create kubernetes config message failure %s", err.Error())
+		return nil
+	}
+	return nil
+}
+
+func (h *createKubernetesTaskHandler) run(ctx context.Context, initTask Task, createConfig types.KubernetesConfigMessage) {
+	closeChan := make(chan struct{})
+	defer func() {
+		if err := recover(); err != nil {
+			debug.PrintStack()
+		}
+	}()
+	go func() {
+		defer close(closeChan)
+		for message := range initTask.GetChan() {
+			if message.StepType == "Close" {
+				return
+			}
+			h.eventHandler.HandleEvent(createConfig.GetEvent(&message))
+		}
+	}()
+	initTask.Run(ctx)
+	//waiting message handle complete
+	<-closeChan
+	logrus.Infof("create kubernetes task %s handle success", createConfig.TaskID)
 }

@@ -1,19 +1,21 @@
 package producer
 
 import (
-	"goodrain.com/cloud-adaptor/internal/task"
+	"goodrain.com/cloud-adaptor/internal/types"
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
 )
 
 //TaskProducer task producer
 type taskChannelProducer struct {
-	createQueue chan task.KubernetesConfigMessage
-	initQueue   chan task.InitRainbondConfigMessage
-	updateQueue chan task.UpdateKubernetesConfigMessage
+	createQueue chan types.KubernetesConfigMessage
+	initQueue   chan types.InitRainbondConfigMessage
+	updateQueue chan types.UpdateKubernetesConfigMessage
 }
 
 //NewTaskChannelProducer new task channel producer
-func NewTaskChannelProducer(createQueue chan task.KubernetesConfigMessage, initQueue chan task.InitRainbondConfigMessage, updateQueue chan task.UpdateKubernetesConfigMessage) TaskProducer {
+func NewTaskChannelProducer(createQueue chan types.KubernetesConfigMessage,
+	initQueue chan types.InitRainbondConfigMessage,
+	updateQueue chan types.UpdateKubernetesConfigMessage) TaskProducer {
 	return &taskChannelProducer{
 		createQueue: createQueue,
 		initQueue:   initQueue,
@@ -29,27 +31,27 @@ func (c *taskChannelProducer) Start() error {
 //SendTask send task
 func (c *taskChannelProducer) sendTask(topicName string, taskConfig interface{}) error {
 	if topicName == constants.CloudCreate {
-		c.createQueue <- taskConfig.(task.KubernetesConfigMessage)
+		c.createQueue <- taskConfig.(types.KubernetesConfigMessage)
 	}
 	if topicName == constants.CloudInit {
-		c.initQueue <- taskConfig.(task.InitRainbondConfigMessage)
+		c.initQueue <- taskConfig.(types.InitRainbondConfigMessage)
 	}
 	if topicName == constants.CloudUpdate {
-		c.updateQueue <- taskConfig.(task.UpdateKubernetesConfigMessage)
+		c.updateQueue <- taskConfig.(types.UpdateKubernetesConfigMessage)
 	}
 	return nil
 }
 
 //SendCreateKuerbetesTask send create kubernetes task
-func (c *taskChannelProducer) SendCreateKuerbetesTask(config task.KubernetesConfigMessage) error {
+func (c *taskChannelProducer) SendCreateKuerbetesTask(config types.KubernetesConfigMessage) error {
 	return c.sendTask(constants.CloudCreate, config)
 }
 
 //SendInitRainbondRegionTask send init rainbond region task
-func (c *taskChannelProducer) SendInitRainbondRegionTask(config task.InitRainbondConfigMessage) error {
+func (c *taskChannelProducer) SendInitRainbondRegionTask(config types.InitRainbondConfigMessage) error {
 	return c.sendTask(constants.CloudInit, config)
 }
-func (c *taskChannelProducer) SendUpdateKuerbetesTask(config task.UpdateKubernetesConfigMessage) error {
+func (c *taskChannelProducer) SendUpdateKuerbetesTask(config types.UpdateKubernetesConfigMessage) error {
 	return c.sendTask(constants.CloudUpdate, config)
 }
 

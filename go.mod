@@ -14,6 +14,7 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/goodrain/rainbond-operator v1.3.1-0.20210316113733-75a870bf2a51
+	github.com/google/subcommands v1.2.0 // indirect
 	github.com/google/wire v0.5.0
 	github.com/jinzhu/copier v0.2.8 // indirect
 	github.com/jinzhu/gorm v1.9.16
@@ -29,7 +30,9 @@ require (
 	github.com/tencentcloud/tencentcloud-sdk-go v3.0.233+incompatible
 	github.com/urfave/cli/v2 v2.2.0
 	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
-	golang.org/x/tools v0.0.0-20200624223020-7a9acb0a45bb // indirect
+	golang.org/x/mod v0.4.2 // indirect
+	golang.org/x/sys v0.0.0-20210403161142-5e06dd20ab57 // indirect
+	golang.org/x/tools v0.1.0 // indirect
 	gopkg.in/yaml.v2 v2.3.0
 	gotest.tools/v3 v3.0.3 // indirect
 	k8s.io/api v0.20.1
