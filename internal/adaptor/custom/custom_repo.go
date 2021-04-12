@@ -20,9 +20,10 @@ package custom
 
 import (
 	"fmt"
-	"github.com/jinzhu/gorm"
+
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
+	"gorm.io/gorm"
 )
 
 // ClusterRepo -

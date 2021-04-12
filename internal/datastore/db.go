@@ -8,11 +8,13 @@ import (
 	"time"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/sirupsen/logrus"
 	"goodrain.com/cloud-adaptor/cmd/cloud-adaptor/config"
 	"goodrain.com/cloud-adaptor/internal/model"
+	gmysql "gorm.io/driver/mysql"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
 )
 
 var databaseType = "sqlite3"
@@ -34,6 +36,12 @@ func init() {
 // NewDB creates a new gorm.DB
 func NewDB() *gorm.DB {
 	var db *gorm.DB
+	gormCfg := &gorm.Config{
+		NamingStrategy: &schema.NamingStrategy{
+			TablePrefix: "adaptor_",
+		},
+	}
+
 	if databaseType == "mysql" {
 		mySQLConfig := &mysql.Config{
 			User:                 config.C.DB.User,
@@ -44,11 +52,15 @@ func NewDB() *gorm.DB {
 			AllowNativePasswords: true,
 			ParseTime:            true,
 			Loc:                  time.Local,
+			Params:               map[string]string{"charset": "utf8"},
+			Timeout:              time.Second * 5,
 		}
+
 		retry := 10
 		for retry > 0 {
 			var err error
-			db, err = gorm.Open(databaseType, mySQLConfig.FormatDSN())
+
+			db, err = gorm.Open(gmysql.Open(mySQLConfig.FormatDSN()), gormCfg)
 			if err != nil {
 				logrus.Errorf("open db connection failure %s, will retry", err.Error())
 				time.Sleep(time.Second * 3)
@@ -61,15 +73,12 @@ func NewDB() *gorm.DB {
 		os.MkdirAll(databasePath, 0755)
 		var err error
 		databaseFilePath := path.Join(databasePath, "db.sqlite3")
-		db, err = gorm.Open(databaseType, databaseFilePath)
+		db, err = gorm.Open(sqlite.Open(databaseFilePath), gormCfg)
 		if err != nil {
 			log.Fatalln(err)
 		}
 	}
 	gdb = db
-	gorm.DefaultTableNameHandler = func(db *gorm.DB, defaultTableName string) string {
-		return "adaptor_" + defaultTableName
-	}
 	return db
 }
 

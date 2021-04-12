@@ -19,8 +19,8 @@
 package repo
 
 import (
-	"github.com/jinzhu/gorm"
 	"goodrain.com/cloud-adaptor/internal/model"
+	"gorm.io/gorm"
 )
 
 // RainbondClusterConfigRepo enterprise task event

@@ -1,16 +1,18 @@
 package dao
 
 import (
-	"github.com/jinzhu/gorm"
 	"github.com/pkg/errors"
 	"goodrain.com/cloud-adaptor/internal/model"
+	"goodrain.com/cloud-adaptor/pkg/bcode"
+	"gorm.io/gorm"
 )
 
 // AppStoreDao -
 type AppStoreDao interface {
 	Create(appStore *model.AppStore) error
 	List(eid string) ([]*model.AppStore, error)
-	Delete(name string) error
+	Get(eid, appStoreID string) (*model.AppStore, error)
+	Delete(eid, appStoreID string) error
 }
 
 // NewAppStoreDao creates a new AppStoreDao
@@ -25,8 +27,11 @@ type appStoreDao struct {
 }
 
 func (a *appStoreDao) Create(appStore *model.AppStore) error {
-	// TODO: handle name conflict error
-	return a.db.Create(appStore).Error
+	err := a.db.Create(appStore).Error
+	if isDuplicateEntry(err) {
+		return errors.WithStack(bcode.ErrAppStoreExists)
+	}
+	return errors.Wrap(err, "create app store")
 }
 
 func (a *appStoreDao) List(eid string) ([]*model.AppStore, error) {
@@ -36,7 +41,23 @@ func (a *appStoreDao) List(eid string) ([]*model.AppStore, error) {
 	}
 	return appStores, nil
 }
-func (a *appStoreDao) Delete(name string) error {
-	// TODO: handle 404 error
-	return a.db.Where("name=?", name).Delete(&model.AppStore{}).Error
+
+func (a *appStoreDao) Get(eid, appStoreID string) (*model.AppStore, error) {
+	var appStore model.AppStore
+	if err := a.db.Where("eid=? and appStoreID=?", eid, appStoreID).Take(&appStore).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, errors.WithStack(bcode.ErrAppStoreNotFound)
+		}
+		return nil, errors.Wrap(err, "get app store")
+	}
+
+	return &appStore, nil
+}
+
+func (a *appStoreDao) Delete(eid, appStoreID string) error {
+	err := a.db.Where("eid=? and appStoreID=?", eid, appStoreID).Delete(&model.AppStore{}).Error
+	if err != nil {
+		return errors.Wrap(err, "delete app store")
+	}
+	return nil
 }

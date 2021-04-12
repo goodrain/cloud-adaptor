@@ -19,7 +19,7 @@
 package repo
 
 import (
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"goodrain.com/cloud-adaptor/internal/model"
 )
 

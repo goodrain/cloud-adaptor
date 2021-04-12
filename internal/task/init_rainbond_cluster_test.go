@@ -22,10 +22,12 @@ import (
 	"context"
 	"fmt"
 	"testing"
+
+	"goodrain.com/cloud-adaptor/internal/types"
 )
 
 func TestInitRainbondCluster(t *testing.T) {
-	task, err := CreateTask(InitRainbondClusterTask, &InitRainbondConfig{
+	task, err := CreateTask(InitRainbondClusterTask, &types.InitRainbondConfig{
 		Provider:  "ack",
 		SecretKey: "hBsW4mlp35xQlqvqvm5Izmbt2UFR6E",
 		AccessKey: "LTAI4FtxHG8A8h328zBBNMtw",
@@ -44,7 +46,7 @@ func TestInitRainbondCluster(t *testing.T) {
 }
 
 func TestInitRKERainbondCluster(t *testing.T) {
-	task, err := CreateTask(InitRainbondClusterTask, &InitRainbondConfig{
+	task, err := CreateTask(InitRainbondClusterTask, &types.InitRainbondConfig{
 		Provider:  "rke",
 		ClusterID: "c9b4516adec504a458bdf9a6891fc74fe",
 	})

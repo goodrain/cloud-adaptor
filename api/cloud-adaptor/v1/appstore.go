@@ -12,10 +12,11 @@ type CreateAppStoreReq struct {
 
 // AppStore -
 type AppStore struct {
-	EID      string `json:"eid"`
-	Name     string `json:"name"`
-	URL      string `json:"url"`
-	Branch   string `json:"branch"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	EID        string `json:"eid"`
+	AppStoreID string `json:"appStoreID"`
+	Name       string `json:"name"`
+	URL        string `json:"url"`
+	Branch     string `json:"branch"`
+	Username   string `json:"username"`
+	Password   string `json:"password"`
 }

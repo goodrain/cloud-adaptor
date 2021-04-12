@@ -28,10 +28,10 @@ import (
 	"path"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/pkg/util/ginutil"
+	"gorm.io/gorm"
 	"k8s.io/client-go/util/homedir"
 )
 
@@ -55,14 +55,14 @@ func (s SystemHandler) Backup(ctx *gin.Context) {
 	os.MkdirAll(backupTmpPath, 0755)
 	//backup db data
 	var result model.BackupListModelData
-	s.DB.Table(s.DB.NewScope(&model.CloudAccessKey{}).TableName()).Scan(&result.CloudAccessKeys)
-	s.DB.Table(s.DB.NewScope(&model.CreateKubernetesTask{}).TableName()).Scan(&result.CreateKubernetesTasks)
-	s.DB.Table(s.DB.NewScope(&model.InitRainbondTask{}).TableName()).Scan(&result.InitRainbondTasks)
-	s.DB.Table(s.DB.NewScope(&model.TaskEvent{}).TableName()).Scan(&result.TaskEvents)
-	s.DB.Table(s.DB.NewScope(&model.UpdateKubernetesTask{}).TableName()).Scan(&result.UpdateKubernetesTasks)
-	s.DB.Table(s.DB.NewScope(&model.CustomCluster{}).TableName()).Scan(&result.CustomClusters)
-	s.DB.Table(s.DB.NewScope(&model.RKECluster{}).TableName()).Scan(&result.RKEClusters)
-	s.DB.Table(s.DB.NewScope(&model.RainbondClusterConfig{}).TableName()).Scan(&result.RainbondClusterConfigs)
+	s.DB.Model(&model.CloudAccessKey{}).Scan(&result.CloudAccessKeys)
+	s.DB.Model(&model.CreateKubernetesTask{}).Scan(&result.CreateKubernetesTasks)
+	s.DB.Model(&model.InitRainbondTask{}).Scan(&result.InitRainbondTasks)
+	s.DB.Model(&model.TaskEvent{}).Scan(&result.TaskEvents)
+	s.DB.Model(&model.UpdateKubernetesTask{}).Scan(&result.UpdateKubernetesTasks)
+	s.DB.Model(&model.CustomCluster{}).Scan(&result.CustomClusters)
+	s.DB.Model(&model.RKECluster{}).Scan(&result.RKEClusters)
+	s.DB.Model(&model.RainbondClusterConfig{}).Scan(&result.RainbondClusterConfigs)
 	data, err := json.Marshal(result)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)

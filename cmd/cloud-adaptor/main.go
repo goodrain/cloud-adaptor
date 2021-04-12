@@ -89,7 +89,6 @@ func run(c *cli.Context) error {
 	config.SetLogLevel()
 
 	db := datastore.NewDB()
-	defer func() { _ = db.Close() }()
 	datastore.AutoMigrate(db)
 
 	createChan := make(chan types.KubernetesConfigMessage, 10)

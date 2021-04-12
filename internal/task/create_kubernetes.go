@@ -29,7 +29,6 @@ import (
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
-	"goodrain.com/cloud-adaptor/internal/biz"
 	"goodrain.com/cloud-adaptor/internal/types"
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
 )
@@ -69,14 +68,13 @@ func (c *CreateKubernetesCluster) GetChan() chan v1.Message {
 
 //createKubernetesTaskHandler create kubernetes task handler
 type createKubernetesTaskHandler struct {
-	eventHandler   *CallBackEvent
-	clusterUsecase *biz.ClusterUsecase
+	eventHandler *CallBackEvent
 }
 
 // NewCreateKubernetesTaskHandler -
-func NewCreateKubernetesTaskHandler(clusterUsecase *biz.ClusterUsecase) CreateKubernetesTaskHandler {
+func NewCreateKubernetesTaskHandler() CreateKubernetesTaskHandler {
 	return &createKubernetesTaskHandler{
-		eventHandler: &CallBackEvent{TopicName: constants.CloudCreate, ClusterUsecase: clusterUsecase},
+		eventHandler: &CallBackEvent{TopicName: constants.CloudCreate},
 	}
 }
 

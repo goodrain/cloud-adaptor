@@ -20,10 +20,10 @@ package rke
 
 import (
 	"fmt"
-	"goodrain.com/cloud-adaptor/internal/model"
 
-	"github.com/jinzhu/gorm"
+	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
+	"gorm.io/gorm"
 )
 
 // ClusterRepo -

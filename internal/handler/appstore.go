@@ -45,12 +45,13 @@ func (a *AppStoreHandler) Create(ctx *gin.Context) {
 
 	// TODO: use ginutil.JSONv2
 	ginutil.JSON(ctx, &v1.AppStore{
-		EID:      appStore.EID,
-		Name:     appStore.Name,
-		URL:      appStore.URL,
-		Branch:   appStore.Branch,
-		Username: appStore.Username,
-		Password: appStore.Password,
+		EID:        appStore.EID,
+		AppStoreID: appStore.AppStoreID,
+		Name:       appStore.Name,
+		URL:        appStore.URL,
+		Branch:     appStore.Branch,
+		Username:   appStore.Username,
+		Password:   appStore.Password,
 	}, err)
 }
 
@@ -59,15 +60,16 @@ func (a *AppStoreHandler) List(ctx *gin.Context) {
 	eid := ctx.Param("eid")
 	appStores, err := a.appStore.List(eid)
 
-	var stores  []*v1.AppStore
+	var stores []*v1.AppStore
 	for _, as := range appStores {
 		stores = append(stores, &v1.AppStore{
-			EID:      as.EID,
-			Name:     as.Name,
-			URL:      as.URL,
-			Branch:   as.Branch,
-			Username: as.Username,
-			Password: as.Password,
+			EID:        as.EID,
+			AppStoreID: as.AppStoreID,
+			Name:       as.Name,
+			URL:        as.URL,
+			Branch:     as.Branch,
+			Username:   as.Username,
+			Password:   as.Password,
 		})
 	}
 
@@ -75,8 +77,8 @@ func (a *AppStoreHandler) List(ctx *gin.Context) {
 }
 
 // Delete deletes the app store.
-func (a *AppStoreHandler) Delete(ctx *gin.Context) {
-	name := ctx.Param("name")
-	err := a.appStore.Delete(name)
-	ginutil.JSON(ctx, nil, err)
+func (a *AppStoreHandler) Delete(c *gin.Context) {
+	appStoreI, _ := c.Get("appStore")
+	appStore := appStoreI.(*repo.AppStore)
+	ginutil.JSON(c, nil, a.appStore.Delete(appStore.EID, appStore.AppStoreID))
 }

@@ -21,9 +21,11 @@ package biz
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/ghodss/yaml"
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
-	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor"
@@ -38,8 +40,7 @@ import (
 	"goodrain.com/cloud-adaptor/internal/types"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
-	"os"
-	"strings"
+	"gorm.io/gorm"
 )
 
 // ClusterUsecase cluster manage usecase

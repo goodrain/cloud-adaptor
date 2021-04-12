@@ -19,9 +19,9 @@
 package repo
 
 import (
-	"github.com/jinzhu/gorm"
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
+	"gorm.io/gorm"
 )
 
 // TaskEventRepo enterprise task event
