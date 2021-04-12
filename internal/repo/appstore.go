@@ -18,6 +18,7 @@ type AppStore struct {
 // AppStoreRepo -
 type AppStoreRepo interface {
 	Create(appStore *AppStore) error
+	List(eid string) ([]*AppStore, error)
 	Delete(name string) error
 }
 
@@ -48,6 +49,27 @@ func (a *appStoreRepo) Create(appStore *AppStore) error {
 
 	// TODO: create app templates
 	return nil
+}
+
+func (a *appStoreRepo) List(eid string) ([]*AppStore, error) {
+	appStores, err := a.appStoreDao.List(eid)
+	if err != nil {
+		return nil, err
+	}
+
+	var stores []*AppStore
+	for _, as := range appStores {
+		stores = append(stores, &AppStore{
+			EID:      as.EID,
+			Name:     as.Name,
+			URL:      as.URL,
+			Branch:   as.Branch,
+			Username: as.Username,
+			Password: as.Password,
+		})
+	}
+
+	return stores, nil
 }
 
 func (a *appStoreRepo) Delete(name string) error {

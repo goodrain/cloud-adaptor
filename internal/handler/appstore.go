@@ -44,7 +44,7 @@ func (a *AppStoreHandler) Create(ctx *gin.Context) {
 	err := a.appStore.Create(appStore)
 
 	// TODO: use ginutil.JSONv2
-	ginutil.JSON(ctx, &v1.CreateAppStoreResp{
+	ginutil.JSON(ctx, &v1.AppStore{
 		EID:      appStore.EID,
 		Name:     appStore.Name,
 		URL:      appStore.URL,
@@ -56,7 +56,22 @@ func (a *AppStoreHandler) Create(ctx *gin.Context) {
 
 // Create creates a new app store.
 func (a *AppStoreHandler) List(ctx *gin.Context) {
+	eid := ctx.Param("eid")
+	appStores, err := a.appStore.List(eid)
 
+	var stores  []*v1.AppStore
+	for _, as := range appStores {
+		stores = append(stores, &v1.AppStore{
+			EID:      as.EID,
+			Name:     as.Name,
+			URL:      as.URL,
+			Branch:   as.Branch,
+			Username: as.Username,
+			Password: as.Password,
+		})
+	}
+
+	ginutil.JSON(ctx, stores, err)
 }
 
 // Delete deletes the app store.

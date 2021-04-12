@@ -10,8 +10,8 @@ type CreateAppStoreReq struct {
 	Password string `json:"password"`
 }
 
-// CreateAppStoreResp -
-type CreateAppStoreResp struct {
+// AppStore -
+type AppStore struct {
 	EID      string `json:"eid"`
 	Name     string `json:"name"`
 	URL      string `json:"url"`
