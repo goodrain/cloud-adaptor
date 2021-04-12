@@ -76,6 +76,34 @@ func (a *AppStoreHandler) List(ctx *gin.Context) {
 	ginutil.JSON(ctx, stores, err)
 }
 
+// Get deletes the app store.
+func (a *AppStoreHandler) Get(c *gin.Context) {
+	appStoreI, _ := c.Get("appStore")
+	appStore := appStoreI.(*repo.AppStore)
+	ginutil.JSON(c, appStore, nil)
+}
+
+// Update updates the app store.
+func (a *AppStoreHandler) Update(c *gin.Context) {
+	var req v1.UpdateAppStoreReq
+	// TODO: Wrap in ginutil, return bcode directly
+	if err := c.ShouldBindJSON(&req); err != nil {
+		ginutil.JSON(c, nil, bcode.BadRequest)
+		return
+	}
+
+	appStoreI, _ := c.Get("appStore")
+	appStore := appStoreI.(*repo.AppStore)
+
+	appStore.Name = req.Name
+	appStore.URL = req.URL
+	appStore.Branch = req.Branch
+	appStore.Username = req.Username
+	appStore.Password = req.Password
+
+	ginutil.JSON(c, appStore, a.appStore.Update(appStore))
+}
+
 // Delete deletes the app store.
 func (a *AppStoreHandler) Delete(c *gin.Context) {
 	appStoreI, _ := c.Get("appStore")

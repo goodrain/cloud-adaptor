@@ -10,6 +10,15 @@ type CreateAppStoreReq struct {
 	Password string `json:"password"`
 }
 
+// UpdateAppStoreReq -
+type UpdateAppStoreReq struct {
+	Name     string `json:"name"`
+	URL      string `json:"url"`
+	Branch   string `json:"branch"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
 // AppStore -
 type AppStore struct {
 	EID        string `json:"eid"`

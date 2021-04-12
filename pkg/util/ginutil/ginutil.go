@@ -10,7 +10,7 @@ import (
 type Result struct {
 	Code int         `json:"code"`
 	Msg  string      `json:"msg"`
-	Data interface{} `json:"data"`
+	Data interface{} `json:"data,omitempty"`
 }
 
 // JSON -
@@ -22,7 +22,10 @@ func JSON(c *gin.Context, data interface{}, err error) {
 	result := &Result{
 		Code: bc.Code(),
 		Msg:  bc.Error(),
-		Data: data,
 	}
+	if bc.Status() >= 200 && bc.Status() < 300 {
+		result.Data = data
+	}
+
 	c.AbortWithStatusJSON(bc.Status(), result)
 }

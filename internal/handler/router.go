@@ -88,6 +88,8 @@ func (r *Router) NewRouter() *gin.Engine {
 	appstoresv1.GET("/", r.appStore.List)
 	appstorev1 := appstoresv1.Group(":appStoreID", r.middleware.AppStore)
 	{
+		appstorev1.GET("/", r.appStore.Get)
+		appstorev1.PUT("/", r.appStore.Update)
 		appstorev1.DELETE("/", r.appStore.Delete)
 	}
 

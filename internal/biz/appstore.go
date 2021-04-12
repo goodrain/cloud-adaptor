@@ -24,6 +24,10 @@ func (a *AppStoreUsecase) List(eid string) ([]*repo.AppStore, error) {
 	return a.appStoreRepo.List(eid)
 }
 
+func (a *AppStoreUsecase) Update(appStore *repo.AppStore) error {
+	return a.appStoreRepo.Update(appStore)
+}
+
 func (a *AppStoreUsecase) Delete(eid, appStoreID string) error {
 	return a.appStoreRepo.Delete(eid, appStoreID)
 }

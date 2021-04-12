@@ -23,6 +23,7 @@ type AppStoreRepo interface {
 	List(eid string) ([]*AppStore, error)
 	Get(eid, appStoreID string) (*AppStore, error)
 	Delete(eid, appStoreID string) error
+	Update(appStore *AppStore) error
 }
 
 // NewAppStoreRepo creates a new AppStoreRepo.
@@ -85,15 +86,29 @@ func (a *appStoreRepo) Get(eid, appStoreID string) (*AppStore, error) {
 
 	// TODO: deduplicate the code below
 	return &AppStore{
-		EID:      as.EID,
-		Name:     as.Name,
-		URL:      as.URL,
-		Branch:   as.Branch,
-		Username: as.Username,
-		Password: as.Password,
+		EID:        as.EID,
+		AppStoreID: as.AppStoreID,
+		Name:       as.Name,
+		URL:        as.URL,
+		Branch:     as.Branch,
+		Username:   as.Username,
+		Password:   as.Password,
 	}, nil
 }
 
+func (a *appStoreRepo) Update(appStore *AppStore) error {
+	as, err := a.appStoreDao.Get(appStore.EID, appStore.AppStoreID)
+	if err != nil {
+		return err
+	}
+	as.Name = appStore.Name
+	as.URL = appStore.URL
+	as.Branch = appStore.Branch
+	as.Username = appStore.Username
+	as.Password = appStore.Password
+
+	return a.appStoreDao.Update(as)
+}
 func (a *appStoreRepo) Delete(eid, appStoreID string) error {
 	return a.appStoreDao.Delete(eid, appStoreID)
 }

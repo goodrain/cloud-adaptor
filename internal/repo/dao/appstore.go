@@ -12,6 +12,7 @@ type AppStoreDao interface {
 	Create(appStore *model.AppStore) error
 	List(eid string) ([]*model.AppStore, error)
 	Get(eid, appStoreID string) (*model.AppStore, error)
+	Update(appStore *model.AppStore) error
 	Delete(eid, appStoreID string) error
 }
 
@@ -28,10 +29,13 @@ type appStoreDao struct {
 
 func (a *appStoreDao) Create(appStore *model.AppStore) error {
 	err := a.db.Create(appStore).Error
-	if isDuplicateEntry(err) {
-		return errors.WithStack(bcode.ErrAppStoreExists)
+	if err != nil {
+		if isDuplicateEntry(err) {
+			return errors.WithStack(bcode.ErrAppStoreNameConflict)
+		}
+		return errors.Wrap(err, "create app store")
 	}
-	return errors.Wrap(err, "create app store")
+	return nil
 }
 
 func (a *appStoreDao) List(eid string) ([]*model.AppStore, error) {
@@ -52,6 +56,17 @@ func (a *appStoreDao) Get(eid, appStoreID string) (*model.AppStore, error) {
 	}
 
 	return &appStore, nil
+}
+
+func (a *appStoreDao) Update(appStore *model.AppStore) error {
+	err := a.db.Save(appStore).Error
+	if err != nil {
+		if isDuplicateEntry(err) {
+			return errors.WithStack(bcode.ErrAppStoreNameConflict)
+		}
+		return errors.Wrap(err, "update app store")
+	}
+	return nil
 }
 
 func (a *appStoreDao) Delete(eid, appStoreID string) error {
