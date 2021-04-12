@@ -18,6 +18,7 @@ type AppStore struct {
 // AppStoreRepo -
 type AppStoreRepo interface {
 	Create(appStore *AppStore) error
+	Delete(name string) error
 }
 
 // NewAppStoreRepo creates a new AppStoreRepo.
@@ -47,4 +48,8 @@ func (a *appStoreRepo) Create(appStore *AppStore) error {
 
 	// TODO: create app templates
 	return nil
+}
+
+func (a *appStoreRepo) Delete(name string) error {
+	return a.appStoreDao.Delete(name)
 }

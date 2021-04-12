@@ -19,3 +19,7 @@ func NewAppStoreUsecase(appStoreRepo repo.AppStoreRepo) *AppStoreUsecase {
 func (a *AppStoreUsecase) Create(appStore *repo.AppStore) error {
 	return a.appStoreRepo.Create(appStore)
 }
+
+func (a *AppStoreUsecase) Delete(name string) error {
+	return a.appStoreRepo.Delete(name)
+}

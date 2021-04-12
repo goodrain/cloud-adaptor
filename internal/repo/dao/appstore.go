@@ -8,7 +8,7 @@ import (
 // AppStoreDao -
 type AppStoreDao interface {
 	Create(appStore *model.AppStore) error
-	foobar()
+	Delete(name string) error
 }
 
 // NewAppStoreDao creates a new AppStoreDao
@@ -27,4 +27,7 @@ func (a *appStoreDao) Create(appStore *model.AppStore) error {
 	return a.db.Create(appStore).Error
 }
 
-func (a *appStoreDao) foobar() {}
+func (a *appStoreDao) Delete(name string) error {
+	// TODO: handle 404 error
+	return a.db.Where("name=?", name).Delete(&model.AppStore{}).Error
+}

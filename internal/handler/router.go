@@ -79,6 +79,7 @@ func (r *Router) NewRouter() *gin.Engine {
 	// app store
 	appstorev1 := entv1.Group("/appstores")
 	appstorev1.POST("/", r.appStore.Create)
+	appstorev1.DELETE(":name", r.appStore.Delete)
 
 	return e
 }

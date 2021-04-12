@@ -53,3 +53,15 @@ func (a *AppStoreHandler) Create(ctx *gin.Context) {
 		Password: appStore.Password,
 	}, err)
 }
+
+// Create creates a new app store.
+func (a *AppStoreHandler) List(ctx *gin.Context) {
+
+}
+
+// Delete deletes the app store.
+func (a *AppStoreHandler) Delete(ctx *gin.Context) {
+	name := ctx.Param("name")
+	err := a.appStore.Delete(name)
+	ginutil.JSON(ctx, nil, err)
+}
