@@ -8,7 +8,6 @@ package main
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 	"goodrain.com/cloud-adaptor/internal/biz"
 	"goodrain.com/cloud-adaptor/internal/handler"
 	"goodrain.com/cloud-adaptor/internal/middleware"
@@ -17,6 +16,7 @@ import (
 	"goodrain.com/cloud-adaptor/internal/repo/dao"
 	"goodrain.com/cloud-adaptor/internal/task"
 	"goodrain.com/cloud-adaptor/internal/types"
+	"gorm.io/gorm"
 )
 
 // Injectors from wire.go:
@@ -37,7 +37,8 @@ func initApp(contextContext context.Context, db *gorm.DB, arg chan types.Kuberne
 	clusterHandler := handler.NewClusterHandler(clusterUsecase)
 	appStoreUsecase := biz.NewAppStoreUsecase(appStoreRepo)
 	appStoreHandler := handler.NewAppStoreHandler(appStoreUsecase)
-	router := handler.NewRouter(middlewareMiddleware, clusterHandler, appStoreHandler)
+	systemHandler := handler.NewSystemHandler(db)
+	router := handler.NewRouter(middlewareMiddleware, clusterHandler, appStoreHandler, systemHandler)
 	createKubernetesTaskHandler := task.NewCreateKubernetesTaskHandler()
 	cloudInitTaskHandler := task.NewCloudInitTaskHandler(clusterUsecase)
 	updateKubernetesTaskHandler := task.NewCloudUpdateTaskHandler(clusterUsecase)

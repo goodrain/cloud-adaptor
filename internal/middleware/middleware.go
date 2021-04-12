@@ -27,8 +27,7 @@ func (a *Middleware) AppStore(c *gin.Context) {
 	appStoreID := c.Param("appStoreID")
 	appStore, err := a.appStoreRepo.Get(eid, appStoreID)
 	if err != nil {
-		// TODO: use ginutil.Error instead
-		ginutil.JSON(c, nil, err)
+		ginutil.Error(c, err)
 		return
 	}
 	c.Set("appStore", appStore)

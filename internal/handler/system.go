@@ -37,12 +37,14 @@ import (
 
 //SystemHandler -
 type SystemHandler struct {
-	DB *gorm.DB `inject:""`
+	db *gorm.DB
 }
 
 // NewSystemHandler new system handler
-func NewSystemHandler() *SystemHandler {
-	return &SystemHandler{}
+func NewSystemHandler(db *gorm.DB) *SystemHandler {
+	return &SystemHandler{
+		db: db,
+	}
 }
 
 //Backup backup all data
@@ -55,14 +57,14 @@ func (s SystemHandler) Backup(ctx *gin.Context) {
 	os.MkdirAll(backupTmpPath, 0755)
 	//backup db data
 	var result model.BackupListModelData
-	s.DB.Model(&model.CloudAccessKey{}).Scan(&result.CloudAccessKeys)
-	s.DB.Model(&model.CreateKubernetesTask{}).Scan(&result.CreateKubernetesTasks)
-	s.DB.Model(&model.InitRainbondTask{}).Scan(&result.InitRainbondTasks)
-	s.DB.Model(&model.TaskEvent{}).Scan(&result.TaskEvents)
-	s.DB.Model(&model.UpdateKubernetesTask{}).Scan(&result.UpdateKubernetesTasks)
-	s.DB.Model(&model.CustomCluster{}).Scan(&result.CustomClusters)
-	s.DB.Model(&model.RKECluster{}).Scan(&result.RKEClusters)
-	s.DB.Model(&model.RainbondClusterConfig{}).Scan(&result.RainbondClusterConfigs)
+	s.db.Model(&model.CloudAccessKey{}).Scan(&result.CloudAccessKeys)
+	s.db.Model(&model.CreateKubernetesTask{}).Scan(&result.CreateKubernetesTasks)
+	s.db.Model(&model.InitRainbondTask{}).Scan(&result.InitRainbondTasks)
+	s.db.Model(&model.TaskEvent{}).Scan(&result.TaskEvents)
+	s.db.Model(&model.UpdateKubernetesTask{}).Scan(&result.UpdateKubernetesTasks)
+	s.db.Model(&model.CustomCluster{}).Scan(&result.CustomClusters)
+	s.db.Model(&model.RKECluster{}).Scan(&result.RKEClusters)
+	s.db.Model(&model.RainbondClusterConfig{}).Scan(&result.RainbondClusterConfigs)
 	data, err := json.Marshal(result)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
@@ -200,7 +202,7 @@ func (s SystemHandler) Recover(c *gin.Context) {
 	} else {
 		logrus.Infof("start recover db backup data")
 		func() {
-			tx := s.DB.Begin()
+			tx := s.db.Begin()
 			defer func() {
 				if err := recover(); err != nil {
 					tx.Rollback()

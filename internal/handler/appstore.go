@@ -5,7 +5,6 @@ import (
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/biz"
 	"goodrain.com/cloud-adaptor/internal/repo"
-	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/ginutil"
 )
 
@@ -22,15 +21,14 @@ func NewAppStoreHandler(appStore *biz.AppStoreUsecase) *AppStoreHandler {
 }
 
 // Create creates a new app store.
-func (a *AppStoreHandler) Create(ctx *gin.Context) {
+func (a *AppStoreHandler) Create(c *gin.Context) {
 	var req v1.CreateAppStoreReq
-	// TODO: Wrap in ginutil, return bcode directly
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ginutil.JSON(ctx, nil, bcode.BadRequest)
+	if err := ginutil.ShouldBindJSON(c, &req); err != nil {
+		ginutil.Error(c, err)
 		return
 	}
 
-	eid := ctx.Param("eid")
+	eid := c.Param("eid")
 
 	// DTO to DO
 	appStore := &repo.AppStore{
@@ -44,7 +42,7 @@ func (a *AppStoreHandler) Create(ctx *gin.Context) {
 	err := a.appStore.Create(appStore)
 
 	// TODO: use ginutil.JSONv2
-	ginutil.JSON(ctx, &v1.AppStore{
+	ginutil.JSON(c, &v1.AppStore{
 		EID:        appStore.EID,
 		AppStoreID: appStore.AppStoreID,
 		Name:       appStore.Name,
@@ -86,9 +84,8 @@ func (a *AppStoreHandler) Get(c *gin.Context) {
 // Update updates the app store.
 func (a *AppStoreHandler) Update(c *gin.Context) {
 	var req v1.UpdateAppStoreReq
-	// TODO: Wrap in ginutil, return bcode directly
-	if err := c.ShouldBindJSON(&req); err != nil {
-		ginutil.JSON(c, nil, bcode.BadRequest)
+	if err := ginutil.ShouldBindJSON(c, &req); err != nil {
+		ginutil.Error(c, err)
 		return
 	}
 

@@ -29,3 +29,25 @@ func JSON(c *gin.Context, data interface{}, err error) {
 
 	c.AbortWithStatusJSON(bc.Status(), result)
 }
+
+// Error -
+func Error(c *gin.Context, err error) {
+	bc := bcode.Err2Coder(err)
+	if bc == bcode.ServerErr {
+		logrus.Errorf("server error: %v", err)
+	}
+	result := &Result{
+		Code: bc.Code(),
+		Msg:  bc.Error(),
+	}
+
+	c.AbortWithStatusJSON(bc.Status(), result)
+}
+
+// ShouldBindJSON -
+func ShouldBindJSON(c *gin.Context, obj interface{}) error {
+	if err := c.ShouldBindJSON(obj); err != nil {
+		return bcode.NewBadRequest(err.Error())
+	}
+	return nil
+}

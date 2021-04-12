@@ -88,3 +88,8 @@ func Str2Coder(str string) Coder {
 	}
 	return newCode(400, i, "")
 }
+
+// NewBadRequest creates a bad request error.
+func NewBadRequest(msg string) error {
+	return newCode(400, 400, msg)
+}

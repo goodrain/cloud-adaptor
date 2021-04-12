@@ -10,8 +10,8 @@ import (
 type Router struct {
 	middleware *middleware.Middleware
 	cluster    *ClusterHandler
-	//SystemHandler  *oahan.SystemHandler
-	appStore *AppStoreHandler
+	system     *SystemHandler
+	appStore   *AppStoreHandler
 }
 
 // NewRouter creates a new router.
@@ -19,11 +19,13 @@ func NewRouter(
 	middleware *middleware.Middleware,
 	cluster *ClusterHandler,
 	appStore *AppStoreHandler,
+	system *SystemHandler,
 ) *Router {
 	return &Router{
 		middleware: middleware,
 		cluster:    cluster,
 		appStore:   appStore,
+		system:     system,
 	}
 }
 
@@ -53,8 +55,8 @@ func (r *Router) NewRouter() *gin.Engine {
 	g := e.Group(constants.Service)
 	// openapi
 	apiv1 := g.Group("/api/v1")
-	//apiv1.GET("/backup", r.SystemHandler.Backup)
-	//apiv1.POST("/recover", r.SystemHandler.Recover)
+	apiv1.GET("/backup", r.system.Backup)
+	apiv1.POST("/recover", r.system.Recover)
 	apiv1.GET("/init_node_cmd", r.cluster.GetInitNodeCmd)
 	entv1 := apiv1.Group("/enterprises/:eid")
 	// cluster
