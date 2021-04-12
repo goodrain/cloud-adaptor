@@ -16,33 +16,32 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package data
+package repo
 
 import (
 	"fmt"
-
 	"github.com/jinzhu/gorm"
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
 )
 
-// UpdateKubernetesTaskRepo enterprise create kubernetes task
-type UpdateKubernetesTaskRepo struct {
+// InitRainbondRegionTaskRepo enterprise create kubernetes task
+type InitRainbondRegionTaskRepo struct {
 	DB *gorm.DB `inject:""`
 }
 
-// NewUpdateKubernetesTaskRepo new Enterprise repoo
-func NewUpdateKubernetesTaskRepo(db *gorm.DB) UpdateKubernetesTaskRepository {
-	return &UpdateKubernetesTaskRepo{DB: db}
+// NewInitRainbondRegionTaskRepo new Enterprise repoo
+func NewInitRainbondRegionTaskRepo(db *gorm.DB) InitRainbondTaskRepository {
+	return &InitRainbondRegionTaskRepo{DB: db}
 }
 
-func (c *UpdateKubernetesTaskRepo) Transaction(tx *gorm.DB) UpdateKubernetesTaskRepository {
-	return &UpdateKubernetesTaskRepo{DB: tx}
+func (c *InitRainbondRegionTaskRepo) Transaction(tx *gorm.DB) InitRainbondTaskRepository {
+	return &InitRainbondRegionTaskRepo{DB: tx}
 }
 
 //Create create a task
-func (c *UpdateKubernetesTaskRepo) Create(ck *model.UpdateKubernetesTask) error {
-	var old model.UpdateKubernetesTask
+func (c *InitRainbondRegionTaskRepo) Create(ck *model.InitRainbondTask) error {
+	var old model.InitRainbondTask
 	if ck.TaskID == "" {
 		ck.TaskID = uuidutil.NewUUID()
 	}
@@ -60,8 +59,8 @@ func (c *UpdateKubernetesTaskRepo) Create(ck *model.UpdateKubernetesTask) error 
 }
 
 //GetTaskByClusterID get cluster task
-func (c *UpdateKubernetesTaskRepo) GetTaskByClusterID(eid string, providerName, clusterID string) (*model.UpdateKubernetesTask, error) {
-	var old model.UpdateKubernetesTask
+func (c *InitRainbondRegionTaskRepo) GetTaskByClusterID(eid string, providerName, clusterID string) (*model.InitRainbondTask, error) {
+	var old model.InitRainbondTask
 	if err := c.DB.Where("eid = ? and provider_name=? and cluster_id=?", eid, providerName, clusterID).Find(&old).Error; err != nil {
 		return nil, err
 	}
@@ -69,8 +68,8 @@ func (c *UpdateKubernetesTaskRepo) GetTaskByClusterID(eid string, providerName, 
 }
 
 //UpdateStatus update status
-func (c *UpdateKubernetesTaskRepo) UpdateStatus(eid string, taskID string, status string) error {
-	var old model.UpdateKubernetesTask
+func (c *InitRainbondRegionTaskRepo) UpdateStatus(eid string, taskID string, status string) error {
+	var old model.InitRainbondTask
 	if err := c.DB.Model(&old).Where("eid = ? and task_id=?", eid, taskID).Update("status", status).Error; err != nil {
 		return err
 	}
@@ -78,10 +77,28 @@ func (c *UpdateKubernetesTaskRepo) UpdateStatus(eid string, taskID string, statu
 }
 
 //GetTask get task
-func (c *UpdateKubernetesTaskRepo) GetTask(eid string, taskID string) (*model.UpdateKubernetesTask, error) {
-	var old model.UpdateKubernetesTask
+func (c *InitRainbondRegionTaskRepo) GetTask(eid string, taskID string) (*model.InitRainbondTask, error) {
+	var old model.InitRainbondTask
 	if err := c.DB.Where("eid = ? and task_id=?", eid, taskID).Find(&old).Error; err != nil {
 		return nil, err
 	}
 	return &old, nil
+}
+
+//GetTaskRunningLists get not complete tasks
+func (c *InitRainbondRegionTaskRepo) GetTaskRunningLists(eid string) ([]*model.InitRainbondTask, error) {
+	var list []*model.InitRainbondTask
+	if err := c.DB.Where("eid = ? and status != ?", eid, "complete").Find(&list).Error; err != nil {
+		return nil, err
+	}
+	return list, nil
+}
+
+//DeleteTask -
+func (c *InitRainbondRegionTaskRepo) DeleteTask(eid string, providerName, clusterID string) error {
+	var old model.InitRainbondTask
+	if err := c.DB.Where("eid = ? and provider_name=? and cluster_id=?", eid, providerName, clusterID).Delete(&old).Error; err != nil {
+		return err
+	}
+	return nil
 }

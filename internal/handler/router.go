@@ -7,14 +7,17 @@ import (
 
 // Router -
 type Router struct {
-	ClusterHandler *ClusterHandler `inject:""`
-	//SystemHandler  *oahan.SystemHandler `inject:""`
+	ClusterHandler *ClusterHandler
+	//SystemHandler  *oahan.SystemHandler
+	appStore *AppStoreHandler
 }
 
 // NewRouter creates a new router.
-func NewRouter(cluster *ClusterHandler) *Router {
+func NewRouter(cluster *ClusterHandler,
+	appStore *AppStoreHandler) *Router {
 	return &Router{
 		ClusterHandler: cluster,
+		appStore:       appStore,
 	}
 }
 
@@ -47,30 +50,35 @@ func (r *Router) NewRouter() *gin.Engine {
 	//apiv1.GET("/backup", r.SystemHandler.Backup)
 	//apiv1.POST("/recover", r.SystemHandler.Recover)
 	apiv1.GET("/init_node_cmd", r.ClusterHandler.GetInitNodeCmd)
-	entv1 := apiv1.Group("/enterprises")
+	entv1 := apiv1.Group("/enterprises/:eid")
 	// cluster
-	entv1.GET("/:eid/kclusters", r.ClusterHandler.ListKubernetesClusters)
-	entv1.GET("/:eid/kclusters/:clusterID/regionconfig", r.ClusterHandler.GetRegionConfig)
-	entv1.POST("/:eid/kclusters", r.ClusterHandler.AddKubernetesCluster)
-	entv1.DELETE("/:eid/kclusters/:clusterID", r.ClusterHandler.DeleteKubernetesCluster)
-	entv1.POST("/:eid/kclusters/:clusterID/reinstall", r.ClusterHandler.ReInstallKubernetesCluster)
-	entv1.GET("/:eid/kclusters/:clusterID/createlog", r.ClusterHandler.GetLogContent)
-	entv1.GET("/:eid/kclusters/:clusterID/kubeconfig", r.ClusterHandler.GetKubeConfig)
-	entv1.GET("/:eid/kclusters/:clusterID/rainbondcluster", r.ClusterHandler.GetRainbondClusterConfig)
-	entv1.PUT("/:eid/kclusters/:clusterID/rainbondcluster", r.ClusterHandler.SetRainbondClusterConfig)
-	entv1.POST("/:eid/kclusters/:clusterID/uninstall", r.ClusterHandler.UninstallRegion)
+	entv1.GET("/kclusters", r.ClusterHandler.ListKubernetesClusters)
+	entv1.GET("/kclusters/:clusterID/regionconfig", r.ClusterHandler.GetRegionConfig)
+	entv1.POST("/kclusters", r.ClusterHandler.AddKubernetesCluster)
+	entv1.DELETE("/kclusters/:clusterID", r.ClusterHandler.DeleteKubernetesCluster)
+	entv1.POST("/kclusters/:clusterID/reinstall", r.ClusterHandler.ReInstallKubernetesCluster)
+	entv1.GET("/kclusters/:clusterID/createlog", r.ClusterHandler.GetLogContent)
+	entv1.GET("/kclusters/:clusterID/kubeconfig", r.ClusterHandler.GetKubeConfig)
+	entv1.GET("/kclusters/:clusterID/rainbondcluster", r.ClusterHandler.GetRainbondClusterConfig)
+	entv1.PUT("/kclusters/:clusterID/rainbondcluster", r.ClusterHandler.SetRainbondClusterConfig)
+	entv1.POST("/kclusters/:clusterID/uninstall", r.ClusterHandler.UninstallRegion)
 
-	entv1.POST("/:eid/accesskey", r.ClusterHandler.AddAccessKey)
-	entv1.GET("/:eid/accesskey", r.ClusterHandler.GetAccessKey)
-	entv1.GET("/:eid/last-ck-task", r.ClusterHandler.GetLastAddKubernetesClusterTask)
-	entv1.GET("/:eid/ck-task/:taskID", r.ClusterHandler.GetAddKubernetesClusterTask)
-	entv1.GET("/:eid/tasks/:taskID/events", r.ClusterHandler.GetTaskEventList)
-	entv1.GET("/:eid/init-task/:clusterID", r.ClusterHandler.GetInitRainbondTask)
-	entv1.GET("/:eid/init-tasks", r.ClusterHandler.GetRunningInitRainbondTask)
-	entv1.POST("/:eid/init-cluster", r.ClusterHandler.CreateInitRainbondTask)
-	entv1.PUT("/:eid/init-tasks/:taskID/status", r.ClusterHandler.UpdateInitRainbondTaskStatus)
+	entv1.POST("/accesskey", r.ClusterHandler.AddAccessKey)
+	entv1.GET("/accesskey", r.ClusterHandler.GetAccessKey)
+	entv1.GET("/last-ck-task", r.ClusterHandler.GetLastAddKubernetesClusterTask)
+	entv1.GET("/ck-task/:taskID", r.ClusterHandler.GetAddKubernetesClusterTask)
+	entv1.GET("/tasks/:taskID/events", r.ClusterHandler.GetTaskEventList)
+	entv1.GET("/init-task/:clusterID", r.ClusterHandler.GetInitRainbondTask)
+	entv1.GET("/init-tasks", r.ClusterHandler.GetRunningInitRainbondTask)
+	entv1.POST("/init-cluster", r.ClusterHandler.CreateInitRainbondTask)
+	entv1.PUT("/init-tasks/:taskID/status", r.ClusterHandler.UpdateInitRainbondTaskStatus)
 
-	entv1.POST("/:eid/update-cluster", r.ClusterHandler.UpdateKubernetesCluster)
-	entv1.GET("/:eid/update-cluster/:clusterID", r.ClusterHandler.GetUpdateKubernetesTask)
+	entv1.POST("/update-cluster", r.ClusterHandler.UpdateKubernetesCluster)
+	entv1.GET("/update-cluster/:clusterID", r.ClusterHandler.GetUpdateKubernetesTask)
+
+	// app store
+	appstorev1 := entv1.Group("/appstores")
+	appstorev1.POST("/", r.appStore.Create)
+
 	return e
 }

@@ -10,9 +10,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"goodrain.com/cloud-adaptor/internal/biz"
-	"goodrain.com/cloud-adaptor/internal/data"
 	"goodrain.com/cloud-adaptor/internal/handler"
 	"goodrain.com/cloud-adaptor/internal/nsqc/producer"
+	"goodrain.com/cloud-adaptor/internal/repo"
+	"goodrain.com/cloud-adaptor/internal/repo/dao"
 	"goodrain.com/cloud-adaptor/internal/task"
 	"goodrain.com/cloud-adaptor/internal/types"
 )
@@ -22,15 +23,19 @@ import (
 // initApp init the application.
 func initApp(contextContext context.Context, db *gorm.DB, arg chan types.KubernetesConfigMessage, arg2 chan types.InitRainbondConfigMessage, arg3 chan types.UpdateKubernetesConfigMessage) (*gin.Engine, error) {
 	taskProducer := producer.NewTaskChannelProducer(arg, arg2, arg3)
-	cloudAccesskeyRepository := data.NewCloudAccessKeyRepo(db)
-	createKubernetesTaskRepository := data.NewCreateKubernetesTaskRepo(db)
-	initRainbondTaskRepository := data.NewInitRainbondRegionTaskRepo(db)
-	updateKubernetesTaskRepository := data.NewUpdateKubernetesTaskRepo(db)
-	taskEventRepository := data.NewTaskEventRepo(db)
-	rainbondClusterConfigRepository := data.NewRainbondClusterConfigRepo(db)
+	cloudAccesskeyRepository := repo.NewCloudAccessKeyRepo(db)
+	createKubernetesTaskRepository := repo.NewCreateKubernetesTaskRepo(db)
+	initRainbondTaskRepository := repo.NewInitRainbondRegionTaskRepo(db)
+	updateKubernetesTaskRepository := repo.NewUpdateKubernetesTaskRepo(db)
+	taskEventRepository := repo.NewTaskEventRepo(db)
+	rainbondClusterConfigRepository := repo.NewRainbondClusterConfigRepo(db)
 	clusterUsecase := biz.NewClusterUsecase(db, taskProducer, cloudAccesskeyRepository, createKubernetesTaskRepository, initRainbondTaskRepository, updateKubernetesTaskRepository, taskEventRepository, rainbondClusterConfigRepository)
 	clusterHandler := handler.NewClusterHandler(clusterUsecase)
-	router := handler.NewRouter(clusterHandler)
+	appStoreDao := dao.NewAppStoreDao(db)
+	appStoreRepo := repo.NewAppStoreRepo(appStoreDao)
+	appStoreUsecase := biz.NewAppStoreUsecase(appStoreRepo)
+	appStoreHandler := handler.NewAppStoreHandler(appStoreUsecase)
+	router := handler.NewRouter(clusterHandler, appStoreHandler)
 	createKubernetesTaskHandler := task.NewCreateKubernetesTaskHandler(clusterUsecase)
 	cloudInitTaskHandler := task.NewCloudInitTaskHandler(clusterUsecase)
 	updateKubernetesTaskHandler := task.NewCloudUpdateTaskHandler(clusterUsecase)

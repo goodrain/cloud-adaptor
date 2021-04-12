@@ -19,7 +19,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
-	"goodrain.com/cloud-adaptor/internal/data"
+	"goodrain.com/cloud-adaptor/internal/repo"
 	"goodrain.com/cloud-adaptor/version"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -48,11 +48,11 @@ func init() {
 type RainbondRegionInit struct {
 	kubeconfig                v1alpha1.KubeConfig
 	namespace                 string
-	rainbondClusterConfigRepo data.RainbondClusterConfigRepository
+	rainbondClusterConfigRepo repo.RainbondClusterConfigRepository
 }
 
 //NewRainbondRegionInit new
-func NewRainbondRegionInit(kubeconfig v1alpha1.KubeConfig, rainbondClusterConfigRepo data.RainbondClusterConfigRepository) *RainbondRegionInit {
+func NewRainbondRegionInit(kubeconfig v1alpha1.KubeConfig, rainbondClusterConfigRepo repo.RainbondClusterConfigRepository) *RainbondRegionInit {
 	return &RainbondRegionInit{
 		kubeconfig:                kubeconfig,
 		namespace:                 "rbd-system",

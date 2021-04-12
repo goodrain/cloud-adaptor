@@ -88,4 +88,6 @@ func AutoMigrate(db *gorm.DB) {
 	db.AutoMigrate(&model.CustomCluster{})
 	db.AutoMigrate(&model.UpdateKubernetesTask{})
 	db.AutoMigrate(&model.RainbondClusterConfig{})
+	// app store
+	db.AutoMigrate(&model.AppStore{})
 }

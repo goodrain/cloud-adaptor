@@ -16,37 +16,36 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package data
+package repo
 
 import (
 	"fmt"
-
 	"github.com/jinzhu/gorm"
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
 )
 
-// CreateKubernetesTaskRepo enterprise create kubernetes task
-type CreateKubernetesTaskRepo struct {
+// UpdateKubernetesTaskRepo enterprise create kubernetes task
+type UpdateKubernetesTaskRepo struct {
 	DB *gorm.DB `inject:""`
 }
 
-// NewCreateKubernetesTaskRepo new Enterprise repoo
-func NewCreateKubernetesTaskRepo(db *gorm.DB) CreateKubernetesTaskRepository {
-	return &CreateKubernetesTaskRepo{DB: db}
+// NewUpdateKubernetesTaskRepo new Enterprise repoo
+func NewUpdateKubernetesTaskRepo(db *gorm.DB) UpdateKubernetesTaskRepository {
+	return &UpdateKubernetesTaskRepo{DB: db}
 }
 
-func (c *CreateKubernetesTaskRepo) Transaction(tx *gorm.DB) CreateKubernetesTaskRepository {
-	return &CreateKubernetesTaskRepo{DB: tx}
+func (c *UpdateKubernetesTaskRepo) Transaction(tx *gorm.DB) UpdateKubernetesTaskRepository {
+	return &UpdateKubernetesTaskRepo{DB: tx}
 }
 
 //Create create a task
-func (c *CreateKubernetesTaskRepo) Create(ck *model.CreateKubernetesTask) error {
-	var old model.CreateKubernetesTask
+func (c *UpdateKubernetesTaskRepo) Create(ck *model.UpdateKubernetesTask) error {
+	var old model.UpdateKubernetesTask
 	if ck.TaskID == "" {
 		ck.TaskID = uuidutil.NewUUID()
 	}
-	if err := c.DB.Where("eid = ? and task_id=?", ck.EnterpriseID, ck.TaskID).Find(&old).Error; err != nil {
+	if err := c.DB.Where("eid = ? and task_id=? and cluster_id=?", ck.EnterpriseID, ck.TaskID, ck.ClusterID).Find(&old).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// not found error, create new
 			if err := c.DB.Save(ck).Error; err != nil {
@@ -59,18 +58,18 @@ func (c *CreateKubernetesTaskRepo) Create(ck *model.CreateKubernetesTask) error 
 	return fmt.Errorf("task is exit")
 }
 
-//GetLastTask get last task
-func (c *CreateKubernetesTaskRepo) GetLastTask(eid string, providerName string) (*model.CreateKubernetesTask, error) {
-	var old model.CreateKubernetesTask
-	if err := c.DB.Where("eid = ? and provider_name=?", eid, providerName).Order("created_at desc").Limit(1).Find(&old).Error; err != nil {
+//GetTaskByClusterID get cluster task
+func (c *UpdateKubernetesTaskRepo) GetTaskByClusterID(eid string, providerName, clusterID string) (*model.UpdateKubernetesTask, error) {
+	var old model.UpdateKubernetesTask
+	if err := c.DB.Where("eid = ? and provider_name=? and cluster_id=?", eid, providerName, clusterID).Find(&old).Error; err != nil {
 		return nil, err
 	}
 	return &old, nil
 }
 
 //UpdateStatus update status
-func (c *CreateKubernetesTaskRepo) UpdateStatus(eid string, taskID string, status string) error {
-	var old model.CreateKubernetesTask
+func (c *UpdateKubernetesTaskRepo) UpdateStatus(eid string, taskID string, status string) error {
+	var old model.UpdateKubernetesTask
 	if err := c.DB.Model(&old).Where("eid = ? and task_id=?", eid, taskID).Update("status", status).Error; err != nil {
 		return err
 	}
@@ -78,8 +77,8 @@ func (c *CreateKubernetesTaskRepo) UpdateStatus(eid string, taskID string, statu
 }
 
 //GetTask get task
-func (c *CreateKubernetesTaskRepo) GetTask(eid string, taskID string) (*model.CreateKubernetesTask, error) {
-	var old model.CreateKubernetesTask
+func (c *UpdateKubernetesTaskRepo) GetTask(eid string, taskID string) (*model.UpdateKubernetesTask, error) {
+	var old model.UpdateKubernetesTask
 	if err := c.DB.Where("eid = ? and task_id=?", eid, taskID).Find(&old).Error; err != nil {
 		return nil, err
 	}

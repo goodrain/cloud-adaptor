@@ -4,19 +4,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
+	"sync"
+	"time"
+
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
 	"github.com/sirupsen/logrus"
 	"goodrain.com/cloud-adaptor/internal/adaptor"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
+	"goodrain.com/cloud-adaptor/internal/datastore"
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
-	"goodrain.com/cloud-adaptor/pkg/infrastructure/datastore"
 	"goodrain.com/cloud-adaptor/pkg/util"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/version"
-	"strings"
-	"sync"
-	"time"
 )
 
 type customAdaptor struct {

@@ -21,9 +21,6 @@ package biz
 import (
 	"encoding/json"
 	"fmt"
-	"os"
-	"strings"
-
 	"github.com/ghodss/yaml"
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
 	"github.com/jinzhu/gorm"
@@ -34,36 +31,38 @@ import (
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
 	"goodrain.com/cloud-adaptor/internal/adaptor/rke"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
-	"goodrain.com/cloud-adaptor/internal/data"
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/internal/nsqc/producer"
 	"goodrain.com/cloud-adaptor/internal/operator"
+	"goodrain.com/cloud-adaptor/internal/repo"
 	"goodrain.com/cloud-adaptor/internal/types"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
+	"os"
+	"strings"
 )
 
 // ClusterUsecase cluster manage usecase
 type ClusterUsecase struct {
 	DB                        *gorm.DB                             `inject:""`
 	TaskProducer              producer.TaskProducer                `inject:""`
-	CloudAccessKeyRepo        data.CloudAccesskeyRepository        `inject:""`
-	CreateKubernetesTaskRepo  data.CreateKubernetesTaskRepository  `inject:""`
-	InitRainbondTaskRepo      data.InitRainbondTaskRepository      `inject:""`
-	UpdateKubernetesTaskRepo  data.UpdateKubernetesTaskRepository  `inject:""`
-	TaskEventRepo             data.TaskEventRepository             `inject:""`
-	RainbondClusterConfigRepo data.RainbondClusterConfigRepository `inject:""`
+	CloudAccessKeyRepo        repo.CloudAccesskeyRepository        `inject:""`
+	CreateKubernetesTaskRepo  repo.CreateKubernetesTaskRepository  `inject:""`
+	InitRainbondTaskRepo      repo.InitRainbondTaskRepository      `inject:""`
+	UpdateKubernetesTaskRepo  repo.UpdateKubernetesTaskRepository  `inject:""`
+	TaskEventRepo             repo.TaskEventRepository             `inject:""`
+	RainbondClusterConfigRepo repo.RainbondClusterConfigRepository `inject:""`
 }
 
 // NewClusterUsecase new cluster usecase
 func NewClusterUsecase(db *gorm.DB,
 	taskProducer producer.TaskProducer,
-	cloudAccessKeyRepo data.CloudAccesskeyRepository,
-	CreateKubernetesTaskRepo data.CreateKubernetesTaskRepository,
-	InitRainbondTaskRepo data.InitRainbondTaskRepository,
-	UpdateKubernetesTaskRepo data.UpdateKubernetesTaskRepository,
-	TaskEventRepo data.TaskEventRepository,
-	RainbondClusterConfigRepo data.RainbondClusterConfigRepository,
+	cloudAccessKeyRepo repo.CloudAccesskeyRepository,
+	CreateKubernetesTaskRepo repo.CreateKubernetesTaskRepository,
+	InitRainbondTaskRepo repo.InitRainbondTaskRepository,
+	UpdateKubernetesTaskRepo repo.UpdateKubernetesTaskRepository,
+	TaskEventRepo repo.TaskEventRepository,
+	RainbondClusterConfigRepo repo.RainbondClusterConfigRepository,
 ) *ClusterUsecase {
 	return &ClusterUsecase{
 		DB:                        db,

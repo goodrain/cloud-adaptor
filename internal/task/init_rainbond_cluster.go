@@ -24,27 +24,24 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"runtime/debug"
+	"time"
 
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
 	"github.com/nsqio/go-nsq"
 	"github.com/rancher/rke/k8s"
 	"github.com/sirupsen/logrus"
-	"goodrain.com/cloud-adaptor/internal/biz"
-	"goodrain.com/cloud-adaptor/internal/types"
-	"goodrain.com/cloud-adaptor/pkg/util/constants"
-	v1 "k8s.io/api/core/v1"
-
-	//"goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
-	"net/http"
-	"runtime/debug"
-	"time"
-
 	apiv1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
-	"goodrain.com/cloud-adaptor/internal/data"
+	"goodrain.com/cloud-adaptor/internal/biz"
+	"goodrain.com/cloud-adaptor/internal/datastore"
 	"goodrain.com/cloud-adaptor/internal/operator"
-	"goodrain.com/cloud-adaptor/pkg/infrastructure/datastore"
+	"goodrain.com/cloud-adaptor/internal/repo"
+	"goodrain.com/cloud-adaptor/internal/types"
+	"goodrain.com/cloud-adaptor/pkg/util/constants"
 	"goodrain.com/cloud-adaptor/version"
+	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -142,7 +139,7 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 		c.rollback("InitRainbondRegionOperator", "can not select eip", "failure")
 		return
 	}
-	rri := operator.NewRainbondRegionInit(*kubeConfig, data.NewRainbondClusterConfigRepo(datastore.GetGDB()))
+	rri := operator.NewRainbondRegionInit(*kubeConfig, repo.NewRainbondClusterConfigRepo(datastore.GetGDB()))
 	if err := rri.InitRainbondRegion(initConfig); err != nil {
 		c.rollback("InitRainbondRegionOperator", err.Error(), "failure")
 		return

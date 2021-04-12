@@ -1,4 +1,4 @@
-package data
+package repo
 
 import "github.com/google/wire"
 
@@ -10,4 +10,5 @@ var ProviderSet = wire.NewSet(
 	NewUpdateKubernetesTaskRepo,
 	NewTaskEventRepo,
 	NewRainbondClusterConfigRepo,
+	NewAppStoreRepo,
 )

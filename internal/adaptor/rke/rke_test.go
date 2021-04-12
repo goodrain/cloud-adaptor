@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
-	"goodrain.com/cloud-adaptor/pkg/infrastructure/datastore"
+	"goodrain.com/cloud-adaptor/internal/datastore"
 )
 
 func TestCreateCluster(t *testing.T) {

@@ -7,7 +7,7 @@ import (
 	cli "github.com/urfave/cli/v2"
 	"goodrain.com/cloud-adaptor/cmd/cloud-adaptor/config"
 	"goodrain.com/cloud-adaptor/internal/data/model"
-	"goodrain.com/cloud-adaptor/pkg/infrastructure/datastore"
+	"goodrain.com/cloud-adaptor/internal/datastore"
 )
 
 var dataCommand = &cli.Command{

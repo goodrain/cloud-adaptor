@@ -10,9 +10,10 @@ import (
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
 	"goodrain.com/cloud-adaptor/internal/biz"
-	"goodrain.com/cloud-adaptor/internal/data"
 	"goodrain.com/cloud-adaptor/internal/handler"
 	"goodrain.com/cloud-adaptor/internal/nsqc"
+	"goodrain.com/cloud-adaptor/internal/repo"
+	"goodrain.com/cloud-adaptor/internal/repo/dao"
 	"goodrain.com/cloud-adaptor/internal/task"
 	"goodrain.com/cloud-adaptor/internal/types"
 )
@@ -23,5 +24,5 @@ func initApp(context.Context,
 	chan types.KubernetesConfigMessage,
 	chan types.InitRainbondConfigMessage,
 	chan types.UpdateKubernetesConfigMessage) (*gin.Engine, error) {
-	panic(wire.Build(handler.ProviderSet, biz.ProviderSet, data.ProviderSet, task.ProviderSet, nsqc.ProviderSet, newApp))
+	panic(wire.Build(handler.ProviderSet, biz.ProviderSet, repo.ProviderSet, task.ProviderSet, nsqc.ProviderSet, dao.ProviderSet, newApp))
 }
