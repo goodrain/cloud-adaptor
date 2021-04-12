@@ -25,7 +25,7 @@ func NewMiddleware(appStoreRepo repo.AppStoreRepo) *Middleware {
 func (a *Middleware) AppStore(c *gin.Context) {
 	eid := c.Param("eid")
 	appStoreID := c.Param("appStoreID")
-	appStore, err := a.appStoreRepo.Get(eid, appStoreID)
+	appStore, err := a.appStoreRepo.Get(c.Request.Context(), eid, appStoreID)
 	if err != nil {
 		ginutil.Error(c, err)
 		return

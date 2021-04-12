@@ -1,6 +1,9 @@
 package repo
 
-import "github.com/google/wire"
+import (
+	"github.com/google/wire"
+	"goodrain.com/cloud-adaptor/internal/repo/appstore"
+)
 
 // ProviderSet is data providers.
 var ProviderSet = wire.NewSet(
@@ -11,4 +14,5 @@ var ProviderSet = wire.NewSet(
 	NewTaskEventRepo,
 	NewRainbondClusterConfigRepo,
 	NewAppStoreRepo,
+	appstore.NewStorer,
 )

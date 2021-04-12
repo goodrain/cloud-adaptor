@@ -1,43 +1,39 @@
 package repo
 
 import (
+	"context"
+
+	"github.com/sirupsen/logrus"
+	"goodrain.com/cloud-adaptor/internal/domain"
 	"goodrain.com/cloud-adaptor/internal/model"
+	"goodrain.com/cloud-adaptor/internal/repo/appstore"
 	"goodrain.com/cloud-adaptor/internal/repo/dao"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
 )
 
-// AppStore
-type AppStore struct {
-	EID        string
-	AppStoreID string
-	Name       string
-	URL        string
-	Branch     string
-	Username   string
-	Password   string
-}
-
 // AppStoreRepo -
 type AppStoreRepo interface {
-	Create(appStore *AppStore) error
-	List(eid string) ([]*AppStore, error)
-	Get(eid, appStoreID string) (*AppStore, error)
+	Create(appStore *domain.AppStore) error
+	List(eid string) ([]*domain.AppStore, error)
+	Get(ctx context.Context, eid, appStoreID string) (*domain.AppStore, error)
 	Delete(eid, appStoreID string) error
-	Update(appStore *AppStore) error
+	Update(appStore *domain.AppStore) error
 }
 
 // NewAppStoreRepo creates a new AppStoreRepo.
-func NewAppStoreRepo(appStoreDao dao.AppStoreDao) AppStoreRepo {
+func NewAppStoreRepo(appStoreDao dao.AppStoreDao, storer *appstore.Storer) AppStoreRepo {
 	return &appStoreRepo{
+		storer:      storer,
 		appStoreDao: appStoreDao,
 	}
 }
 
 type appStoreRepo struct {
 	appStoreDao dao.AppStoreDao
+	storer      *appstore.Storer
 }
 
-func (a *appStoreRepo) Create(appStore *AppStore) error {
+func (a *appStoreRepo) Create(appStore *domain.AppStore) error {
 	// Create appStore
 	err := a.appStoreDao.Create(&model.AppStore{
 		EID:        appStore.EID,
@@ -56,15 +52,15 @@ func (a *appStoreRepo) Create(appStore *AppStore) error {
 	return nil
 }
 
-func (a *appStoreRepo) List(eid string) ([]*AppStore, error) {
+func (a *appStoreRepo) List(eid string) ([]*domain.AppStore, error) {
 	appStores, err := a.appStoreDao.List(eid)
 	if err != nil {
 		return nil, err
 	}
 
-	var stores []*AppStore
+	var stores []*domain.AppStore
 	for _, as := range appStores {
-		stores = append(stores, &AppStore{
+		stores = append(stores, &domain.AppStore{
 			EID:        as.EID,
 			AppStoreID: as.AppStoreID,
 			Name:       as.Name,
@@ -78,14 +74,14 @@ func (a *appStoreRepo) List(eid string) ([]*AppStore, error) {
 	return stores, nil
 }
 
-func (a *appStoreRepo) Get(eid, appStoreID string) (*AppStore, error) {
+func (a *appStoreRepo) Get(ctx context.Context, eid, appStoreID string) (*domain.AppStore, error) {
 	as, err := a.appStoreDao.Get(eid, appStoreID)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: deduplicate the code below
-	return &AppStore{
+	appStore := &domain.AppStore{
 		EID:        as.EID,
 		AppStoreID: as.AppStoreID,
 		Name:       as.Name,
@@ -93,10 +89,17 @@ func (a *appStoreRepo) Get(eid, appStoreID string) (*AppStore, error) {
 		Branch:     as.Branch,
 		Username:   as.Username,
 		Password:   as.Password,
-	}, nil
+	}
+
+	appStore.AppTemplates, err = a.storer.ListAppTemplates(ctx, appStore)
+	if err != nil {
+		logrus.Warningf("[appStoreRepo] [Get] list app templates: %v", err)
+	}
+
+	return appStore, nil
 }
 
-func (a *appStoreRepo) Update(appStore *AppStore) error {
+func (a *appStoreRepo) Update(appStore *domain.AppStore) error {
 	as, err := a.appStoreDao.Get(appStore.EID, appStore.AppStoreID)
 	if err != nil {
 		return err

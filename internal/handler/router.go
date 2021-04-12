@@ -93,6 +93,7 @@ func (r *Router) NewRouter() *gin.Engine {
 		appstorev1.GET("/", r.appStore.Get)
 		appstorev1.PUT("/", r.appStore.Update)
 		appstorev1.DELETE("/", r.appStore.Delete)
+		appstorev1.GET("/apptemplates", r.appStore.ListTemplates)
 	}
 
 	return e

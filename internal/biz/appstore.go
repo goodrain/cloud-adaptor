@@ -1,6 +1,7 @@
 package biz
 
 import (
+	"goodrain.com/cloud-adaptor/internal/domain"
 	"goodrain.com/cloud-adaptor/internal/repo"
 )
 
@@ -16,15 +17,15 @@ func NewAppStoreUsecase(appStoreRepo repo.AppStoreRepo) *AppStoreUsecase {
 	}
 }
 
-func (a *AppStoreUsecase) Create(appStore *repo.AppStore) error {
+func (a *AppStoreUsecase) Create(appStore *domain.AppStore) error {
 	return a.appStoreRepo.Create(appStore)
 }
 
-func (a *AppStoreUsecase) List(eid string) ([]*repo.AppStore, error) {
+func (a *AppStoreUsecase) List(eid string) ([]*domain.AppStore, error) {
 	return a.appStoreRepo.List(eid)
 }
 
-func (a *AppStoreUsecase) Update(appStore *repo.AppStore) error {
+func (a *AppStoreUsecase) Update(appStore *domain.AppStore) error {
 	return a.appStoreRepo.Update(appStore)
 }
 

@@ -30,6 +30,27 @@ func JSON(c *gin.Context, data interface{}, err error) {
 	c.AbortWithStatusJSON(bc.Status(), result)
 }
 
+// JSONv2 -
+func JSONv2(c *gin.Context, data interface{}, errs ...error) {
+	var err error
+	if len(errs) > 0 {
+		err = errs[0]
+	}
+	bc := bcode.Err2Coder(err)
+	if bc == bcode.ServerErr {
+		logrus.Errorf("server error: %v", err)
+	}
+	if bc.Status() >= 200 && bc.Status() < 300 {
+		c.AbortWithStatusJSON(bc.Status(), data)
+		return
+	}
+
+	c.AbortWithStatusJSON(bc.Status(), &Result{
+		Code: bc.Code(),
+		Msg:  bc.Error(),
+	})
+}
+
 // Error -
 func Error(c *gin.Context, err error) {
 	bc := bcode.Err2Coder(err)

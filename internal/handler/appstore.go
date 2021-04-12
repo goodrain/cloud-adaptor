@@ -4,7 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/biz"
-	"goodrain.com/cloud-adaptor/internal/repo"
+	"goodrain.com/cloud-adaptor/internal/domain"
 	"goodrain.com/cloud-adaptor/pkg/util/ginutil"
 )
 
@@ -31,7 +31,7 @@ func (a *AppStoreHandler) Create(c *gin.Context) {
 	eid := c.Param("eid")
 
 	// DTO to DO
-	appStore := &repo.AppStore{
+	appStore := &domain.AppStore{
 		EID:      eid,
 		Name:     req.Name,
 		URL:      req.URL,
@@ -42,7 +42,7 @@ func (a *AppStoreHandler) Create(c *gin.Context) {
 	err := a.appStore.Create(appStore)
 
 	// TODO: use ginutil.JSONv2
-	ginutil.JSON(c, &v1.AppStore{
+	ginutil.JSONv2(c, &v1.AppStore{
 		EID:        appStore.EID,
 		AppStoreID: appStore.AppStoreID,
 		Name:       appStore.Name,
@@ -71,14 +71,14 @@ func (a *AppStoreHandler) List(ctx *gin.Context) {
 		})
 	}
 
-	ginutil.JSON(ctx, stores, err)
+	ginutil.JSONv2(ctx, stores, err)
 }
 
 // Get deletes the app store.
 func (a *AppStoreHandler) Get(c *gin.Context) {
 	appStoreI, _ := c.Get("appStore")
-	appStore := appStoreI.(*repo.AppStore)
-	ginutil.JSON(c, appStore, nil)
+	appStore := appStoreI.(*domain.AppStore)
+	ginutil.JSONv2(c, appStore)
 }
 
 // Update updates the app store.
@@ -90,7 +90,7 @@ func (a *AppStoreHandler) Update(c *gin.Context) {
 	}
 
 	appStoreI, _ := c.Get("appStore")
-	appStore := appStoreI.(*repo.AppStore)
+	appStore := appStoreI.(*domain.AppStore)
 
 	appStore.Name = req.Name
 	appStore.URL = req.URL
@@ -98,12 +98,28 @@ func (a *AppStoreHandler) Update(c *gin.Context) {
 	appStore.Username = req.Username
 	appStore.Password = req.Password
 
-	ginutil.JSON(c, appStore, a.appStore.Update(appStore))
+	ginutil.JSONv2(c, nil, a.appStore.Update(appStore))
 }
 
 // Delete deletes the app store.
 func (a *AppStoreHandler) Delete(c *gin.Context) {
 	appStoreI, _ := c.Get("appStore")
-	appStore := appStoreI.(*repo.AppStore)
-	ginutil.JSON(c, nil, a.appStore.Delete(appStore.EID, appStore.AppStoreID))
+	appStore := appStoreI.(*domain.AppStore)
+	ginutil.JSONv2(c, nil, a.appStore.Delete(appStore.EID, appStore.AppStoreID))
+}
+
+func (a *AppStoreHandler) ListTemplates(c *gin.Context) {
+	appStoreI, _ := c.Get("appStore")
+	appStore := appStoreI.(*domain.AppStore)
+
+	appTemplates := appStore.AppTemplates
+	var templates []*v1.AppTemplate
+	for _, at := range appTemplates {
+		templates = append(templates, &v1.AppTemplate{
+			Name:     at.Name,
+			Versions: at.Versions,
+		})
+	}
+
+	ginutil.JSONv2(c, templates)
 }

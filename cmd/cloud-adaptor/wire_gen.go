@@ -13,6 +13,7 @@ import (
 	"goodrain.com/cloud-adaptor/internal/middleware"
 	"goodrain.com/cloud-adaptor/internal/nsqc/producer"
 	"goodrain.com/cloud-adaptor/internal/repo"
+	"goodrain.com/cloud-adaptor/internal/repo/appstore"
 	"goodrain.com/cloud-adaptor/internal/repo/dao"
 	"goodrain.com/cloud-adaptor/internal/task"
 	"goodrain.com/cloud-adaptor/internal/types"
@@ -24,7 +25,8 @@ import (
 // initApp init the application.
 func initApp(contextContext context.Context, db *gorm.DB, arg chan types.KubernetesConfigMessage, arg2 chan types.InitRainbondConfigMessage, arg3 chan types.UpdateKubernetesConfigMessage) (*gin.Engine, error) {
 	appStoreDao := dao.NewAppStoreDao(db)
-	appStoreRepo := repo.NewAppStoreRepo(appStoreDao)
+	storer := appstore.NewStorer()
+	appStoreRepo := repo.NewAppStoreRepo(appStoreDao, storer)
 	middlewareMiddleware := middleware.NewMiddleware(appStoreRepo)
 	taskProducer := producer.NewTaskChannelProducer(arg, arg2, arg3)
 	cloudAccesskeyRepository := repo.NewCloudAccessKeyRepo(db)
