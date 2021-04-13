@@ -41,8 +41,7 @@ func (a *AppStoreHandler) Create(c *gin.Context) {
 	}
 	err := a.appStore.Create(appStore)
 
-	// TODO: use ginutil.JSONv2
-	ginutil.JSONv2(c, &v1.AppStore{
+	ginutil.JSON(c, &v1.AppStore{
 		EID:        appStore.EID,
 		AppStoreID: appStore.AppStoreID,
 		Name:       appStore.Name,
@@ -71,14 +70,13 @@ func (a *AppStoreHandler) List(ctx *gin.Context) {
 		})
 	}
 
-	ginutil.JSONv2(ctx, stores, err)
+	ginutil.JSON(ctx, stores, err)
 }
 
 // Get deletes the app store.
 func (a *AppStoreHandler) Get(c *gin.Context) {
-	appStoreI, _ := c.Get("appStore")
-	appStore := appStoreI.(*domain.AppStore)
-	ginutil.JSONv2(c, appStore)
+	appStore := ginutil.MustGet(c, "appStore").(*domain.AppStore)
+	ginutil.JSON(c, appStore)
 }
 
 // Update updates the app store.
@@ -98,14 +96,18 @@ func (a *AppStoreHandler) Update(c *gin.Context) {
 	appStore.Username = req.Username
 	appStore.Password = req.Password
 
-	ginutil.JSONv2(c, nil, a.appStore.Update(appStore))
+	ginutil.JSON(c, nil, a.appStore.Update(appStore))
 }
 
 // Delete deletes the app store.
 func (a *AppStoreHandler) Delete(c *gin.Context) {
-	appStoreI, _ := c.Get("appStore")
-	appStore := appStoreI.(*domain.AppStore)
-	ginutil.JSONv2(c, nil, a.appStore.Delete(appStore.EID, appStore.AppStoreID))
+	appStore := ginutil.MustGet(c, "appStore").(*domain.AppStore)
+	ginutil.JSON(c, nil, a.appStore.Delete(appStore.EID, appStore.AppStoreID))
+}
+
+func (a *AppStoreHandler) Resync(c *gin.Context) {
+	appStore := ginutil.MustGet(c, "appStore").(*domain.AppStore)
+	a.appStore.Resync(appStore)
 }
 
 func (a *AppStoreHandler) ListTemplates(c *gin.Context) {
@@ -121,5 +123,5 @@ func (a *AppStoreHandler) ListTemplates(c *gin.Context) {
 		})
 	}
 
-	ginutil.JSONv2(c, templates)
+	ginutil.JSON(c, templates)
 }

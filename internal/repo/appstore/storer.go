@@ -19,8 +19,14 @@ func NewStorer() *Storer {
 	return &Storer{}
 }
 
+// Resync -
+func (s *Storer) Resync(key string) {
+	s.store.Delete(key)
+}
+
+// ListAppTemplates -
 func (s *Storer) ListAppTemplates(ctx context.Context, appStore *domain.AppStore) ([]*domain.AppTemplate, error) {
-	load, ok := s.store.Load(appStore.AppStoreID)
+	load, ok := s.store.Load(appStore.Key())
 	if ok {
 		appStore0, _ := load.(*domain.AppStore)
 		if appStore0.Equals(appStore) {
@@ -39,7 +45,7 @@ func (s *Storer) ListAppTemplates(ctx context.Context, appStore *domain.AppStore
 	appTemplates := v.([]*domain.AppTemplate)
 	appStore.AppTemplates = appTemplates
 
-	s.store.Store(appStore.AppStoreID, appStore)
+	s.store.Store(appStore.Key(), appStore)
 
 	return appTemplates, nil
 }

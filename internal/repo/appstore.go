@@ -18,6 +18,7 @@ type AppStoreRepo interface {
 	Get(ctx context.Context, eid, appStoreID string) (*domain.AppStore, error)
 	Delete(eid, appStoreID string) error
 	Update(appStore *domain.AppStore) error
+	Resync(appStore *domain.AppStore)
 }
 
 // NewAppStoreRepo creates a new AppStoreRepo.
@@ -112,6 +113,11 @@ func (a *appStoreRepo) Update(appStore *domain.AppStore) error {
 
 	return a.appStoreDao.Update(as)
 }
+
 func (a *appStoreRepo) Delete(eid, appStoreID string) error {
 	return a.appStoreDao.Delete(eid, appStoreID)
+}
+
+func (a *appStoreRepo) Resync(appStore *domain.AppStore) {
+	a.storer.Resync(appStore.Key())
 }

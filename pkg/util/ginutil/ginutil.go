@@ -14,7 +14,11 @@ type Result struct {
 }
 
 // JSON -
-func JSON(c *gin.Context, data interface{}, err error) {
+func JSON(c *gin.Context, data interface{}, errs ...error) {
+	var err error
+	if len(errs) > 0 {
+		err = errs[0]
+	}
 	bc := bcode.Err2Coder(err)
 	if bc == bcode.ServerErr {
 		logrus.Errorf("server error: %v", err)
@@ -71,4 +75,10 @@ func ShouldBindJSON(c *gin.Context, obj interface{}) error {
 		return bcode.NewBadRequest(err.Error())
 	}
 	return nil
+}
+
+// MustGet -
+func MustGet(c *gin.Context, key string) interface{} {
+	obj, _ := c.Get(key)
+	return obj
 }

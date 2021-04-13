@@ -14,6 +14,11 @@ type AppStore struct {
 	AppTemplates []*AppTemplate
 }
 
+// Key -
+func (a *AppStore) Key() string {
+	return a.EID + a.Name
+}
+
 // Equals -
 func (a *AppStore) Equals(b *AppStore) bool {
 	if a.URL != b.URL {
