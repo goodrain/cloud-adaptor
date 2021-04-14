@@ -21,11 +21,10 @@ package model
 // AppStore -
 type AppStore struct {
 	Model
-	EID        string `gorm:"uniqueIndex:name;column:eid"`
-	AppStoreID string `gorm:"column:appStoreID;not null"`
-	Name       string `gorm:"uniqueIndex:name;column:name;"`
-	URL        string `gorm:"column:url"`
-	Branch     string `gorm:"column:branch"`
-	Username   string `gorm:"column:username"`
-	Password   string `gorm:"column:password"`
+	EID      string `gorm:"uniqueIndex:name;column:eid"`
+	Name     string `gorm:"uniqueIndex:name;column:name;"`
+	URL      string `gorm:"column:url"`
+	Branch   string `gorm:"column:branch"`
+	Username string `gorm:"column:username"`
+	Password string `gorm:"column:password"`
 }

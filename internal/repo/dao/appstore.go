@@ -11,9 +11,9 @@ import (
 type AppStoreDao interface {
 	Create(appStore *model.AppStore) error
 	List(eid string) ([]*model.AppStore, error)
-	Get(eid, appStoreID string) (*model.AppStore, error)
+	Get(eid, name string) (*model.AppStore, error)
 	Update(appStore *model.AppStore) error
-	Delete(eid, appStoreID string) error
+	Delete(eid, name string) error
 }
 
 // NewAppStoreDao creates a new AppStoreDao
@@ -46,9 +46,9 @@ func (a *appStoreDao) List(eid string) ([]*model.AppStore, error) {
 	return appStores, nil
 }
 
-func (a *appStoreDao) Get(eid, appStoreID string) (*model.AppStore, error) {
+func (a *appStoreDao) Get(eid, name string) (*model.AppStore, error) {
 	var appStore model.AppStore
-	if err := a.db.Where("eid=? and appStoreID=?", eid, appStoreID).Take(&appStore).Error; err != nil {
+	if err := a.db.Where("eid=? and name=?", eid, name).Take(&appStore).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, errors.WithStack(bcode.ErrAppStoreNotFound)
 		}
@@ -69,8 +69,8 @@ func (a *appStoreDao) Update(appStore *model.AppStore) error {
 	return nil
 }
 
-func (a *appStoreDao) Delete(eid, appStoreID string) error {
-	err := a.db.Where("eid=? and appStoreID=?", eid, appStoreID).Delete(&model.AppStore{}).Error
+func (a *appStoreDao) Delete(eid, name string) error {
+	err := a.db.Where("eid=? and name=?", eid, name).Delete(&model.AppStore{}).Error
 	if err != nil {
 		return errors.Wrap(err, "delete app store")
 	}

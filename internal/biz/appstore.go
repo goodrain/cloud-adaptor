@@ -29,8 +29,8 @@ func (a *AppStoreUsecase) Update(appStore *domain.AppStore) error {
 	return a.appStoreRepo.Update(appStore)
 }
 
-func (a *AppStoreUsecase) Delete(eid, appStoreID string) error {
-	return a.appStoreRepo.Delete(eid, appStoreID)
+func (a *AppStoreUsecase) Delete(eid, name string) error {
+	return a.appStoreRepo.Delete(eid, name)
 }
 
 func (a *AppStoreUsecase) Resync(appStore *domain.AppStore) {

@@ -36,7 +36,7 @@ func (s *Storer) ListAppTemplates(ctx context.Context, appStore *domain.AppStore
 
 	appTemplater := NewAppTemplater(ctx, appStore)
 	// single flight to avoid cache breakdown
-	v, err, _ := s.Do(appStore.AppStoreID, func() (interface{}, error) {
+	v, err, _ := s.Do(appStore.Key(), func() (interface{}, error) {
 		return appTemplater.Fetch()
 	})
 	if err != nil {

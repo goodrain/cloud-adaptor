@@ -5,7 +5,6 @@ import "github.com/helm/helm/pkg/repo"
 // AppStore
 type AppStore struct {
 	EID          string
-	AppStoreID   string
 	Name         string
 	URL          string
 	Branch       string

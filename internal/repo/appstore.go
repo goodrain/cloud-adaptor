@@ -8,15 +8,14 @@ import (
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/internal/repo/appstore"
 	"goodrain.com/cloud-adaptor/internal/repo/dao"
-	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
 )
 
 // AppStoreRepo -
 type AppStoreRepo interface {
 	Create(appStore *domain.AppStore) error
 	List(eid string) ([]*domain.AppStore, error)
-	Get(ctx context.Context, eid, appStoreID string) (*domain.AppStore, error)
-	Delete(eid, appStoreID string) error
+	Get(ctx context.Context, eid, name string) (*domain.AppStore, error)
+	Delete(eid, name string) error
 	Update(appStore *domain.AppStore) error
 	Resync(appStore *domain.AppStore)
 }
@@ -35,22 +34,14 @@ type appStoreRepo struct {
 }
 
 func (a *appStoreRepo) Create(appStore *domain.AppStore) error {
-	// Create appStore
-	err := a.appStoreDao.Create(&model.AppStore{
-		EID:        appStore.EID,
-		AppStoreID: uuidutil.NewUUID(),
-		Name:       appStore.Name,
-		URL:        appStore.URL,
-		Branch:     appStore.Branch,
-		Username:   appStore.Username,
-		Password:   appStore.Password,
+	return a.appStoreDao.Create(&model.AppStore{
+		EID:      appStore.EID,
+		Name:     appStore.Name,
+		URL:      appStore.URL,
+		Branch:   appStore.Branch,
+		Username: appStore.Username,
+		Password: appStore.Password,
 	})
-	if err != nil {
-		return err
-	}
-
-	// TODO: create app templates
-	return nil
 }
 
 func (a *appStoreRepo) List(eid string) ([]*domain.AppStore, error) {
@@ -62,34 +53,32 @@ func (a *appStoreRepo) List(eid string) ([]*domain.AppStore, error) {
 	var stores []*domain.AppStore
 	for _, as := range appStores {
 		stores = append(stores, &domain.AppStore{
-			EID:        as.EID,
-			AppStoreID: as.AppStoreID,
-			Name:       as.Name,
-			URL:        as.URL,
-			Branch:     as.Branch,
-			Username:   as.Username,
-			Password:   as.Password,
+			EID:      as.EID,
+			Name:     as.Name,
+			URL:      as.URL,
+			Branch:   as.Branch,
+			Username: as.Username,
+			Password: as.Password,
 		})
 	}
 
 	return stores, nil
 }
 
-func (a *appStoreRepo) Get(ctx context.Context, eid, appStoreID string) (*domain.AppStore, error) {
-	as, err := a.appStoreDao.Get(eid, appStoreID)
+func (a *appStoreRepo) Get(ctx context.Context, eid, name string) (*domain.AppStore, error) {
+	as, err := a.appStoreDao.Get(eid, name)
 	if err != nil {
 		return nil, err
 	}
 
 	// TODO: deduplicate the code below
 	appStore := &domain.AppStore{
-		EID:        as.EID,
-		AppStoreID: as.AppStoreID,
-		Name:       as.Name,
-		URL:        as.URL,
-		Branch:     as.Branch,
-		Username:   as.Username,
-		Password:   as.Password,
+		EID:      as.EID,
+		Name:     as.Name,
+		URL:      as.URL,
+		Branch:   as.Branch,
+		Username: as.Username,
+		Password: as.Password,
 	}
 
 	appStore.AppTemplates, err = a.storer.ListAppTemplates(ctx, appStore)
@@ -101,7 +90,7 @@ func (a *appStoreRepo) Get(ctx context.Context, eid, appStoreID string) (*domain
 }
 
 func (a *appStoreRepo) Update(appStore *domain.AppStore) error {
-	as, err := a.appStoreDao.Get(appStore.EID, appStore.AppStoreID)
+	as, err := a.appStoreDao.Get(appStore.EID, appStore.Name)
 	if err != nil {
 		return err
 	}
@@ -114,8 +103,8 @@ func (a *appStoreRepo) Update(appStore *domain.AppStore) error {
 	return a.appStoreDao.Update(as)
 }
 
-func (a *appStoreRepo) Delete(eid, appStoreID string) error {
-	return a.appStoreDao.Delete(eid, appStoreID)
+func (a *appStoreRepo) Delete(eid, name string) error {
+	return a.appStoreDao.Delete(eid, name)
 }
 
 func (a *appStoreRepo) Resync(appStore *domain.AppStore) {

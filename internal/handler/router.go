@@ -88,13 +88,13 @@ func (r *Router) NewRouter() *gin.Engine {
 	appstoresv1 := entv1.Group("/appstores")
 	appstoresv1.POST("/", r.appStore.Create)
 	appstoresv1.GET("/", r.appStore.List)
-	appstorev1 := appstoresv1.Group(":appStoreID", r.middleware.AppStore)
+	appstorev1 := appstoresv1.Group(":name", r.middleware.AppStore)
 	{
 		appstorev1.GET("/", r.appStore.Get)
 		appstorev1.PUT("/", r.appStore.Update)
 		appstorev1.DELETE("/", r.appStore.Delete)
 		appstorev1.POST("/resync", r.appStore.Resync)
-		appstorev1.GET("/apptemplates", r.appStore.ListTemplates)
+		appstorev1.GET("/apps", r.appStore.ListTemplates)
 	}
 
 	return e

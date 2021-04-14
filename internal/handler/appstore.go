@@ -42,13 +42,12 @@ func (a *AppStoreHandler) Create(c *gin.Context) {
 	err := a.appStore.Create(appStore)
 
 	ginutil.JSON(c, &v1.AppStore{
-		EID:        appStore.EID,
-		AppStoreID: appStore.AppStoreID,
-		Name:       appStore.Name,
-		URL:        appStore.URL,
-		Branch:     appStore.Branch,
-		Username:   appStore.Username,
-		Password:   appStore.Password,
+		EID:      appStore.EID,
+		Name:     appStore.Name,
+		URL:      appStore.URL,
+		Branch:   appStore.Branch,
+		Username: appStore.Username,
+		Password: appStore.Password,
 	}, err)
 }
 
@@ -60,13 +59,12 @@ func (a *AppStoreHandler) List(ctx *gin.Context) {
 	var stores []*v1.AppStore
 	for _, as := range appStores {
 		stores = append(stores, &v1.AppStore{
-			EID:        as.EID,
-			AppStoreID: as.AppStoreID,
-			Name:       as.Name,
-			URL:        as.URL,
-			Branch:     as.Branch,
-			Username:   as.Username,
-			Password:   as.Password,
+			EID:      as.EID,
+			Name:     as.Name,
+			URL:      as.URL,
+			Branch:   as.Branch,
+			Username: as.Username,
+			Password: as.Password,
 		})
 	}
 
@@ -102,7 +100,7 @@ func (a *AppStoreHandler) Update(c *gin.Context) {
 // Delete deletes the app store.
 func (a *AppStoreHandler) Delete(c *gin.Context) {
 	appStore := ginutil.MustGet(c, "appStore").(*domain.AppStore)
-	ginutil.JSON(c, nil, a.appStore.Delete(appStore.EID, appStore.AppStoreID))
+	ginutil.JSON(c, nil, a.appStore.Delete(appStore.EID, appStore.Name))
 }
 
 func (a *AppStoreHandler) Resync(c *gin.Context) {
