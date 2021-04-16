@@ -170,7 +170,7 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, c
 	if os.Getenv("CONFIG_DIR") != "" {
 		configDir = os.Getenv("CONFIG_DIR")
 	}
-	clusterStatPath := fmt.Sprintf("%s/rke/%s", configDir, config.ClusterName)
+	clusterStatPath := fmt.Sprintf("%s/enterprise/%s/rke/%s", configDir, config.EnterpriseID, config.ClusterName)
 
 	if rkecluster.Stats == v1alpha1.InstallFailed {
 		//TODO: This action will result in an inconsistency with the configuration of the node
