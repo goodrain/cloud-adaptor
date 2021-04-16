@@ -241,7 +241,7 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, c
 		}
 		return nil
 	}
-	rollback("InitClusterConfig", filePath, "success")
+	rollback("InitClusterConfig", "init cluster config success", "success")
 
 	// cluster install and up
 	rollback("InstallKubernetes", "", "start")
