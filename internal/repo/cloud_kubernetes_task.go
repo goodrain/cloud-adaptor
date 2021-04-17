@@ -46,7 +46,7 @@ func (c *CreateKubernetesTaskRepo) Create(ck *model.CreateKubernetesTask) error 
 	if ck.TaskID == "" {
 		ck.TaskID = uuidutil.NewUUID()
 	}
-	if err := c.DB.Where("eid = ? and task_id=?", ck.EnterpriseID, ck.TaskID).Find(&old).Error; err != nil {
+	if err := c.DB.Where("eid = ? and task_id=?", ck.EnterpriseID, ck.TaskID).Take(&old).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// not found error, create new
 			if err := c.DB.Save(ck).Error; err != nil {
@@ -62,7 +62,7 @@ func (c *CreateKubernetesTaskRepo) Create(ck *model.CreateKubernetesTask) error 
 //GetLastTask get last task
 func (c *CreateKubernetesTaskRepo) GetLastTask(eid string, providerName string) (*model.CreateKubernetesTask, error) {
 	var old model.CreateKubernetesTask
-	if err := c.DB.Where("eid = ? and provider_name=?", eid, providerName).Order("created_at desc").Limit(1).Find(&old).Error; err != nil {
+	if err := c.DB.Where("eid = ? and provider_name=?", eid, providerName).Order("created_at desc").Limit(1).Take(&old).Error; err != nil {
 		return nil, err
 	}
 	return &old, nil
@@ -80,7 +80,7 @@ func (c *CreateKubernetesTaskRepo) UpdateStatus(eid string, taskID string, statu
 //GetTask get task
 func (c *CreateKubernetesTaskRepo) GetTask(eid string, taskID string) (*model.CreateKubernetesTask, error) {
 	var old model.CreateKubernetesTask
-	if err := c.DB.Where("eid = ? and task_id=?", eid, taskID).Find(&old).Error; err != nil {
+	if err := c.DB.Where("eid = ? and task_id=?", eid, taskID).Take(&old).Error; err != nil {
 		return nil, err
 	}
 	return &old, nil

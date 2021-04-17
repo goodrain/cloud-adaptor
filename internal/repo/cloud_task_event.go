@@ -44,7 +44,7 @@ func (t *TaskEventRepo) Create(te *model.TaskEvent) error {
 		te.Message = te.Message[:512]
 	}
 	var old model.TaskEvent
-	if err := t.DB.Where("eid = ? and task_id=? and step_type=?", te.EnterpriseID, te.TaskID, te.StepType).Find(&old).Error; err != nil {
+	if err := t.DB.Where("eid = ? and task_id=? and step_type=?", te.EnterpriseID, te.TaskID, te.StepType).Take(&old).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// not found error, create new
 			if te.EventID == "" {
@@ -69,7 +69,7 @@ func (t *TaskEventRepo) Create(te *model.TaskEvent) error {
 //ListEvent list task events
 func (t *TaskEventRepo) ListEvent(eid, taskID string) ([]*model.TaskEvent, error) {
 	var list []*model.TaskEvent
-	if err := t.DB.Where("eid = ? and task_id=?", eid, taskID).Find(&list).Error; err != nil {
+	if err := t.DB.Where("eid = ? and task_id=?", eid, taskID).Take(&list).Error; err != nil {
 		return nil, err
 	}
 	return list, nil

@@ -36,7 +36,7 @@ func NewRainbondClusterConfigRepo(db *gorm.DB) RainbondClusterConfigRepository {
 //Create create an event
 func (t *RainbondClusterConfigRepo) Create(te *model.RainbondClusterConfig) error {
 	var old model.RainbondClusterConfig
-	if err := t.DB.Where("clusterID=?", te.ClusterID).Find(&old).Error; err != nil {
+	if err := t.DB.Where("clusterID=?", te.ClusterID).Take(&old).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			if err := t.DB.Save(te).Error; err != nil {
 				return err
@@ -52,7 +52,7 @@ func (t *RainbondClusterConfigRepo) Create(te *model.RainbondClusterConfig) erro
 //Get -
 func (t *RainbondClusterConfigRepo) Get(clusterID string) (*model.RainbondClusterConfig, error) {
 	var rcc model.RainbondClusterConfig
-	if err := t.DB.Where("clusterID=?", clusterID).Find(&rcc).Error; err != nil {
+	if err := t.DB.Where("clusterID=?", clusterID).Take(&rcc).Error; err != nil {
 		return nil, err
 	}
 	return &rcc, nil

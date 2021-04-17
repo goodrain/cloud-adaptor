@@ -41,7 +41,7 @@ func initApp(contextContext context.Context, db *gorm.DB, arg chan types.Kuberne
 	appStoreHandler := handler.NewAppStoreHandler(appStoreUsecase)
 	systemHandler := handler.NewSystemHandler(db)
 	router := handler.NewRouter(middlewareMiddleware, clusterHandler, appStoreHandler, systemHandler)
-	createKubernetesTaskHandler := task.NewCreateKubernetesTaskHandler()
+	createKubernetesTaskHandler := task.NewCreateKubernetesTaskHandler(clusterUsecase)
 	cloudInitTaskHandler := task.NewCloudInitTaskHandler(clusterUsecase)
 	updateKubernetesTaskHandler := task.NewCloudUpdateTaskHandler(clusterUsecase)
 	engine := newApp(contextContext, router, arg, arg2, arg3, createKubernetesTaskHandler, cloudInitTaskHandler, updateKubernetesTaskHandler)

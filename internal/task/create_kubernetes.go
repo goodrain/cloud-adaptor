@@ -22,6 +22,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"goodrain.com/cloud-adaptor/internal/biz"
 	"runtime/debug"
 
 	"github.com/nsqio/go-nsq"
@@ -72,9 +73,12 @@ type createKubernetesTaskHandler struct {
 }
 
 // NewCreateKubernetesTaskHandler -
-func NewCreateKubernetesTaskHandler() CreateKubernetesTaskHandler {
+func NewCreateKubernetesTaskHandler(clusterUsecase *biz.ClusterUsecase) CreateKubernetesTaskHandler {
 	return &createKubernetesTaskHandler{
-		eventHandler: &CallBackEvent{TopicName: constants.CloudCreate},
+		eventHandler: &CallBackEvent{
+			TopicName:      constants.CloudCreate,
+			ClusterUsecase: clusterUsecase,
+		},
 	}
 }
 

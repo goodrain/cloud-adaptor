@@ -36,7 +36,7 @@ func NewCloudAccessKeyRepo(db *gorm.DB) CloudAccesskeyRepository {
 //Create create, Keep an enterprise with the same provider have one accesskey
 func (c *CloudAccessKeyRepo) Create(ck *model.CloudAccessKey) error {
 	var old model.CloudAccessKey
-	if err := c.DB.Where("eid = ? and provider_name=?", ck.EnterpriseID, ck.ProviderName).Find(&old).Error; err != nil {
+	if err := c.DB.Where("eid = ? and provider_name=?", ck.EnterpriseID, ck.ProviderName).Take(&old).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// not found error, create new
 			if err := c.DB.Save(ck).Error; err != nil {
@@ -55,7 +55,7 @@ func (c *CloudAccessKeyRepo) Create(ck *model.CloudAccessKey) error {
 //GetByProviderAndEnterprise get
 func (c *CloudAccessKeyRepo) GetByProviderAndEnterprise(providerName, eid string) (*model.CloudAccessKey, error) {
 	var old model.CloudAccessKey
-	if err := c.DB.Where("eid = ? and provider_name=?", eid, providerName).Find(&old).Error; err != nil {
+	if err := c.DB.Where("eid = ? and provider_name=?", eid, providerName).Take(&old).Error; err != nil {
 		return nil, err
 	}
 	return &old, nil

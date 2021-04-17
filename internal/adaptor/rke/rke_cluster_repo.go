@@ -39,7 +39,7 @@ func NewRKEClusterRepo(db *gorm.DB) *ClusterRepo {
 //Create create an event
 func (t *ClusterRepo) Create(te *model.RKECluster) error {
 	var old model.RKECluster
-	if err := t.DB.Where("name=?", te.Name).Find(&old).Error; err != nil {
+	if err := t.DB.Where("name=?", te.Name).Take(&old).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// not found error, create new
 			if te.ClusterID == "" {
@@ -63,7 +63,7 @@ func (t *ClusterRepo) Update(te *model.RKECluster) error {
 //GetCluster -
 func (t *ClusterRepo) GetCluster(name string) (*model.RKECluster, error) {
 	var rc model.RKECluster
-	if err := t.DB.Where("name=? or clusterID=?", name, name).Find(&rc).Error; err != nil {
+	if err := t.DB.Where("name=? or clusterID=?", name, name).Take(&rc).Error; err != nil {
 		return nil, err
 	}
 	return &rc, nil
