@@ -3,37 +3,46 @@ package repo
 import (
 	"context"
 
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"goodrain.com/cloud-adaptor/internal/domain"
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/internal/repo/appstore"
 	"goodrain.com/cloud-adaptor/internal/repo/dao"
+	"goodrain.com/cloud-adaptor/pkg/bcode"
 )
 
 // AppStoreRepo -
 type AppStoreRepo interface {
-	Create(appStore *domain.AppStore) error
+	Create(ctx context.Context, appStore *domain.AppStore) error
 	List(eid string) ([]*domain.AppStore, error)
 	Get(ctx context.Context, eid, name string) (*domain.AppStore, error)
 	Delete(eid, name string) error
-	Update(appStore *domain.AppStore) error
+	Update(ctx context.Context, appStore *domain.AppStore) error
 	Resync(appStore *domain.AppStore)
 }
 
 // NewAppStoreRepo creates a new AppStoreRepo.
-func NewAppStoreRepo(appStoreDao dao.AppStoreDao, storer *appstore.Storer) AppStoreRepo {
+func NewAppStoreRepo(appStoreDao dao.AppStoreDao, storer *appstore.Storer, appTemplater appstore.AppTemplater) AppStoreRepo {
 	return &appStoreRepo{
-		storer:      storer,
-		appStoreDao: appStoreDao,
+		storer:       storer,
+		appStoreDao:  appStoreDao,
+		appTemplater: appTemplater,
 	}
 }
 
 type appStoreRepo struct {
-	appStoreDao dao.AppStoreDao
-	storer      *appstore.Storer
+	appStoreDao  dao.AppStoreDao
+	storer       *appstore.Storer
+	appTemplater appstore.AppTemplater
 }
 
-func (a *appStoreRepo) Create(appStore *domain.AppStore) error {
+func (a *appStoreRepo) Create(ctx context.Context, appStore *domain.AppStore) error {
+	// Check the availability of the app store.
+	if err := a.isAvailable(ctx, appStore); err != nil {
+		return err
+	}
+
 	return a.appStoreDao.Create(&model.AppStore{
 		EID:      appStore.EID,
 		Name:     appStore.Name,
@@ -89,7 +98,11 @@ func (a *appStoreRepo) Get(ctx context.Context, eid, name string) (*domain.AppSt
 	return appStore, nil
 }
 
-func (a *appStoreRepo) Update(appStore *domain.AppStore) error {
+func (a *appStoreRepo) Update(ctx context.Context, appStore *domain.AppStore) error {
+	if err := a.isAvailable(ctx, appStore); err != nil {
+		return err
+	}
+
 	as, err := a.appStoreDao.Get(appStore.EID, appStore.Name)
 	if err != nil {
 		return err
@@ -109,4 +122,12 @@ func (a *appStoreRepo) Delete(eid, name string) error {
 
 func (a *appStoreRepo) Resync(appStore *domain.AppStore) {
 	a.storer.Resync(appStore.Key())
+}
+
+func (a *appStoreRepo) isAvailable(ctx context.Context, appStore *domain.AppStore) error {
+	_, err := a.appTemplater.Fetch(ctx, appStore)
+	if err != nil {
+		return errors.Wrap(bcode.ErrAppStoreUnavailable, err.Error())
+	}
+	return nil
 }

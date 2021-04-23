@@ -15,4 +15,5 @@ var ProviderSet = wire.NewSet(
 	NewRainbondClusterConfigRepo,
 	NewAppStoreRepo,
 	appstore.NewStorer,
+	appstore.NewAppTemplater,
 )

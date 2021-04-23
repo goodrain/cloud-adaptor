@@ -31,6 +31,7 @@ func (a *AppStoreHandler) Create(c *gin.Context) {
 	eid := c.Param("eid")
 
 	// DTO to DO
+	// TODO: Code generation or reflection
 	appStore := &domain.AppStore{
 		EID:      eid,
 		Name:     req.Name,
@@ -39,7 +40,7 @@ func (a *AppStoreHandler) Create(c *gin.Context) {
 		Username: req.Username,
 		Password: req.Password,
 	}
-	err := a.appStore.Create(appStore)
+	err := a.appStore.Create(c.Request.Context(), appStore)
 
 	ginutil.JSON(c, &v1.AppStore{
 		EID:      appStore.EID,
@@ -94,7 +95,7 @@ func (a *AppStoreHandler) Update(c *gin.Context) {
 	appStore.Username = req.Username
 	appStore.Password = req.Password
 
-	ginutil.JSON(c, nil, a.appStore.Update(appStore))
+	ginutil.JSON(c, nil, a.appStore.Update(c.Request.Context(), appStore))
 }
 
 // Delete deletes the app store.

@@ -11,12 +11,15 @@ import (
 // Storer -
 type Storer struct {
 	singleflight.Group
-	store sync.Map
+	store        sync.Map
+	appTemplater AppTemplater
 }
 
 // NewStorer creates a new Storer.
-func NewStorer() *Storer {
-	return &Storer{}
+func NewStorer(appTemplater AppTemplater) *Storer {
+	return &Storer{
+		appTemplater: appTemplater,
+	}
 }
 
 // Resync -
@@ -34,15 +37,10 @@ func (s *Storer) ListAppTemplates(ctx context.Context, appStore *domain.AppStore
 		}
 	}
 
-	appTemplater := NewAppTemplater(ctx, appStore)
-	// single flight to avoid cache breakdown
-	v, err, _ := s.Do(appStore.Key(), func() (interface{}, error) {
-		return appTemplater.Fetch()
-	})
+	appTemplates, err := s.appTemplater.Fetch(ctx, appStore)
 	if err != nil {
 		return nil, err
 	}
-	appTemplates := v.([]*domain.AppTemplate)
 	appStore.AppTemplates = appTemplates
 
 	s.store.Store(appStore.Key(), appStore)

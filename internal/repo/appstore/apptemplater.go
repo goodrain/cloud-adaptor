@@ -8,34 +8,39 @@ import (
 
 	hrepo "github.com/helm/helm/pkg/repo"
 	"github.com/pkg/errors"
+	"golang.org/x/sync/singleflight"
 	"goodrain.com/cloud-adaptor/internal/domain"
 	"sigs.k8s.io/yaml"
 )
 
 type AppTemplater interface {
-	Fetch() ([]*domain.AppTemplate, error)
+	Fetch(ctx context.Context, appStore *domain.AppStore) ([]*domain.AppTemplate, error)
 }
 
 // NewAppTemplater creates a new
-func NewAppTemplater(ctx context.Context, appStore *domain.AppStore) AppTemplater {
-	return &helmAppTemplate{
-		ctx:      ctx,
-		appStore: appStore,
-	}
+func NewAppTemplater() AppTemplater {
+	return &helmAppTemplate{}
 }
 
 type helmAppTemplate struct {
-	ctx      context.Context
-	appStore *domain.AppStore
+	singleflight.Group
 }
 
-func (h *helmAppTemplate) Fetch() ([]*domain.AppTemplate, error) {
-	req, err := http.NewRequest("GET", h.appStore.URL+"/index.yaml", nil)
+func (h *helmAppTemplate) Fetch(ctx context.Context, appStore *domain.AppStore) ([]*domain.AppTemplate, error) {
+	// single flight to avoid cache breakdown
+	v, err, _ := h.Do(appStore.Key(), func() (interface{}, error) {
+		return h.fetch(ctx, appStore)
+	})
+	appTemplates := v.([]*domain.AppTemplate)
+	return appTemplates, err
+}
+func (h *helmAppTemplate) fetch(ctx context.Context, appStore *domain.AppStore) ([]*domain.AppTemplate, error) {
+	req, err := http.NewRequest("GET", appStore.URL+"/index.yaml", nil)
 	if err != nil {
 		return nil, errors.Wrap(err, "new http request")
 	}
 
-	req = req.WithContext(h.ctx)
+	req = req.WithContext(ctx)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

@@ -1,6 +1,8 @@
 package biz
 
 import (
+	"context"
+
 	"goodrain.com/cloud-adaptor/internal/domain"
 	"goodrain.com/cloud-adaptor/internal/repo"
 )
@@ -17,16 +19,16 @@ func NewAppStoreUsecase(appStoreRepo repo.AppStoreRepo) *AppStoreUsecase {
 	}
 }
 
-func (a *AppStoreUsecase) Create(appStore *domain.AppStore) error {
-	return a.appStoreRepo.Create(appStore)
+func (a *AppStoreUsecase) Create(ctx context.Context, appStore *domain.AppStore) error {
+	return a.appStoreRepo.Create(ctx, appStore)
 }
 
 func (a *AppStoreUsecase) List(eid string) ([]*domain.AppStore, error) {
 	return a.appStoreRepo.List(eid)
 }
 
-func (a *AppStoreUsecase) Update(appStore *domain.AppStore) error {
-	return a.appStoreRepo.Update(appStore)
+func (a *AppStoreUsecase) Update(ctx context.Context, appStore *domain.AppStore) error {
+	return a.appStoreRepo.Update(ctx, appStore)
 }
 
 func (a *AppStoreUsecase) Delete(eid, name string) error {

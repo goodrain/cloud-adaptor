@@ -25,8 +25,9 @@ import (
 // initApp init the application.
 func initApp(contextContext context.Context, db *gorm.DB, arg chan types.KubernetesConfigMessage, arg2 chan types.InitRainbondConfigMessage, arg3 chan types.UpdateKubernetesConfigMessage) (*gin.Engine, error) {
 	appStoreDao := dao.NewAppStoreDao(db)
-	storer := appstore.NewStorer()
-	appStoreRepo := repo.NewAppStoreRepo(appStoreDao, storer)
+	appTemplater := appstore.NewAppTemplater()
+	storer := appstore.NewStorer(appTemplater)
+	appStoreRepo := repo.NewAppStoreRepo(appStoreDao, storer, appTemplater)
 	middlewareMiddleware := middleware.NewMiddleware(appStoreRepo)
 	taskProducer := producer.NewTaskChannelProducer(arg, arg2, arg3)
 	cloudAccesskeyRepository := repo.NewCloudAccessKeyRepo(db)
