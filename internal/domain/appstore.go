@@ -1,6 +1,10 @@
 package domain
 
-import "github.com/helm/helm/pkg/repo"
+import (
+	"github.com/helm/helm/pkg/repo"
+	"github.com/pkg/errors"
+	"goodrain.com/cloud-adaptor/pkg/bcode"
+)
 
 // AppStore
 type AppStore struct {
@@ -33,6 +37,16 @@ func (a *AppStore) Equals(b *AppStore) bool {
 		return false
 	}
 	return true
+}
+
+// GetAppTemplate get app template based on the app template name.
+func (a *AppStore) GetAppTemplate(templateName string) (*AppTemplate, error) {
+	for _, appTemplate := range a.AppTemplates {
+		if appTemplate.Name == templateName {
+			return appTemplate, nil
+		}
+	}
+	return nil, errors.Wrap(bcode.ErrAppTemplateNotFound, "get app template")
 }
 
 // AppTemplate -

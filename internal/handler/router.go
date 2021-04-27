@@ -95,6 +95,7 @@ func (r *Router) NewRouter() *gin.Engine {
 		appstorev1.DELETE("", r.appStore.Delete)
 		appstorev1.POST("/resync", r.appStore.Resync)
 		appstorev1.GET("/apps", r.appStore.ListTemplates)
+		appstorev1.GET("/apps/:templateName", r.appStore.GetAppTemplate)
 	}
 
 	return e

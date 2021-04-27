@@ -4,8 +4,7 @@ import "github.com/helm/helm/pkg/repo"
 
 // CreateAppStoreReq -
 type CreateAppStoreReq struct {
-	// TODO: 使用 HELM 的格式来校验 name
-	Name     string `json:"name" binding:"required"`
+	Name     string `json:"name" binding:"required" `
 	URL      string `json:"url" binding:"required"`
 	Branch   string `json:"branch"`
 	Username string `json:"username"`

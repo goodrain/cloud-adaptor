@@ -53,9 +53,9 @@ func (a *AppStoreHandler) Create(c *gin.Context) {
 }
 
 // Create creates a new app store.
-func (a *AppStoreHandler) List(ctx *gin.Context) {
-	eid := ctx.Param("eid")
-	appStores, err := a.appStore.List(eid)
+func (a *AppStoreHandler) List(c *gin.Context) {
+	eid := c.Param("eid")
+	appStores, err := a.appStore.List(c.Request.Context(), eid)
 
 	var stores []*v1.AppStore
 	for _, as := range appStores {
@@ -69,7 +69,7 @@ func (a *AppStoreHandler) List(ctx *gin.Context) {
 		})
 	}
 
-	ginutil.JSON(ctx, stores, err)
+	ginutil.JSON(c, stores, err)
 }
 
 // Get deletes the app store.
@@ -101,17 +101,16 @@ func (a *AppStoreHandler) Update(c *gin.Context) {
 // Delete deletes the app store.
 func (a *AppStoreHandler) Delete(c *gin.Context) {
 	appStore := ginutil.MustGet(c, "appStore").(*domain.AppStore)
-	ginutil.JSON(c, nil, a.appStore.Delete(appStore.EID, appStore.Name))
+	ginutil.JSON(c, nil, a.appStore.Delete(c.Request.Context(), appStore.EID, appStore.Name))
 }
 
 func (a *AppStoreHandler) Resync(c *gin.Context) {
 	appStore := ginutil.MustGet(c, "appStore").(*domain.AppStore)
-	a.appStore.Resync(appStore)
+	a.appStore.Resync(c.Request.Context(), appStore)
 }
 
 func (a *AppStoreHandler) ListTemplates(c *gin.Context) {
-	appStoreI, _ := c.Get("appStore")
-	appStore := appStoreI.(*domain.AppStore)
+	appStore := ginutil.MustGet(c, "appStore").(*domain.AppStore)
 
 	appTemplates := appStore.AppTemplates
 	var templates []*v1.AppTemplate
@@ -123,4 +122,18 @@ func (a *AppStoreHandler) ListTemplates(c *gin.Context) {
 	}
 
 	ginutil.JSON(c, templates)
+}
+
+func (a *AppStoreHandler) GetAppTemplate(c *gin.Context) {
+	appStore := ginutil.MustGet(c, "appStore").(*domain.AppStore)
+	appTemplate, err := a.appStore.GetAppTemplate(c.Request.Context(), appStore, c.Param("templateName"))
+	if err != nil {
+		ginutil.Error(c, err)
+		return
+	}
+
+	ginutil.JSON(c, &v1.AppTemplate{
+		Name:     appTemplate.Name,
+		Versions: appTemplate.Versions,
+	})
 }
