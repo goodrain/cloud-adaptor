@@ -21,6 +21,18 @@ func NewAppStoreHandler(appStore *biz.AppStoreUsecase) *AppStoreHandler {
 }
 
 // Create creates a new app store.
+// @Summary creates a new app store.
+// @Tags appstores
+// @ID createAppStore
+// @Accept  json
+// @Produce  json
+// @Param eid path string true "the enterprise id"
+// @Param createAppStoreReq body v1.CreateAppStoreReq true "."
+// @Success 200 {object} v1.AppStore
+// @Failure 400 {object} ginutil.Result "8002, app store unavailable"
+// @Failure 409 {object} ginutil.Result "8001, app store name conflict"
+// @Failure 500 {object} ginutil.Result
+// @Router /api/v1/enterprises/:eid/appstores [post]
 func (a *AppStoreHandler) Create(c *gin.Context) {
 	var req v1.CreateAppStoreReq
 	if err := ginutil.ShouldBindJSON(c, &req); err != nil {
@@ -52,7 +64,15 @@ func (a *AppStoreHandler) Create(c *gin.Context) {
 	}, err)
 }
 
-// Create creates a new app store.
+// List returns a list of app stores.
+// @Summary returns a list of app stores.
+// @Tags appstores
+// @ID listAppStores
+// @Accept  json
+// @Produce  json
+// @Param eid path string true "the enterprise id"
+// @Success 200 {array} v1.AppStore
+// @Router /api/v1/enterprises/:eid/appstores [get]
 func (a *AppStoreHandler) List(c *gin.Context) {
 	eid := c.Param("eid")
 	appStores, err := a.appStore.List(c.Request.Context(), eid)
@@ -72,13 +92,36 @@ func (a *AppStoreHandler) List(c *gin.Context) {
 	ginutil.JSON(c, stores, err)
 }
 
-// Get deletes the app store.
+// Get returns the app store.
+// @Summary returns the app store.
+// @Tags appstores
+// @ID getAppStore
+// @Accept  json
+// @Produce  json
+// @Param eid path string true "the enterprise id"
+// @Param name path string true "the name of the app store"
+// @Success 200 {object} v1.AppStore
+// @Failure 404 {object} ginutil.Result "8000, app store not found"
+// @Failure 500 {object} ginutil.Result
+// @Router /api/v1/enterprises/:eid/appstores/:name [get]
 func (a *AppStoreHandler) Get(c *gin.Context) {
 	appStore := ginutil.MustGet(c, "appStore").(*domain.AppStore)
 	ginutil.JSON(c, appStore)
 }
 
 // Update updates the app store.
+// @Summary updates the app store..
+// @Tags appstores
+// @ID updateAppStore
+// @Accept  json
+// @Produce  json
+// @Param eid path string true "the enterprise id"
+// @Param name path string true "the name of the app store"
+// @Param updateAppStoreReq body v1.UpdateAppStoreReq true "."
+// @Success 200 {object} v1.AppStore
+// @Failure 404 {object} ginutil.Result "8000, app store not found"
+// @Failure 500 {object} ginutil.Result
+// @Router /api/v1/enterprises/:eid/appstores/:name [put]
 func (a *AppStoreHandler) Update(c *gin.Context) {
 	var req v1.UpdateAppStoreReq
 	if err := ginutil.ShouldBindJSON(c, &req); err != nil {
@@ -89,7 +132,6 @@ func (a *AppStoreHandler) Update(c *gin.Context) {
 	appStoreI, _ := c.Get("appStore")
 	appStore := appStoreI.(*domain.AppStore)
 
-	appStore.Name = req.Name
 	appStore.URL = req.URL
 	appStore.Branch = req.Branch
 	appStore.Username = req.Username
@@ -99,16 +141,51 @@ func (a *AppStoreHandler) Update(c *gin.Context) {
 }
 
 // Delete deletes the app store.
+// @Summary deletes the app store.
+// @Tags appstores
+// @ID deleteAppStore
+// @Accept  json
+// @Produce  json
+// @Param eid path string true "the enterprise id"
+// @Param name path string true "the name of the app store"
+// @Success 200
+// @Failure 404 {object} ginutil.Result "8000, app store not found"
+// @Failure 500 {object} ginutil.Result
+// @Router /api/v1/enterprises/:eid/appstores/:name [delete]
 func (a *AppStoreHandler) Delete(c *gin.Context) {
 	appStore := ginutil.MustGet(c, "appStore").(*domain.AppStore)
 	ginutil.JSON(c, nil, a.appStore.Delete(c.Request.Context(), appStore.EID, appStore.Name))
 }
 
+// Resync resync the app templates.
+// @Summary resync the app templates.
+// @Tags appstores
+// @ID resyncAppStore
+// @Accept  json
+// @Produce  json
+// @Param eid path string true "the enterprise id"
+// @Param name path string true "the name of the app store"
+// @Success 200
+// @Failure 404 {object} ginutil.Result "8000, app store not found"
+// @Failure 500 {object} ginutil.Result
+// @Router /api/v1/enterprises/:eid/appstores/:name/resync [post]
 func (a *AppStoreHandler) Resync(c *gin.Context) {
 	appStore := ginutil.MustGet(c, "appStore").(*domain.AppStore)
 	a.appStore.Resync(c.Request.Context(), appStore)
 }
 
+// ListTemplates returns a list of app templates.
+// @Summary returns a list of app templates.
+// @Tags appstores
+// @ID listTemplates
+// @Accept  json
+// @Produce  json
+// @Param eid path string true "the enterprise id"
+// @Param name path string true "the name of the app store"
+// @Success 200 {array} v1.AppTemplate
+// @Failure 404 {object} ginutil.Result "8000, app store not found"
+// @Failure 500 {object} ginutil.Result
+// @Router /api/v1/enterprises/:eid/appstores/:name/apps [get]
 func (a *AppStoreHandler) ListTemplates(c *gin.Context) {
 	appStore := ginutil.MustGet(c, "appStore").(*domain.AppStore)
 
@@ -124,6 +201,19 @@ func (a *AppStoreHandler) ListTemplates(c *gin.Context) {
 	ginutil.JSON(c, templates)
 }
 
+// GetAppTemplate returns the app template.
+// @Summary returns the app template.
+// @Tags appstores
+// @ID getAppTemplate
+// @Accept  json
+// @Produce  json
+// @Param eid path string true "the enterprise id"
+// @Param name path string true "the name of the app store"
+// @Param templateName path string true "the name of the app template"
+// @Success 200 {object} v1.AppTemplate
+// @Failure 404 {object} ginutil.Result "8000, app store not found"
+// @Failure 500 {object} ginutil.Result
+// @Router /api/v1/enterprises/:eid/appstores/:name/apps/:templateName [get]
 func (a *AppStoreHandler) GetAppTemplate(c *gin.Context) {
 	appStore := ginutil.MustGet(c, "appStore").(*domain.AppStore)
 	appTemplate, err := a.appStore.GetAppTemplate(c.Request.Context(), appStore, c.Param("templateName"))

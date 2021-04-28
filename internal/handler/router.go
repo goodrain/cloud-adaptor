@@ -2,6 +2,9 @@ package handler
 
 import (
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	_ "goodrain.com/cloud-adaptor/docs"
 	"goodrain.com/cloud-adaptor/internal/middleware"
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
 )
@@ -97,6 +100,8 @@ func (r *Router) NewRouter() *gin.Engine {
 		appstorev1.GET("/apps", r.appStore.ListTemplates)
 		appstorev1.GET("/apps/:templateName", r.appStore.GetAppTemplate)
 	}
+
+	e.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return e
 }

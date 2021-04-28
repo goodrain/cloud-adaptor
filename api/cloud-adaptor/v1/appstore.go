@@ -4,34 +4,50 @@ import "github.com/helm/helm/pkg/repo"
 
 // CreateAppStoreReq -
 type CreateAppStoreReq struct {
+	// The name of app store.
 	Name     string `json:"name" binding:"required" `
+	// The url of app store.
 	URL      string `json:"url" binding:"required"`
+	// The branch of app store, which category is git repo.
 	Branch   string `json:"branch"`
+	// The username of the private app store
 	Username string `json:"username"`
+	// The password of the private app store
 	Password string `json:"password"`
 }
 
 // UpdateAppStoreReq -
 type UpdateAppStoreReq struct {
-	Name     string `json:"name"`
-	URL      string `json:"url"`
+	// The url of app store.
+	URL      string `json:"url" binding:"required"`
+	// The branch of app store, which category is git repo.
 	Branch   string `json:"branch"`
+	// The username of the private app store
 	Username string `json:"username"`
+	// The password of the private app store
 	Password string `json:"password"`
 }
 
 // AppStore -
 type AppStore struct {
-	EID      string `json:"eid"`
-	Name     string `json:"name"`
-	URL      string `json:"url"`
-	Branch   string `json:"branch"`
+	// The enterprise id.
+	EID string `json:"eid"`
+	// The name of app store.
+	Name string `json:"name"`
+	// The url of app store.
+	URL string `json:"url"`
+	// The branch of app store, which category is git repo.
+	Branch string `json:"branch"`
+	// The username of the private app store
 	Username string `json:"username"`
+	// The password of the private app store
 	Password string `json:"password"`
 }
 
 // AppTemplate -
 type AppTemplate struct {
-	Name     string               `json:"name"`
+	// The name of app template.
+	Name     string          `json:"name"`
+	// A list of app template versions.
 	Versions []*repo.ChartVersion `json:"versions"`
 }

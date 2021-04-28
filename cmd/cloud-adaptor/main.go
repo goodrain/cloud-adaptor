@@ -33,8 +33,21 @@ import (
 	"goodrain.com/cloud-adaptor/internal/nsqc"
 	"goodrain.com/cloud-adaptor/internal/task"
 	"goodrain.com/cloud-adaptor/internal/types"
+
+	// Import all dependent packages in main.go for swag to generate doc.
+	// More detail: https://github.com/swaggo/swag/issues/817#issuecomment-730895033
+	_ "github.com/helm/helm/pkg/repo"
+	_ "k8s.io/helm/pkg/proto/hapi/chart"
 )
 
+// @contact.name Rainbond
+// @contact.url https://rainbond.com
+
+// @title Cloud Adaptor API
+// @description Cloud Adaptor
+// @version 1.0
+// @BasePath /api/v1
+// @schemes http, https
 func main() {
 	app := &cli.App{
 		Name:  "cloud adapter",
