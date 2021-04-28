@@ -170,7 +170,7 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, c
 	if os.Getenv("CONFIG_DIR") != "" {
 		configDir = os.Getenv("CONFIG_DIR")
 	}
-	clusterStatPath := fmt.Sprintf("%s/rke/%s", configDir, config.ClusterName)
+	clusterStatPath := fmt.Sprintf("%s/enterprise/%s/rke/%s", configDir, config.EnterpriseID, config.ClusterName)
 
 	if rkecluster.Stats == v1alpha1.InstallFailed {
 		//TODO: This action will result in an inconsistency with the configuration of the node
@@ -241,7 +241,7 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, c
 		}
 		return nil
 	}
-	rollback("InitClusterConfig", filePath, "success")
+	rollback("InitClusterConfig", "init cluster config success", "success")
 
 	// cluster install and up
 	rollback("InstallKubernetes", "", "start")
@@ -545,16 +545,21 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1
 	if os.Getenv("CONFIG_DIR") != "" {
 		configDir = os.Getenv("CONFIG_DIR")
 	}
-	clusterStatPath := fmt.Sprintf("%s/rke/%s", configDir, rkecluster.Name)
+	clusterStatPath := fmt.Sprintf("%s/enterprise/%s/rke/%s", configDir, rkecluster.EnterpriseID, rkecluster.Name)
+	oldClusterStatPath := fmt.Sprintf("%s/rke/%s", configDir, rkecluster.Name)
 
 	os.MkdirAll(clusterStatPath, 0755)
 	var rkeConfig v3.RancherKubernetesEngineConfig
 	filePath := fmt.Sprintf("%s/cluster.yml", clusterStatPath)
+	oldFilePath := fmt.Sprintf("%s/cluster.yml", oldClusterStatPath)
 	configFileByte, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		logrus.Errorf("read cluster %s config file failure %s ", en.ClusterID, err.Error())
-		rollback("InitClusterConfig", "can not parse cluster config file", "failure")
-		return nil
+		configFileByte, err = ioutil.ReadFile(oldFilePath)
+		if err != nil {
+			logrus.Errorf("read cluster %s config file failure %s ", en.ClusterID, err.Error())
+			rollback("InitClusterConfig", "can not parse cluster config file", "failure")
+			return nil
+		}
 	}
 	err = yaml.Unmarshal(configFileByte, &rkeConfig)
 	if err != nil {
@@ -562,12 +567,16 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1
 		rollback("InitClusterConfig", "can not parse cluster config file", "failure")
 		return nil
 	}
-	clusterStatFile := fmt.Sprintf("%s/rke/%s/cluster.rkestate", configDir, rkecluster.Name)
+	clusterStatFile := fmt.Sprintf("%s/enterprise/%s/rke/%s/cluster.rkestate", configDir, rkecluster.EnterpriseID, rkecluster.Name)
+	oldClusterStatFile := fmt.Sprintf("%s/rke/%s/cluster.rkestate", configDir, rkecluster.Name)
 	_, err = os.Stat(clusterStatFile)
 	if err != nil {
-		logrus.Errorf("read cluster %s state file failure %s ", en.ClusterID, err.Error())
-		rollback("InitClusterConfig", "state file not exist, can not support expansion node", "failure")
-		return nil
+		_, err = os.Stat(oldClusterStatFile)
+		if err != nil {
+			logrus.Errorf("read cluster %s state file failure %s ", en.ClusterID, err.Error())
+			rollback("InitClusterConfig", "state file not exist, can not support expansion node", "failure")
+			return nil
+		}
 	}
 	//generate new cluster config file
 	var nodeMaps = make(map[string]v3.RKEConfigNode, len(en.Nodes))
