@@ -40,7 +40,7 @@ func toString(s *string) string {
 	return *s
 }
 
-func (t *tkeAdaptor) ClusterList() ([]*v1alpha1.Cluster, error) {
+func (t *tkeAdaptor) ClusterList(eid string) ([]*v1alpha1.Cluster, error) {
 	req := tke.NewDescribeClustersRequest()
 	res, err := t.tkeclient.DescribeClusters(req)
 	if err != nil {
@@ -67,20 +67,20 @@ func (t *tkeAdaptor) ClusterList() ([]*v1alpha1.Cluster, error) {
 	return clusters, nil
 }
 
-func (t *tkeAdaptor) DescribeCluster(clusterID string) (*v1alpha1.Cluster, error) {
+func (t *tkeAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluster, error) {
 	return nil, nil
 }
 
-func (t *tkeAdaptor) CreateCluster(v1alpha1.CreateClusterConfig) (*v1alpha1.Cluster, error) {
+func (t *tkeAdaptor) CreateCluster(string, v1alpha1.CreateClusterConfig) (*v1alpha1.Cluster, error) {
 	return nil, nil
 }
 
 //DeleteCluster delete cluster
-func (t *tkeAdaptor) DeleteCluster(clusterID string) error {
+func (t *tkeAdaptor) DeleteCluster(eid, clusterID string) error {
 	return nil
 }
 
-func (t *tkeAdaptor) GetKubeConfig(clusterID string) (*v1alpha1.KubeConfig, error) {
+func (t *tkeAdaptor) GetKubeConfig(eid, clusterID string) (*v1alpha1.KubeConfig, error) {
 	return nil, nil
 }
 
@@ -160,13 +160,13 @@ func (t *tkeAdaptor) DescribeAvailableResourceZones(regionID, InstanceType strin
 	return nil, nil
 }
 
-func (t *tkeAdaptor) CreateRainbondKubernetes(ctx context.Context, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
+func (t *tkeAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	return nil
 }
-func (t *tkeAdaptor) GetRainbondInitConfig(cluster *v1alpha1.Cluster, gateway, chaos []*rainbondv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.RainbondInitConfig {
+func (t *tkeAdaptor) GetRainbondInitConfig(eid string, cluster *v1alpha1.Cluster, gateway, chaos []*rainbondv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.RainbondInitConfig {
 	return nil
 }
 
-func (t *tkeAdaptor) ExpansionNode(ctx context.Context, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
+func (t *tkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	return nil
 }

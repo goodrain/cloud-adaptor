@@ -7,10 +7,11 @@ import (
 
 //InitRainbondConfig init rainbond region config
 type InitRainbondConfig struct {
-	ClusterID string `json:"cluster_id"`
-	AccessKey string `json:"access_key"`
-	SecretKey string `json:"secret_key"`
-	Provider  string `json:"provider"`
+	EnterpriseID string `json:"enterprise_id"`
+	ClusterID    string `json:"cluster_id"`
+	AccessKey    string `json:"access_key"`
+	SecretKey    string `json:"secret_key"`
+	Provider     string `json:"provider"`
 }
 
 //KubernetesConfigMessage nsq message

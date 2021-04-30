@@ -73,9 +73,9 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 	c.rollback("Init", "cloud adaptor create success", "success")
 	c.rollback("CheckCluster", "", "start")
 	// get kubernetes cluster info
-	cluster, err := adaptor.DescribeCluster(c.config.ClusterID)
+	cluster, err := adaptor.DescribeCluster(c.config.EnterpriseID, c.config.ClusterID)
 	if err != nil {
-		cluster, err = adaptor.DescribeCluster(c.config.ClusterID)
+		cluster, err = adaptor.DescribeCluster(c.config.EnterpriseID, c.config.ClusterID)
 		if err != nil {
 			c.rollback("CheckCluster", err.Error(), "failure")
 			return
@@ -93,9 +93,9 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 		return
 	}
 
-	kubeConfig, err := adaptor.GetKubeConfig(c.config.ClusterID)
+	kubeConfig, err := adaptor.GetKubeConfig(c.config.EnterpriseID, c.config.ClusterID)
 	if err != nil {
-		kubeConfig, err = adaptor.GetKubeConfig(c.config.ClusterID)
+		kubeConfig, err = adaptor.GetKubeConfig(c.config.EnterpriseID, c.config.ClusterID)
 		if err != nil {
 			c.rollback("CheckCluster", fmt.Sprintf("get kube config failure %s", err.Error()), "failure")
 			return
@@ -131,7 +131,7 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 
 	// select gateway and chaos node
 	gatewayNodes, chaosNodes := c.GetRainbondGatewayNodeAndChaosNodes(nodes.Items)
-	initConfig := adaptor.GetRainbondInitConfig(cluster, gatewayNodes, chaosNodes, c.rollback)
+	initConfig := adaptor.GetRainbondInitConfig(c.config.EnterpriseID, cluster, gatewayNodes, chaosNodes, c.rollback)
 	initConfig.RainbondVersion = version.RainbondRegionVersion
 	// init rainbond
 	c.rollback("InitRainbondRegionOperator", "", "start")

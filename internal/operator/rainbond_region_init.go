@@ -178,6 +178,9 @@ func (r *RainbondRegionInit) createRainbondCR(kubeClient *kubernetes.Clientset, 
 			logrus.Errorf("Unmarshal rainbond config failure %s", err.Error())
 		}
 	}
+	if len(cluster.Spec.GatewayIngressIPs) == 0 {
+		return fmt.Errorf("can not select eip, please specify `gatewayIngressIPs` in the custom cluster init configuration")
+	}
 	if cluster.Spec.EtcdConfig != nil && len(cluster.Spec.EtcdConfig.Endpoints) == 0 {
 		cluster.Spec.EtcdConfig = nil
 	}

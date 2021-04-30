@@ -12,7 +12,7 @@ func TestDescribeCluster(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	clusters, err := adaptor.ClusterList()
+	clusters, err := adaptor.ClusterList("test")
 	if err != nil {
 		t.Fatal(err)
 	}

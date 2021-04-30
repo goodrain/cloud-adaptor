@@ -74,6 +74,9 @@ func GetDefaultRKECreateClusterConfig(config KubernetesClusterConfig) CreateClus
 			Scheduler: v3.SchedulerService{},
 			// Kubelet Service
 			Kubelet: v3.KubeletService{
+				BaseService: v3.BaseService{
+					ExtraBinds: []string{"/grlocaldata:/grlocaldata:rw,z", "/cache:/cache:rw,z"},
+				},
 				ClusterDomain:    "cluster.local",
 				ClusterDNSServer: "10.43.0.10",
 			},

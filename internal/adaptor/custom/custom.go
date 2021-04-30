@@ -31,8 +31,8 @@ func Create() (adaptor.RainbondClusterAdaptor, error) {
 	}, nil
 }
 
-func (c *customAdaptor) ClusterList() ([]*v1alpha1.Cluster, error) {
-	clusters, err := c.Repo.ListCluster()
+func (c *customAdaptor) ClusterList(eid string) ([]*v1alpha1.Cluster, error) {
+	clusters, err := c.Repo.ListCluster(eid)
 	if err != nil {
 		return nil, err
 	}
@@ -42,7 +42,7 @@ func (c *customAdaptor) ClusterList() ([]*v1alpha1.Cluster, error) {
 		wait.Add(1)
 		go func(clu *model.CustomCluster) {
 			defer wait.Done()
-			cluster, err := c.DescribeCluster(clu.ClusterID)
+			cluster, err := c.DescribeCluster(eid, clu.ClusterID)
 			if err != nil {
 				logrus.Warningf("query kubernetes cluster failure %s", err.Error())
 			}
@@ -55,8 +55,8 @@ func (c *customAdaptor) ClusterList() ([]*v1alpha1.Cluster, error) {
 	return re, nil
 }
 
-func (c *customAdaptor) DescribeCluster(clusterID string) (*v1alpha1.Cluster, error) {
-	cc, err := c.Repo.GetCluster(clusterID)
+func (c *customAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluster, error) {
+	cc, err := c.Repo.GetCluster(eid, clusterID)
 	if err != nil {
 		return nil, fmt.Errorf("query cluster meta info failure %s", err.Error())
 	}
@@ -107,8 +107,8 @@ func (c *customAdaptor) DescribeCluster(clusterID string) (*v1alpha1.Cluster, er
 	return cluster, nil
 }
 
-func (c *customAdaptor) GetKubeConfig(clusterID string) (*v1alpha1.KubeConfig, error) {
-	cc, err := c.Repo.GetCluster(clusterID)
+func (c *customAdaptor) GetKubeConfig(eid, clusterID string) (*v1alpha1.KubeConfig, error) {
+	cc, err := c.Repo.GetCluster(eid, clusterID)
 	if err != nil {
 		return nil, fmt.Errorf("query cluster meta info failure %s", err.Error())
 	}
@@ -116,15 +116,15 @@ func (c *customAdaptor) GetKubeConfig(clusterID string) (*v1alpha1.KubeConfig, e
 }
 
 //DeleteCluster delete cluster
-func (c *customAdaptor) DeleteCluster(clusterID string) error {
-	cluster, _ := c.DescribeCluster(clusterID)
+func (c *customAdaptor) DeleteCluster(eid, clusterID string) error {
+	cluster, _ := c.DescribeCluster(eid, clusterID)
 	if cluster != nil && cluster.RainbondInit {
 		return bcode.ErrClusterNotAllowDelete
 	}
-	return c.Repo.DeleteCluster(clusterID)
+	return c.Repo.DeleteCluster(eid, clusterID)
 }
 
-func (c *customAdaptor) GetRainbondInitConfig(cluster *v1alpha1.Cluster, gateway, chaos []*rainbondv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.RainbondInitConfig {
+func (c *customAdaptor) GetRainbondInitConfig(eid string, cluster *v1alpha1.Cluster, gateway, chaos []*rainbondv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.RainbondInitConfig {
 	return &v1alpha1.RainbondInitConfig{
 		EnableHA: func() bool {
 			if cluster.Size > 3 {
@@ -157,15 +157,15 @@ func (c *customAdaptor) GetRainbondInitConfig(cluster *v1alpha1.Cluster, gateway
 	}
 }
 
-func (c *customAdaptor) CreateCluster(v1alpha1.CreateClusterConfig) (*v1alpha1.Cluster, error) {
+func (c *customAdaptor) CreateCluster(string, v1alpha1.CreateClusterConfig) (*v1alpha1.Cluster, error) {
 	return nil, nil
 }
 
-func (c *customAdaptor) CreateRainbondKubernetes(ctx context.Context, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
+func (c *customAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	rollback("CreateCluster", "", "success")
 	return nil
 }
 
-func (c *customAdaptor) ExpansionNode(ctx context.Context, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
+func (c *customAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	return nil
 }
