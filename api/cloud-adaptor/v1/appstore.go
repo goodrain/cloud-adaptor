@@ -5,7 +5,7 @@ import "github.com/helm/helm/pkg/repo"
 // CreateAppStoreReq -
 type CreateAppStoreReq struct {
 	// The name of app store.
-	Name     string `json:"name" binding:"required" `
+	Name     string `json:"name" binding:"required,appStoreName"`
 	// The url of app store.
 	URL      string `json:"url" binding:"required"`
 	// The branch of app store, which category is git repo.
