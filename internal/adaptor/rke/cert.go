@@ -147,6 +147,7 @@ func rotateRKECertificates(ctx context.Context, kubeCluster *cluster.Cluster, fl
 	return rkeFullState, nil
 }
 
+// GenerateRKECSRs -
 func GenerateRKECSRs(ctx context.Context, rkeConfig *v3.RancherKubernetesEngineConfig, flags cluster.ExternalFlags) error {
 	log.Infof(ctx, "Generating Kubernetes cluster CSR certificates")
 	if len(flags.CertificateDir) == 0 {

@@ -13,7 +13,7 @@ type AppStoreHandler struct {
 	appStore *biz.AppStoreUsecase
 }
 
-// NewClusterHandler new enterprise handler
+// NewAppStoreHandler new enterprise handler
 func NewAppStoreHandler(appStore *biz.AppStoreUsecase) *AppStoreHandler {
 	return &AppStoreHandler{
 		appStore: appStore,

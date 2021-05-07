@@ -13,6 +13,7 @@ import (
 	"sigs.k8s.io/yaml"
 )
 
+// AppTemplater -
 type AppTemplater interface {
 	Fetch(ctx context.Context, appStore *domain.AppStore) ([]*domain.AppTemplate, error)
 }

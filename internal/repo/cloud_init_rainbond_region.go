@@ -36,6 +36,7 @@ func NewInitRainbondRegionTaskRepo(db *gorm.DB) InitRainbondTaskRepository {
 	return &InitRainbondRegionTaskRepo{DB: db}
 }
 
+// Transaction -
 func (c *InitRainbondRegionTaskRepo) Transaction(tx *gorm.DB) InitRainbondTaskRepository {
 	return &InitRainbondRegionTaskRepo{DB: tx}
 }

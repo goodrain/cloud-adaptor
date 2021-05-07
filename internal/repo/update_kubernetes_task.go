@@ -36,6 +36,7 @@ func NewUpdateKubernetesTaskRepo(db *gorm.DB) UpdateKubernetesTaskRepository {
 	return &UpdateKubernetesTaskRepo{DB: db}
 }
 
+// Transaction -
 func (c *UpdateKubernetesTaskRepo) Transaction(tx *gorm.DB) UpdateKubernetesTaskRepository {
 	return &UpdateKubernetesTaskRepo{DB: tx}
 }

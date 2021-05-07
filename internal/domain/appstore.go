@@ -6,7 +6,7 @@ import (
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 )
 
-// AppStore
+// AppStore -
 type AppStore struct {
 	EID          string
 	Name         string

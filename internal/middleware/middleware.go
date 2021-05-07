@@ -15,13 +15,14 @@ type Middleware struct {
 	appStoreRepo repo.AppStoreRepo
 }
 
-// NewAppStore creates a new middleware.
+// NewMiddleware creates a new middleware.
 func NewMiddleware(appStoreRepo repo.AppStoreRepo) *Middleware {
 	return &Middleware{
 		appStoreRepo: appStoreRepo,
 	}
 }
 
+// AppStore -
 func (a *Middleware) AppStore(c *gin.Context) {
 	eid := c.Param("eid")
 	name := c.Param("name")

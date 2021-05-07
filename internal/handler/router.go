@@ -4,9 +4,11 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	_ "goodrain.com/cloud-adaptor/docs"
 	"goodrain.com/cloud-adaptor/internal/middleware"
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
+
+	// go-swag
+	_ "goodrain.com/cloud-adaptor/docs"
 )
 
 // Router -
