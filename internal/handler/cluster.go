@@ -27,7 +27,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
-	"goodrain.com/cloud-adaptor/internal/biz"
+	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/ginutil"
 	"goodrain.com/cloud-adaptor/pkg/util/ssh"
@@ -35,11 +35,11 @@ import (
 
 // ClusterHandler -
 type ClusterHandler struct {
-	cluster *biz.ClusterUsecase
+	cluster *usecase.ClusterUsecase
 }
 
 // NewClusterHandler new enterprise handler
-func NewClusterHandler(clusterUsecase *biz.ClusterUsecase) *ClusterHandler {
+func NewClusterHandler(clusterUsecase *usecase.ClusterUsecase) *ClusterHandler {
 	return &ClusterHandler{
 		cluster: clusterUsecase,
 	}

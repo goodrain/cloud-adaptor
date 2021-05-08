@@ -8,7 +8,7 @@ package main
 import (
 	"context"
 	"github.com/gin-gonic/gin"
-	"goodrain.com/cloud-adaptor/internal/biz"
+	"goodrain.com/cloud-adaptor/cmd/cloud-adaptor/config"
 	"goodrain.com/cloud-adaptor/internal/handler"
 	"goodrain.com/cloud-adaptor/internal/middleware"
 	"goodrain.com/cloud-adaptor/internal/nsqc/producer"
@@ -17,13 +17,19 @@ import (
 	"goodrain.com/cloud-adaptor/internal/repo/dao"
 	"goodrain.com/cloud-adaptor/internal/task"
 	"goodrain.com/cloud-adaptor/internal/types"
+	"goodrain.com/cloud-adaptor/internal/usecase"
 	"gorm.io/gorm"
+)
+
+import (
+	_ "github.com/helm/helm/pkg/repo"
+	_ "k8s.io/helm/pkg/proto/hapi/chart"
 )
 
 // Injectors from wire.go:
 
 // initApp init the application.
-func initApp(contextContext context.Context, db *gorm.DB, arg chan types.KubernetesConfigMessage, arg2 chan types.InitRainbondConfigMessage, arg3 chan types.UpdateKubernetesConfigMessage) (*gin.Engine, error) {
+func initApp(contextContext context.Context, db *gorm.DB, configConfig *config.Config, arg chan types.KubernetesConfigMessage, arg2 chan types.InitRainbondConfigMessage, arg3 chan types.UpdateKubernetesConfigMessage) (*gin.Engine, error) {
 	appStoreDao := dao.NewAppStoreDao(db)
 	appTemplater := appstore.NewAppTemplater()
 	storer := appstore.NewStorer(appTemplater)
@@ -36,10 +42,13 @@ func initApp(contextContext context.Context, db *gorm.DB, arg chan types.Kuberne
 	updateKubernetesTaskRepository := repo.NewUpdateKubernetesTaskRepo(db)
 	taskEventRepository := repo.NewTaskEventRepo(db)
 	rainbondClusterConfigRepository := repo.NewRainbondClusterConfigRepo(db)
-	clusterUsecase := biz.NewClusterUsecase(db, taskProducer, cloudAccesskeyRepository, createKubernetesTaskRepository, initRainbondTaskRepository, updateKubernetesTaskRepository, taskEventRepository, rainbondClusterConfigRepository)
+	clusterUsecase := usecase.NewClusterUsecase(db, taskProducer, cloudAccesskeyRepository, createKubernetesTaskRepository, initRainbondTaskRepository, updateKubernetesTaskRepository, taskEventRepository, rainbondClusterConfigRepository)
 	clusterHandler := handler.NewClusterHandler(clusterUsecase)
-	appStoreUsecase := biz.NewAppStoreUsecase(appStoreRepo)
-	appStoreHandler := handler.NewAppStoreHandler(appStoreUsecase)
+	appStoreUsecase := usecase.NewAppStoreUsecase(appStoreRepo)
+	templateVersioner := appstore.NewTemplateVersioner(configConfig)
+	templateVersionRepo := repo.NewTemplateVersionRepo(templateVersioner)
+	appTemplate := usecase.NewAppTemplate(templateVersionRepo)
+	appStoreHandler := handler.NewAppStoreHandler(appStoreUsecase, appTemplate)
 	systemHandler := handler.NewSystemHandler(db)
 	router := handler.NewRouter(middlewareMiddleware, clusterHandler, appStoreHandler, systemHandler)
 	createKubernetesTaskHandler := task.NewCreateKubernetesTaskHandler(clusterUsecase)

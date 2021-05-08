@@ -29,7 +29,7 @@ import (
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
-	"goodrain.com/cloud-adaptor/internal/biz"
+	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/internal/types"
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
 )
@@ -73,7 +73,7 @@ type createKubernetesTaskHandler struct {
 }
 
 // NewCreateKubernetesTaskHandler -
-func NewCreateKubernetesTaskHandler(clusterUsecase *biz.ClusterUsecase) CreateKubernetesTaskHandler {
+func NewCreateKubernetesTaskHandler(clusterUsecase *usecase.ClusterUsecase) CreateKubernetesTaskHandler {
 	return &createKubernetesTaskHandler{
 		eventHandler: &CallBackEvent{
 			TopicName:      constants.CloudCreate,

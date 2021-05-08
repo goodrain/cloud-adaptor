@@ -433,6 +433,71 @@ var doc = `{
                     }
                 }
             }
+        },
+        "/api/v1/enterprises/:eid/appstores/:name/templates/:templateName/versions/:version": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appstores"
+                ],
+                "summary": "returns the app template version.",
+                "operationId": "getAppTemplateVersion",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the enterprise id",
+                        "name": "eid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the name of the app store",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the name of the app template",
+                        "name": "templateName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the version of the app template",
+                        "name": "version",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.TemplateVersion"
+                        }
+                    },
+                    "404": {
+                        "description": "8003, app template not found",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -637,6 +702,122 @@ var doc = `{
                 },
                 "username": {
                     "description": "The username of the private app store",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.TemplateVersion": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "description": "Annotations are additional mappings uninterpreted by Tiller,\nmade available for inspection by other applications.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "apiVersion": {
+                    "description": "The API Version of this chart.",
+                    "type": "string"
+                },
+                "appVersion": {
+                    "description": "The version of the application enclosed inside of this chart.",
+                    "type": "string"
+                },
+                "condition": {
+                    "description": "The condition to check to enable chart",
+                    "type": "string"
+                },
+                "created": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "description": "Whether or not this chart is deprecated",
+                    "type": "boolean"
+                },
+                "description": {
+                    "description": "A one-sentence description of the chart",
+                    "type": "string"
+                },
+                "digest": {
+                    "type": "string"
+                },
+                "engine": {
+                    "description": "The name of the template engine to use. Defaults to 'gotpl'.",
+                    "type": "string"
+                },
+                "home": {
+                    "description": "The URL to a relevant project page, git repo, or contact person",
+                    "type": "string"
+                },
+                "icon": {
+                    "description": "The URL to an icon file.",
+                    "type": "string"
+                },
+                "keywords": {
+                    "description": "A list of string keywords",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "kubeVersion": {
+                    "description": "KubeVersion is a SemVer constraint specifying the version of Kubernetes required.",
+                    "type": "string"
+                },
+                "maintainers": {
+                    "description": "A list of name and URL/email address combinations for the maintainer(s)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/chart.Maintainer"
+                    }
+                },
+                "name": {
+                    "description": "The name of the chart",
+                    "type": "string"
+                },
+                "questions": {
+                    "description": "The questions content of the chart",
+                    "type": "object",
+                    "additionalProperties": true
+                },
+                "readme": {
+                    "description": "The readme content of the chart.",
+                    "type": "string"
+                },
+                "removed": {
+                    "type": "boolean"
+                },
+                "sources": {
+                    "description": "Source is the URL to the source code of this chart",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tags": {
+                    "description": "The tags to check to enable chart",
+                    "type": "string"
+                },
+                "tillerVersion": {
+                    "description": "TillerVersion is a SemVer constraints on what version of Tiller is required.\nSee SemVer ranges here: https://github.com/Masterminds/semver#basic-comparisons",
+                    "type": "string"
+                },
+                "urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "values": {
+                    "description": "A list of values files.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "version": {
+                    "description": "A SemVer 2 conformant version string of the chart",
                     "type": "string"
                 }
             }

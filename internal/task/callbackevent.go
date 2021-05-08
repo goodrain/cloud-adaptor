@@ -4,14 +4,14 @@ import (
 	"github.com/nsqio/go-nsq"
 	"github.com/sirupsen/logrus"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
-	"goodrain.com/cloud-adaptor/internal/biz"
+	"goodrain.com/cloud-adaptor/internal/usecase"
 )
 
 //CallBackEvent callback event
 type CallBackEvent struct {
 	eventProducer  *nsq.Producer
 	TopicName      string
-	ClusterUsecase *biz.ClusterUsecase
+	ClusterUsecase *usecase.ClusterUsecase
 }
 
 //Event send event

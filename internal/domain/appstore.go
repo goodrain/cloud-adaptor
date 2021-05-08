@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"github.com/helm/helm/pkg/repo"
 	"github.com/pkg/errors"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 )
@@ -47,10 +46,4 @@ func (a *AppStore) GetAppTemplate(templateName string) (*AppTemplate, error) {
 		}
 	}
 	return nil, errors.Wrap(bcode.ErrAppTemplateNotFound, "get app template")
-}
-
-// AppTemplate -
-type AppTemplate struct {
-	Name     string
-	Versions []*repo.ChartVersion
 }

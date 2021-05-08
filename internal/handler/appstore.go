@@ -3,20 +3,23 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
-	"goodrain.com/cloud-adaptor/internal/biz"
 	"goodrain.com/cloud-adaptor/internal/domain"
+	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/pkg/util/ginutil"
 )
 
 // AppStoreHandler -
 type AppStoreHandler struct {
-	appStore *biz.AppStoreUsecase
+	appStore    *usecase.AppStoreUsecase
+	appTemplate *usecase.AppTemplate
 }
 
 // NewAppStoreHandler new enterprise handler
-func NewAppStoreHandler(appStore *biz.AppStoreUsecase) *AppStoreHandler {
+func NewAppStoreHandler(appStore *usecase.AppStoreUsecase,
+	appTemplate *usecase.AppTemplate) *AppStoreHandler {
 	return &AppStoreHandler{
-		appStore: appStore,
+		appStore:    appStore,
+		appTemplate: appTemplate,
 	}
 }
 
@@ -225,5 +228,35 @@ func (a *AppStoreHandler) GetAppTemplate(c *gin.Context) {
 	ginutil.JSON(c, &v1.AppTemplate{
 		Name:     appTemplate.Name,
 		Versions: appTemplate.Versions,
+	})
+}
+
+// GetAppTemplateVersion returns the app template version.
+// @Summary returns the app template version.
+// @Tags appstores
+// @ID getAppTemplateVersion
+// @Accept  json
+// @Produce  json
+// @Param eid path string true "the enterprise id"
+// @Param name path string true "the name of the app store"
+// @Param templateName path string true "the name of the app template"
+// @Param version path string true "the version of the app template"
+// @Success 200 {object} v1.TemplateVersion
+// @Failure 404 {object} ginutil.Result "8000, app store not found"
+// @Failure 404 {object} ginutil.Result "8003, app template not found"
+// @Failure 500 {object} ginutil.Result
+// @Router /api/v1/enterprises/:eid/appstores/:name/templates/:templateName/versions/:version [get]
+func (a *AppStoreHandler) GetAppTemplateVersion(c *gin.Context) {
+	appStore := ginutil.MustGet(c, "appStore").(*domain.AppStore)
+	version, err := a.appTemplate.GetVersion(c.Request.Context(), appStore, c.Param("templateName"), c.Param("version"))
+	if err != nil {
+		ginutil.Error(c, err)
+		return
+	}
+
+	ginutil.JSON(c, &v1.TemplateVersion{
+		Readme:    version.Readme,
+		Questions: version.Questions,
+		Values:    version.Values,
 	})
 }

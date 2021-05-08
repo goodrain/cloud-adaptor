@@ -37,6 +37,7 @@ import (
 	// Import all dependent packages in main.go for swag to generate doc.
 	// More detail: https://github.com/swaggo/swag/issues/817#issuecomment-730895033
 	_ "github.com/helm/helm/pkg/repo"
+	_ "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	_ "k8s.io/helm/pkg/proto/hapi/chart"
 )
 
@@ -63,6 +64,18 @@ func main() {
 				Value:   "debug",
 				Usage:   "The level of logger.",
 				EnvVars: []string{"LOG_LEVEL"},
+			},
+			&cli.StringFlag{
+				Name:    "helm-repo-file",
+				Value:   "/app/data/helm/repositories.yaml",
+				Usage:   "path to the file containing repository names and URLs",
+				EnvVars: []string{"HELM_REPO_FILE"},
+			},
+			&cli.StringFlag{
+				Name:    "helm-cache",
+				Value:   "/app/data/helm/cache",
+				Usage:   "path to the file containing cached repository indexes",
+				EnvVars: []string{"HELM_CACHE"},
 			},
 			&cli.StringFlag{
 				Name:    "nsqd-server",
@@ -108,7 +121,7 @@ func run(c *cli.Context) error {
 	initChan := make(chan types.InitRainbondConfigMessage, 10)
 	updateChan := make(chan types.UpdateKubernetesConfigMessage, 10)
 
-	engine, err := initApp(ctx, db, createChan, initChan, updateChan)
+	engine, err := initApp(ctx, db, config.C, createChan, initChan, updateChan)
 	if err != nil {
 		return err
 	}

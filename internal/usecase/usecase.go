@@ -1,4 +1,4 @@
-package biz
+package usecase
 
 import "github.com/google/wire"
 
@@ -6,4 +6,5 @@ import "github.com/google/wire"
 var ProviderSet = wire.NewSet(
 	NewClusterUsecase,
 	NewAppStoreUsecase,
+	NewAppTemplate,
 )

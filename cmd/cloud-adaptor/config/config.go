@@ -17,6 +17,7 @@ type Config struct {
 	LogLevel  string
 	DB        *DB
 	NSQConfig *NSQConfig
+	Helm      *Helm
 }
 
 //NSQConfig config
@@ -32,6 +33,12 @@ type DB struct {
 	User string
 	Pass string
 	Name string
+}
+
+// Helm holds configurations for helm.
+type Helm struct {
+	RepoFile  string
+	RepoCache string
 }
 
 func parseByEnvAndCtx(ctx *cli.Context, name, envName string) string {
@@ -76,6 +83,10 @@ func GetDefaultConfig(ctx *cli.Context) *Config {
 			User: parseByEnvAndCtx(ctx, "dbUser", "MYSQL_USER"),
 			Pass: parseByEnvAndCtx(ctx, "dbPass", "MYSQL_PASS"),
 			Name: parseByEnvAndCtx(ctx, "dbName", "MYSQL_DB"),
+		},
+		Helm: &Helm{
+			RepoFile:  parseByEnvAndCtx(ctx, "helm-repo-file", "HELM_REPO_FILE"),
+			RepoCache: parseByEnvAndCtx(ctx, "helm-cache", "HELM_CACHE"),
 		},
 	}
 }

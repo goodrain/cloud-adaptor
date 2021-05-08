@@ -14,6 +14,8 @@ var ProviderSet = wire.NewSet(
 	NewTaskEventRepo,
 	NewRainbondClusterConfigRepo,
 	NewAppStoreRepo,
+	NewTemplateVersionRepo,
 	appstore.NewStorer,
 	appstore.NewAppTemplater,
+	appstore.NewTemplateVersioner,
 )

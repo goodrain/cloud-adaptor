@@ -99,8 +99,10 @@ func (r *Router) NewRouter() *gin.Engine {
 		appstorev1.PUT("", r.appStore.Update)
 		appstorev1.DELETE("", r.appStore.Delete)
 		appstorev1.POST("/resync", r.appStore.Resync)
+		// TODO: change app to templates
 		appstorev1.GET("/apps", r.appStore.ListTemplates)
 		appstorev1.GET("/apps/:templateName", r.appStore.GetAppTemplate)
+		appstorev1.GET("/templates/:templateName/versions/:version", r.appStore.GetAppTemplateVersion)
 	}
 
 	e.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

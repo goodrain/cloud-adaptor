@@ -34,7 +34,7 @@ import (
 	"github.com/sirupsen/logrus"
 	apiv1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
-	"goodrain.com/cloud-adaptor/internal/biz"
+	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/internal/datastore"
 	"goodrain.com/cloud-adaptor/internal/operator"
 	"goodrain.com/cloud-adaptor/internal/repo"
@@ -325,7 +325,7 @@ type cloudInitTaskHandler struct {
 }
 
 // NewCloudInitTaskHandler -
-func NewCloudInitTaskHandler(clusterUsecase *biz.ClusterUsecase) CloudInitTaskHandler {
+func NewCloudInitTaskHandler(clusterUsecase *usecase.ClusterUsecase) CloudInitTaskHandler {
 	return &cloudInitTaskHandler{
 		eventHandler: &CallBackEvent{TopicName: constants.CloudInit, ClusterUsecase: clusterUsecase},
 		handledTask:  make(map[string]string),
