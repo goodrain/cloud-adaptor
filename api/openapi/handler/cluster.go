@@ -308,7 +308,7 @@ func (e *ClusterHandler) GetAccessKey(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, err)
 		return
 	}
-	access.SecretKey = md5util.Md5Crypt(access.SecretKey, access.AccessKey)
+	access.SecretKey = md5util.Md5Crypt(access.SecretKey, access.EnterpriseID)
 	ginutil.JSON(ctx, access, nil)
 }
 

@@ -303,7 +303,7 @@ func (c *ClusterUsecase) AddAccessKey(eid string, key v1.AddAccessKey) (*models.
 	if err != nil && err != bcode.ErrorNotSetAccessKey {
 		return nil, err
 	}
-	if ack != nil && key.AccessKey == ack.AccessKey && key.SecretKey == md5util.Md5Crypt(ack.SecretKey, ack.AccessKey) {
+	if ack != nil && key.AccessKey == ack.AccessKey && key.SecretKey == md5util.Md5Crypt(ack.SecretKey, ack.EnterpriseID) {
 		return ack, nil
 	}
 
