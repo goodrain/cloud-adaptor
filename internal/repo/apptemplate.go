@@ -2,6 +2,8 @@ package repo
 
 import (
 	"encoding/base64"
+	"strings"
+
 	"github.com/pkg/errors"
 	v3 "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	"github.com/sirupsen/logrus"
@@ -9,7 +11,6 @@ import (
 	"goodrain.com/cloud-adaptor/internal/repo/appstore"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"gopkg.in/yaml.v2"
-	"strings"
 )
 
 type questions struct {
@@ -62,7 +63,8 @@ func (t *templateVersionRepo) GetTemplateVersion(appStoreName, appStoreURL, temp
 		}
 	}
 
-	for _, file := range chart.Raw {
+	for i := len(chart.Raw) - 1; i >= 0; i-- {
+		file := chart.Raw[i]
 		if !strings.HasSuffix(file.Name, "values.yaml") && !strings.HasSuffix(file.Name, "values.yml") {
 			continue
 		}
