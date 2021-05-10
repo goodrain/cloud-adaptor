@@ -35,8 +35,8 @@ func (a *AppStoreUsecase) Update(ctx context.Context, appStore *domain.AppStore)
 }
 
 // Delete -
-func (a *AppStoreUsecase) Delete(ctx context.Context, eid, name string) error {
-	return a.appStoreRepo.Delete(eid, name)
+func (a *AppStoreUsecase) Delete(ctx context.Context, appStore *domain.AppStore) error {
+	return a.appStoreRepo.Delete(appStore)
 }
 
 // Resync -

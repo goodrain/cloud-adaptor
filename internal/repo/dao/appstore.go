@@ -72,6 +72,9 @@ func (a *appStoreDao) Update(appStore *model.AppStore) error {
 func (a *appStoreDao) Delete(eid, name string) error {
 	err := a.db.Where("eid=? and name=?", eid, name).Delete(&model.AppStore{}).Error
 	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return errors.WithStack(bcode.ErrAppStoreNotFound)
+		}
 		return errors.Wrap(err, "delete app store")
 	}
 	return nil

@@ -23,6 +23,7 @@ import (
 
 import (
 	_ "github.com/helm/helm/pkg/repo"
+	_ "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	_ "k8s.io/helm/pkg/proto/hapi/chart"
 )
 
@@ -33,7 +34,7 @@ func initApp(contextContext context.Context, db *gorm.DB, configConfig *config.C
 	appStoreDao := dao.NewAppStoreDao(db)
 	appTemplater := appstore.NewAppTemplater()
 	storer := appstore.NewStorer(appTemplater)
-	appStoreRepo := repo.NewAppStoreRepo(appStoreDao, storer, appTemplater)
+	appStoreRepo := repo.NewAppStoreRepo(configConfig, appStoreDao, storer, appTemplater)
 	middlewareMiddleware := middleware.NewMiddleware(appStoreRepo)
 	taskProducer := producer.NewTaskChannelProducer(arg, arg2, arg3)
 	cloudAccesskeyRepository := repo.NewCloudAccessKeyRepo(db)

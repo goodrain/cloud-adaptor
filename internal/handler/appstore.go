@@ -157,7 +157,7 @@ func (a *AppStoreHandler) Update(c *gin.Context) {
 // @Router /api/v1/enterprises/:eid/appstores/:name [delete]
 func (a *AppStoreHandler) Delete(c *gin.Context) {
 	appStore := ginutil.MustGet(c, "appStore").(*domain.AppStore)
-	ginutil.JSON(c, nil, a.appStore.Delete(c.Request.Context(), appStore.EID, appStore.Name))
+	ginutil.JSON(c, nil, a.appStore.Delete(c.Request.Context(), appStore))
 }
 
 // Resync resync the app templates.

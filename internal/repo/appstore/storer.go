@@ -47,3 +47,7 @@ func (s *Storer) ListAppTemplates(ctx context.Context, appStore *domain.AppStore
 
 	return appTemplates, nil
 }
+
+func (s *Storer) DeleteAppTemplates(key string) {
+	s.store.Delete(key)
+}
