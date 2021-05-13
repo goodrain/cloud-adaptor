@@ -30,6 +30,7 @@ import (
 	v1 "goodrain.com/cloud-adaptor/api/openapi/types/v1"
 	"goodrain.com/cloud-adaptor/library/bcode"
 	"goodrain.com/cloud-adaptor/util/ginutil"
+	"goodrain.com/cloud-adaptor/util/md5util"
 	"goodrain.com/cloud-adaptor/util/ssh"
 )
 
@@ -307,6 +308,7 @@ func (e *ClusterHandler) GetAccessKey(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, err)
 		return
 	}
+	access.SecretKey = md5util.Md5Crypt(access.SecretKey, access.EnterpriseID)
 	ginutil.JSON(ctx, access, nil)
 }
 

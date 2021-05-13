@@ -43,6 +43,7 @@ import (
 	"goodrain.com/cloud-adaptor/library/bcode"
 
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
+	"goodrain.com/cloud-adaptor/util/md5util"
 	"goodrain.com/cloud-adaptor/util/uuidutil"
 
 	v1 "goodrain.com/cloud-adaptor/api/openapi/types/v1"
@@ -298,6 +299,14 @@ func (c *ClusterUsecase) GetRKENodeList(eid, clusterID string) (v1alpha1.NodeLis
 
 //AddAccessKey add accesskey info to enterprise
 func (c *ClusterUsecase) AddAccessKey(eid string, key v1.AddAccessKey) (*models.CloudAccessKey, error) {
+	ack, err := c.GetByProviderAndEnterprise(key.ProviderName, eid)
+	if err != nil && err != bcode.ErrorNotSetAccessKey {
+		return nil, err
+	}
+	if ack != nil && key.AccessKey == ack.AccessKey && key.SecretKey == md5util.Md5Crypt(ack.SecretKey, ack.EnterpriseID) {
+		return ack, nil
+	}
+
 	ck := &models.CloudAccessKey{
 		EnterpriseID: eid,
 		ProviderName: key.ProviderName,
