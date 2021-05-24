@@ -668,11 +668,6 @@ func (c *ClusterUsecase) GetRainbondClusterConfig(eid, clusterID string) (*rainb
 	var rbcc rainbondv1alpha1.RainbondCluster
 	rbcc.Name = "rainbondcluster"
 	rbcc.Spec.EtcdConfig = &rainbondv1alpha1.EtcdConfig{}
-	rbcc.Spec.RegionDatabase = &rainbondv1alpha1.Database{
-		Host: "127.0.0.1",
-		Port: 3306,
-		Name: "region",
-	}
 	rbcc.Spec.ImageHub = &rainbondv1alpha1.ImageHub{}
 	rbcc.Spec.NodesForGateway = []*rainbondv1alpha1.K8sNode{}
 	rbcc.Spec.NodesForChaos = []*rainbondv1alpha1.K8sNode{}
