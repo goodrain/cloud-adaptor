@@ -21,8 +21,8 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          build-args:
-            - VERSION=v5.3.0-release
+          build-args: |
+            VERSION=v5.3.0-release
           file: Dockerfile.release
           tags: registry.cn-hangzhou.aliyuncs.com/goodrain/rainbond:v5.3.0-release-allinone
       - name: Image digest
