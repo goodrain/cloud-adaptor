@@ -644,27 +644,17 @@ func (c *ClusterUsecase) SetRainbondClusterConfig(eid, clusterID, config string)
 }
 
 //GetRainbondClusterConfig get rainbond cluster config
-func (c *ClusterUsecase) GetRainbondClusterConfig(eid, clusterID string) (*rainbondv1alpha1.RainbondCluster, error) {
+func (c *ClusterUsecase) GetRainbondClusterConfig(eid, clusterID string) (*rainbondv1alpha1.RainbondCluster, string) {
 	rcc, _ := c.RainbondClusterConfigRepo.Get(clusterID)
-	var rbcc rainbondv1alpha1.RainbondCluster
-	rbcc.Name = "rainbondcluster"
-	rbcc.Spec.EtcdConfig = &rainbondv1alpha1.EtcdConfig{}
-	rbcc.Spec.RegionDatabase = &rainbondv1alpha1.Database{
-		Host: "127.0.0.1",
-		Port: 3306,
-		Name: "region",
-	}
-	rbcc.Spec.ImageHub = &rainbondv1alpha1.ImageHub{}
-	rbcc.Spec.NodesForGateway = []*rainbondv1alpha1.K8sNode{}
-	rbcc.Spec.NodesForChaos = []*rainbondv1alpha1.K8sNode{}
-	rbcc.Spec.SuffixHTTPHost = ""
-	rbcc.Spec.GatewayIngressIPs = []string{}
 	if rcc != nil {
+		var rbcc rainbondv1alpha1.RainbondCluster
 		if err := yaml.Unmarshal([]byte(rcc.Config), &rbcc); err != nil {
 			logrus.Errorf("unmarshal rainbond config failure %s", err.Error())
+			return nil, rcc.Config
 		}
+		return &rbcc, rcc.Config
 	}
-	return &rbcc, nil
+	return nil, ""
 }
 
 //UninstallRainbondRegion uninstall rainbond region

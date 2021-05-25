@@ -48,6 +48,6 @@ type Usecase interface {
 	GetUpdateKubernetesTaskByClusterID(eid, clusterID, providerName string) (*models.UpdateKubernetesTask, error)
 	GetRKENodeList(eid, clusterID string) (v1alpha1.NodeList, error)
 	SetRainbondClusterConfig(eid, clusterID, config string) error
-	GetRainbondClusterConfig(eid, clusterID string) (*rainbondv1alpha1.RainbondCluster, error)
+	GetRainbondClusterConfig(eid, clusterID string) (*rainbondv1alpha1.RainbondCluster, string)
 	UninstallRainbondRegion(eid, clusterID, provider string) error
 }
