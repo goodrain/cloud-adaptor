@@ -175,6 +175,9 @@ func GetDefaultRKECreateClusterConfig(config KubernetesClusterConfig) CreateClus
 		Ingress: v3.IngressConfig{
 			Provider: "none",
 		},
+		Monitoring: v3.MonitoringConfig{
+			Provider: "none",
+		},
 	}
 	return rkeConfig
 }
