@@ -32,6 +32,7 @@ type TemplateVersioner struct {
 	repoCache string
 }
 
+// NewTemplateVersioner creates a new TemplateVersioner.
 func NewTemplateVersioner(cfg *config.Config) *TemplateVersioner {
 	return &TemplateVersioner{
 		repoFile:  cfg.Helm.RepoFile,
@@ -39,6 +40,7 @@ func NewTemplateVersioner(cfg *config.Config) *TemplateVersioner {
 	}
 }
 
+// LoadChart loads chart.
 func (t *TemplateVersioner) LoadChart(repo, repoURL, templateName, version string) (*chart.Chart, error) {
 	helmCmd, err := helm.NewHelm("nonamespace", t.repoFile, t.repoCache)
 	if err != nil {
