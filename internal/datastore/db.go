@@ -106,15 +106,23 @@ func GetGDB() *gorm.DB {
 }
 
 // AutoMigrate run auto migration for given models
-func AutoMigrate(db *gorm.DB) {
-	db.AutoMigrate(&model.CloudAccessKey{})
-	db.AutoMigrate(&model.CreateKubernetesTask{})
-	db.AutoMigrate(&model.InitRainbondTask{})
-	db.AutoMigrate(&model.TaskEvent{})
-	db.AutoMigrate(&model.RKECluster{})
-	db.AutoMigrate(&model.CustomCluster{})
-	db.AutoMigrate(&model.UpdateKubernetesTask{})
-	db.AutoMigrate(&model.RainbondClusterConfig{})
-	// app store
-	db.AutoMigrate(&model.AppStore{})
+func AutoMigrate(db *gorm.DB) error {
+	models := map[string]interface{}{
+		"CloudAccessKey": model.CloudAccessKey{},
+		"CreateKubernetesTask": model.CreateKubernetesTask{},
+		"InitRainbondTask": model.InitRainbondTask{},
+		"RKECluster": model.RKECluster{},
+		"CustomCluster": model.CustomCluster{},
+		"UpdateKubernetesTask": model.UpdateKubernetesTask{},
+		"RainbondClusterConfig": model.RainbondClusterConfig{},
+		"AppStore": model.AppStore{},
+	}
+
+	for name, mod := range models {
+		if err := db.AutoMigrate(mod); err != nil {
+			return fmt.Errorf("auto migrate %s: %v", name, err)
+		}
+	}
+
+	return nil
 }
