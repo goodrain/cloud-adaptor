@@ -102,7 +102,9 @@ func run(c *cli.Context) error {
 	config.SetLogLevel()
 
 	db := datastore.NewDB()
-	datastore.AutoMigrate(db)
+	if err := datastore.AutoMigrate(db); err != nil {
+		return err
+	}
 
 	createChan := make(chan types.KubernetesConfigMessage, 10)
 	initChan := make(chan types.InitRainbondConfigMessage, 10)
