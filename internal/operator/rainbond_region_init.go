@@ -126,7 +126,7 @@ func (r *RainbondRegionInit) InitRainbondRegion(initConfig *v1alpha1.RainbondIni
 		if err := cmd.Run(); err != nil {
 			errout := stdout.String()
 			if !strings.Contains(errout, "cannot re-use a name that is still in use") {
-				if strings.Contains(errout, "existing_kind: rbac.authorization.k8s.io/v1, Kind=ClusterRoleBinding") {
+				if strings.Contains(errout, "\"rainbond-operator\" already exists") {
 					func() {
 						ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 						defer cancel()
@@ -485,6 +485,14 @@ func (r *RainbondRegionInit) UninstallRegion(clusterID string) error {
 			return fmt.Errorf("delete csidriver: %v", err)
 		}
 	}
+
+	// delete rainbond-operator ClusterRoleBinding
+	if err := coreClient.RbacV1().ClusterRoleBindings().Delete(ctx, "rainbond-operator", metav1.DeleteOptions{}); err != nil {
+		if !k8sErrors.IsNotFound(err) {
+			return fmt.Errorf("delete cluster role bindings: %v", err)
+		}
+	}
+
 	// delete rainbond cluster
 	var rbdcluster rainbondv1alpha1.RainbondCluster
 	if err := runtimeClient.DeleteAllOf(ctx, &rbdcluster, client.InNamespace(r.namespace)); err != nil {
@@ -512,6 +520,7 @@ func (r *RainbondRegionInit) UninstallRegion(clusterID string) error {
 		case <-timer.C:
 			return fmt.Errorf("waiting namespace deleted timeout")
 		case <-ticker.C:
+			logrus.Debugf("waiting namespace rbd-system deleted")
 		}
 	}
 }

@@ -1,0 +1,29 @@
+name: release-ci-build
+
+on:
+  release:
+    branches: [V5.3]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          registry: registry.cn-hangzhou.aliyuncs.com
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          build-args: |
+            VERSION=v5.3.0-release
+          file: Dockerfile.release
+          tags: registry.cn-hangzhou.aliyuncs.com/goodrain/rainbond:v5.3.0-release-allinone
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}

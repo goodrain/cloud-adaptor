@@ -39,6 +39,7 @@ import (
 	"goodrain.com/cloud-adaptor/internal/repo"
 	"goodrain.com/cloud-adaptor/internal/types"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
+	"goodrain.com/cloud-adaptor/pkg/util/md5util"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
 	"gorm.io/gorm"
 )
@@ -310,6 +311,14 @@ func (c *ClusterUsecase) GetRKENodeList(eid, clusterID string) (v1alpha1.NodeLis
 
 //AddAccessKey add accesskey info to enterprise
 func (c *ClusterUsecase) AddAccessKey(eid string, key v1.AddAccessKey) (*model.CloudAccessKey, error) {
+	ack, err := c.GetByProviderAndEnterprise(key.ProviderName, eid)
+	if err != nil && err != bcode.ErrorNotSetAccessKey {
+		return nil, err
+	}
+	if ack != nil && key.AccessKey == ack.AccessKey && key.SecretKey == md5util.Md5Crypt(ack.SecretKey, ack.EnterpriseID) {
+		return ack, nil
+	}
+
 	ck := &model.CloudAccessKey{
 		EnterpriseID: eid,
 		ProviderName: key.ProviderName,
@@ -669,27 +678,17 @@ func (c *ClusterUsecase) SetRainbondClusterConfig(eid, clusterID, config string)
 }
 
 //GetRainbondClusterConfig get rainbond cluster config
-func (c *ClusterUsecase) GetRainbondClusterConfig(eid, clusterID string) (*rainbondv1alpha1.RainbondCluster, error) {
+func (c *ClusterUsecase) GetRainbondClusterConfig(eid, clusterID string) (*rainbondv1alpha1.RainbondCluster, string) {
 	rcc, _ := c.RainbondClusterConfigRepo.Get(clusterID)
-	var rbcc rainbondv1alpha1.RainbondCluster
-	rbcc.Name = "rainbondcluster"
-	rbcc.Spec.EtcdConfig = &rainbondv1alpha1.EtcdConfig{}
-	rbcc.Spec.RegionDatabase = &rainbondv1alpha1.Database{
-		Host: "127.0.0.1",
-		Port: 3306,
-		Name: "region",
-	}
-	rbcc.Spec.ImageHub = &rainbondv1alpha1.ImageHub{}
-	rbcc.Spec.NodesForGateway = []*rainbondv1alpha1.K8sNode{}
-	rbcc.Spec.NodesForChaos = []*rainbondv1alpha1.K8sNode{}
-	rbcc.Spec.SuffixHTTPHost = ""
-	rbcc.Spec.GatewayIngressIPs = []string{}
 	if rcc != nil {
+		var rbcc rainbondv1alpha1.RainbondCluster
 		if err := yaml.Unmarshal([]byte(rcc.Config), &rbcc); err != nil {
 			logrus.Errorf("unmarshal rainbond config failure %s", err.Error())
+			return nil, rcc.Config
 		}
+		return &rbcc, rcc.Config
 	}
-	return &rbcc, nil
+	return nil, ""
 }
 
 //UninstallRainbondRegion uninstall rainbond region
