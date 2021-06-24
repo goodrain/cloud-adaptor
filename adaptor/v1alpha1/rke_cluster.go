@@ -66,7 +66,11 @@ func GetDefaultRKECreateClusterConfig(config KubernetesClusterConfig) CreateClus
 			return nodes
 		}(),
 		Services: v3.RKEConfigServices{
-			Etcd:    v3.ETCDService{},
+			Etcd: v3.ETCDService{
+				BaseService: v3.BaseService{
+					ExtraEnv: []string{"ETCD_AUTO_COMPACTION_RETENTION=1"},
+				},
+			},
 			KubeAPI: v3.KubeAPIService{ServiceClusterIPRange: serviceClusterIPRange},
 			// KubeController Service
 			KubeController: v3.KubeControllerService{ClusterCIDR: podIPRange, ServiceClusterIPRange: serviceClusterIPRange},
@@ -74,6 +78,9 @@ func GetDefaultRKECreateClusterConfig(config KubernetesClusterConfig) CreateClus
 			Scheduler: v3.SchedulerService{},
 			// Kubelet Service
 			Kubelet: v3.KubeletService{
+				BaseService: v3.BaseService{
+					ExtraBinds: []string{"/grlocaldata:/grlocaldata:rw,z", "/cache:/cache:rw,z"},
+				},
 				ClusterDomain:    "cluster.local",
 				ClusterDNSServer: "10.43.0.10",
 			},
@@ -170,6 +177,9 @@ func GetDefaultRKECreateClusterConfig(config KubernetesClusterConfig) CreateClus
 		},
 		Authorization: v3.AuthzConfig{Mode: "rbac"},
 		Ingress: v3.IngressConfig{
+			Provider: "none",
+		},
+		Monitoring: v3.MonitoringConfig{
 			Provider: "none",
 		},
 	}

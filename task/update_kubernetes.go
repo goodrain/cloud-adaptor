@@ -53,7 +53,7 @@ func (c *UpdateKubernetesCluster) Run(ctx context.Context) {
 	}
 	c.rollback("Init", "cloud adaptor create success", "success")
 	// update cluster
-	adaptor.ExpansionNode(ctx, c.config, c.rollback)
+	adaptor.ExpansionNode(ctx, c.config.EnterpriseID, c.config, c.rollback)
 }
 
 //GetChan get message chan

@@ -53,7 +53,7 @@ func (c *CreateKubernetesCluster) Run(ctx context.Context) {
 	}
 	c.rollback("Init", "cloud adaptor create success", "success")
 	// create cluster
-	adaptor.CreateRainbondKubernetes(ctx, c.config, c.rollback)
+	adaptor.CreateRainbondKubernetes(ctx, c.config.EnterpriseID, c.config, c.rollback)
 }
 
 //GetChan get message chan

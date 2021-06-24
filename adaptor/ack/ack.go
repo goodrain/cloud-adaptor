@@ -103,7 +103,7 @@ func getInstanceType(set string) []string {
 	}
 }
 
-func (a *ackAdaptor) CreateRainbondKubernetes(ctx context.Context, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
+func (a *ackAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	rollback("AllocateResource", "", "start")
 	// select instance resource type
 	//Resource type to be selected
@@ -167,7 +167,7 @@ func (a *ackAdaptor) CreateRainbondKubernetes(ctx context.Context, config *v1alp
 	config.InstanceType = selectInstanceType
 	clusterConfig := v1alpha1.GetDefaultACKCreateClusterConfig(*config)
 	rollback("CreateCluster", "", "start")
-	cluster, err := a.CreateCluster(clusterConfig)
+	cluster, err := a.CreateCluster(eid, clusterConfig)
 	if err != nil {
 		rollback("CreateCluster", err.Error(), "failure")
 		return nil
@@ -176,7 +176,7 @@ func (a *ackAdaptor) CreateRainbondKubernetes(ctx context.Context, config *v1alp
 	return cluster
 }
 
-func (a *ackAdaptor) ClusterList() ([]*v1alpha1.Cluster, error) {
+func (a *ackAdaptor) ClusterList(eid string) ([]*v1alpha1.Cluster, error) {
 	request := a.newRequest("GET")
 	request.PathPattern = "/clusters"
 	res, err := a.doRequest(request)
@@ -206,7 +206,7 @@ func (a *ackAdaptor) ClusterList() ([]*v1alpha1.Cluster, error) {
 		go func(cluster *v1alpha1.Cluster) {
 			defer wait.Done()
 			cluster.Parameters = make(map[string]interface{})
-			kube, _ := a.GetKubeConfig(cluster.ClusterID)
+			kube, _ := a.GetKubeConfig(eid, cluster.ClusterID)
 			if kube != nil {
 				coreclient, _, err := kube.GetKubeClient()
 				ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
@@ -234,7 +234,7 @@ func (a *ackAdaptor) ClusterList() ([]*v1alpha1.Cluster, error) {
 	return infos, nil
 }
 
-func (a *ackAdaptor) CreateCluster(config v1alpha1.CreateClusterConfig) (*v1alpha1.Cluster, error) {
+func (a *ackAdaptor) CreateCluster(eid string, config v1alpha1.CreateClusterConfig) (*v1alpha1.Cluster, error) {
 	ackConfig, ok := config.(*v1alpha1.AckClusterConfig)
 	if !ok {
 		return nil, fmt.Errorf("config is valid")
@@ -260,7 +260,7 @@ func (a *ackAdaptor) CreateCluster(config v1alpha1.CreateClusterConfig) (*v1alph
 	return &info, nil
 }
 
-func (a *ackAdaptor) GetKubeConfig(clusterID string) (*v1alpha1.KubeConfig, error) {
+func (a *ackAdaptor) GetKubeConfig(eid string, clusterID string) (*v1alpha1.KubeConfig, error) {
 	if clusterID == "" {
 		return nil, fmt.Errorf("cluster id can not be empty")
 	}
@@ -280,7 +280,7 @@ func (a *ackAdaptor) GetKubeConfig(clusterID string) (*v1alpha1.KubeConfig, erro
 	return &infos, nil
 }
 
-func (a *ackAdaptor) DescribeCluster(clusterID string) (*v1alpha1.Cluster, error) {
+func (a *ackAdaptor) DescribeCluster(eid string, clusterID string) (*v1alpha1.Cluster, error) {
 	if clusterID == "" {
 		return nil, fmt.Errorf("cluster id can not be empty")
 	}
@@ -744,7 +744,7 @@ func (a *ackAdaptor) DescribeAvailableResourceZones(regionID, InstanceType strin
 }
 
 //GetRainbondInitConfig get rainbond init config
-func (a *ackAdaptor) GetRainbondInitConfig(cluster *v1alpha1.Cluster, gateway, chaos []*rainbondv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.RainbondInitConfig {
+func (a *ackAdaptor) GetRainbondInitConfig(eid string, cluster *v1alpha1.Cluster, gateway, chaos []*rainbondv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.RainbondInitConfig {
 
 	rollback("CreateRDS", "", "start")
 	//指定pod cidr作为白名单
@@ -827,10 +827,10 @@ func (a *ackAdaptor) GetRainbondInitConfig(cluster *v1alpha1.Cluster, gateway, c
 }
 
 //DeleteCluster delete cluster
-func (a *ackAdaptor) DeleteCluster(clusterID string) error {
+func (a *ackAdaptor) DeleteCluster(eid string, clusterID string) error {
 	return nil
 }
 
-func (a *ackAdaptor) ExpansionNode(ctx context.Context, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
+func (a *ackAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	return nil
 }
