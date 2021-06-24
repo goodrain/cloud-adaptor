@@ -16,30 +16,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package version
+package bcode
 
-import (
-	"os"
-	"strings"
+var (
+	// OK means everything si good.
+	OK = new(200, 200)
+	// StatusFound means the requested resource resides temporarily under a different URI.
+	StatusFound = new(302, 302)
+	// BadRequest means the request could not be understood by the server due to malformed syntax.
+	// The client SHOULD NOT repeat the request without modifications.
+	BadRequest = new(400, 400)
+	// NotFound means the server has not found anything matching the request.
+	NotFound = new(404, 404)
+	// ServerErr means  the server encountered an unexpected condition which prevented it from fulfilling the request.
+	ServerErr = new(500, 500)
 )
-
-//RainbondRegionVersion rainbond region install version
-var RainbondRegionVersion = "v5.3.0-release"
-
-//OperatorVersion operator image tag
-var OperatorVersion = "v2.0.0"
-
-//InstallImageRepo install image repo
-var InstallImageRepo = "registry.cn-hangzhou.aliyuncs.com/goodrain"
-
-func init() {
-	if os.Getenv("INSTALL_IMAGE_REPO") != "" {
-		InstallImageRepo = os.Getenv("INSTALL_IMAGE_REPO")
-	}
-	if os.Getenv("RAINBOND_VERSION") != "" {
-		RainbondRegionVersion = os.Getenv("RAINBOND_VERSION")
-	}
-	if strings.HasSuffix(InstallImageRepo, "/") {
-		InstallImageRepo = InstallImageRepo[:len(InstallImageRepo)-1]
-	}
-}

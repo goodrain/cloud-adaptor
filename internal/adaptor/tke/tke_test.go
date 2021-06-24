@@ -16,30 +16,23 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package version
+package tke
 
 import (
-	"os"
-	"strings"
+	"testing"
 )
 
-//RainbondRegionVersion rainbond region install version
-var RainbondRegionVersion = "v5.3.0-release"
+var testAccess = ""
+var testSecret = ""
 
-//OperatorVersion operator image tag
-var OperatorVersion = "v2.0.0"
-
-//InstallImageRepo install image repo
-var InstallImageRepo = "registry.cn-hangzhou.aliyuncs.com/goodrain"
-
-func init() {
-	if os.Getenv("INSTALL_IMAGE_REPO") != "" {
-		InstallImageRepo = os.Getenv("INSTALL_IMAGE_REPO")
+func TestDescribeCluster(t *testing.T) {
+	adaptor, err := Create(testAccess, testSecret)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if os.Getenv("RAINBOND_VERSION") != "" {
-		RainbondRegionVersion = os.Getenv("RAINBOND_VERSION")
+	clusters, err := adaptor.ClusterList("test")
+	if err != nil {
+		t.Fatal(err)
 	}
-	if strings.HasSuffix(InstallImageRepo, "/") {
-		InstallImageRepo = InstallImageRepo[:len(InstallImageRepo)-1]
-	}
+	t.Log(clusters)
 }

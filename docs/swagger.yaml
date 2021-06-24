@@ -1,0 +1,587 @@
+basePath: /api/v1
+definitions:
+  chart.Maintainer:
+    properties:
+      email:
+        description: Email is an optional email address to contact the named maintainer
+        type: string
+      name:
+        description: Name is a user name or organization name
+        type: string
+      url:
+        description: Url is an optional URL to an address for the named maintainer
+        type: string
+    type: object
+  ginutil.Result:
+    properties:
+      code:
+        type: integer
+      data:
+        type: object
+      msg:
+        type: string
+    type: object
+  repo.ChartVersion:
+    properties:
+      annotations:
+        additionalProperties:
+          type: string
+        description: |-
+          Annotations are additional mappings uninterpreted by Tiller,
+          made available for inspection by other applications.
+        type: object
+      apiVersion:
+        description: The API Version of this chart.
+        type: string
+      appVersion:
+        description: The version of the application enclosed inside of this chart.
+        type: string
+      condition:
+        description: The condition to check to enable chart
+        type: string
+      created:
+        type: string
+      deprecated:
+        description: Whether or not this chart is deprecated
+        type: boolean
+      description:
+        description: A one-sentence description of the chart
+        type: string
+      digest:
+        type: string
+      engine:
+        description: The name of the template engine to use. Defaults to 'gotpl'.
+        type: string
+      home:
+        description: The URL to a relevant project page, git repo, or contact person
+        type: string
+      icon:
+        description: The URL to an icon file.
+        type: string
+      keywords:
+        description: A list of string keywords
+        items:
+          type: string
+        type: array
+      kubeVersion:
+        description: KubeVersion is a SemVer constraint specifying the version of
+          Kubernetes required.
+        type: string
+      maintainers:
+        description: A list of name and URL/email address combinations for the maintainer(s)
+        items:
+          $ref: '#/definitions/chart.Maintainer'
+        type: array
+      name:
+        description: The name of the chart
+        type: string
+      removed:
+        type: boolean
+      sources:
+        description: Source is the URL to the source code of this chart
+        items:
+          type: string
+        type: array
+      tags:
+        description: The tags to check to enable chart
+        type: string
+      tillerVersion:
+        description: |-
+          TillerVersion is a SemVer constraints on what version of Tiller is required.
+          See SemVer ranges here: https://github.com/Masterminds/semver#basic-comparisons
+        type: string
+      urls:
+        items:
+          type: string
+        type: array
+      version:
+        description: A SemVer 2 conformant version string of the chart
+        type: string
+    type: object
+  v1.AppStore:
+    properties:
+      branch:
+        description: The branch of app store, which category is git repo.
+        type: string
+      eid:
+        description: The enterprise id.
+        type: string
+      name:
+        description: The name of app store.
+        type: string
+      password:
+        description: The password of the private app store
+        type: string
+      url:
+        description: The url of app store.
+        type: string
+      username:
+        description: The username of the private app store
+        type: string
+    type: object
+  v1.AppTemplate:
+    properties:
+      name:
+        description: The name of app template.
+        type: string
+      versions:
+        description: A list of app template versions.
+        items:
+          $ref: '#/definitions/repo.ChartVersion'
+        type: array
+    type: object
+  v1.CreateAppStoreReq:
+    properties:
+      branch:
+        description: The branch of app store, which category is git repo.
+        type: string
+      name:
+        description: The name of app store.
+        type: string
+      password:
+        description: The password of the private app store
+        type: string
+      url:
+        description: The url of app store.
+        type: string
+      username:
+        description: The username of the private app store
+        type: string
+    required:
+    - name
+    - url
+    type: object
+  v1.TemplateVersion:
+    properties:
+      annotations:
+        additionalProperties:
+          type: string
+        description: |-
+          Annotations are additional mappings uninterpreted by Tiller,
+          made available for inspection by other applications.
+        type: object
+      apiVersion:
+        description: The API Version of this chart.
+        type: string
+      appVersion:
+        description: The version of the application enclosed inside of this chart.
+        type: string
+      condition:
+        description: The condition to check to enable chart
+        type: string
+      created:
+        type: string
+      deprecated:
+        description: Whether or not this chart is deprecated
+        type: boolean
+      description:
+        description: A one-sentence description of the chart
+        type: string
+      digest:
+        type: string
+      engine:
+        description: The name of the template engine to use. Defaults to 'gotpl'.
+        type: string
+      home:
+        description: The URL to a relevant project page, git repo, or contact person
+        type: string
+      icon:
+        description: The URL to an icon file.
+        type: string
+      keywords:
+        description: A list of string keywords
+        items:
+          type: string
+        type: array
+      kubeVersion:
+        description: KubeVersion is a SemVer constraint specifying the version of
+          Kubernetes required.
+        type: string
+      maintainers:
+        description: A list of name and URL/email address combinations for the maintainer(s)
+        items:
+          $ref: '#/definitions/chart.Maintainer'
+        type: array
+      name:
+        description: The name of the chart
+        type: string
+      questions:
+        additionalProperties: true
+        description: The questions content of the chart
+        type: object
+      readme:
+        description: The readme content of the chart.
+        type: string
+      removed:
+        type: boolean
+      sources:
+        description: Source is the URL to the source code of this chart
+        items:
+          type: string
+        type: array
+      tags:
+        description: The tags to check to enable chart
+        type: string
+      tillerVersion:
+        description: |-
+          TillerVersion is a SemVer constraints on what version of Tiller is required.
+          See SemVer ranges here: https://github.com/Masterminds/semver#basic-comparisons
+        type: string
+      urls:
+        items:
+          type: string
+        type: array
+      values:
+        additionalProperties:
+          type: string
+        description: A list of values files.
+        type: object
+      version:
+        description: A SemVer 2 conformant version string of the chart
+        type: string
+    type: object
+  v1.UpdateAppStoreReq:
+    properties:
+      branch:
+        description: The branch of app store, which category is git repo.
+        type: string
+      password:
+        description: The password of the private app store
+        type: string
+      url:
+        description: The url of app store.
+        type: string
+      username:
+        description: The username of the private app store
+        type: string
+    required:
+    - url
+    type: object
+info:
+  contact:
+    name: Rainbond
+    url: https://rainbond.com
+  description: Cloud Adaptor
+  title: Cloud Adaptor API
+  version: "1.0"
+paths:
+  /api/v1/enterprises/:eid/appstores:
+    get:
+      consumes:
+      - application/json
+      operationId: listAppStores
+      parameters:
+      - description: the enterprise id
+        in: path
+        name: eid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/v1.AppStore'
+            type: array
+      summary: returns a list of app stores.
+      tags:
+      - appstores
+    post:
+      consumes:
+      - application/json
+      operationId: createAppStore
+      parameters:
+      - description: the enterprise id
+        in: path
+        name: eid
+        required: true
+        type: string
+      - description: .
+        in: body
+        name: createAppStoreReq
+        required: true
+        schema:
+          $ref: '#/definitions/v1.CreateAppStoreReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.AppStore'
+        "400":
+          description: 8002, app store unavailable
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+        "409":
+          description: 8001, app store name conflict
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+      summary: creates a new app store.
+      tags:
+      - appstores
+  /api/v1/enterprises/:eid/appstores/:name:
+    delete:
+      consumes:
+      - application/json
+      operationId: deleteAppStore
+      parameters:
+      - description: the enterprise id
+        in: path
+        name: eid
+        required: true
+        type: string
+      - description: the name of the app store
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "404":
+          description: 8000, app store not found
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+      summary: deletes the app store.
+      tags:
+      - appstores
+    get:
+      consumes:
+      - application/json
+      operationId: getAppStore
+      parameters:
+      - description: the enterprise id
+        in: path
+        name: eid
+        required: true
+        type: string
+      - description: the name of the app store
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.AppStore'
+        "404":
+          description: 8000, app store not found
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+      summary: returns the app store.
+      tags:
+      - appstores
+    put:
+      consumes:
+      - application/json
+      operationId: updateAppStore
+      parameters:
+      - description: the enterprise id
+        in: path
+        name: eid
+        required: true
+        type: string
+      - description: the name of the app store
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: .
+        in: body
+        name: updateAppStoreReq
+        required: true
+        schema:
+          $ref: '#/definitions/v1.UpdateAppStoreReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.AppStore'
+        "404":
+          description: 8000, app store not found
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+      summary: updates the app store..
+      tags:
+      - appstores
+  /api/v1/enterprises/:eid/appstores/:name/apps:
+    get:
+      consumes:
+      - application/json
+      operationId: listTemplates
+      parameters:
+      - description: the enterprise id
+        in: path
+        name: eid
+        required: true
+        type: string
+      - description: the name of the app store
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/v1.AppTemplate'
+            type: array
+        "404":
+          description: 8000, app store not found
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+      summary: returns a list of app templates.
+      tags:
+      - appstores
+  /api/v1/enterprises/:eid/appstores/:name/apps/:templateName:
+    get:
+      consumes:
+      - application/json
+      operationId: getAppTemplate
+      parameters:
+      - description: the enterprise id
+        in: path
+        name: eid
+        required: true
+        type: string
+      - description: the name of the app store
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: the name of the app template
+        in: path
+        name: templateName
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.AppTemplate'
+        "404":
+          description: 8000, app store not found
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+      summary: returns the app template.
+      tags:
+      - appstores
+  /api/v1/enterprises/:eid/appstores/:name/resync:
+    post:
+      consumes:
+      - application/json
+      operationId: resyncAppStore
+      parameters:
+      - description: the enterprise id
+        in: path
+        name: eid
+        required: true
+        type: string
+      - description: the name of the app store
+        in: path
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "404":
+          description: 8000, app store not found
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+      summary: resync the app templates.
+      tags:
+      - appstores
+  /api/v1/enterprises/:eid/appstores/:name/templates/:templateName/versions/:version:
+    get:
+      consumes:
+      - application/json
+      operationId: getAppTemplateVersion
+      parameters:
+      - description: the enterprise id
+        in: path
+        name: eid
+        required: true
+        type: string
+      - description: the name of the app store
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: the name of the app template
+        in: path
+        name: templateName
+        required: true
+        type: string
+      - description: the version of the app template
+        in: path
+        name: version
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.TemplateVersion'
+        "404":
+          description: 8003, app template not found
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+      summary: returns the app template version.
+      tags:
+      - appstores
+schemes:
+- http,
+- https
+swagger: "2.0"

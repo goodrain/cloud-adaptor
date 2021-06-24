@@ -16,30 +16,29 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package version
+package task
 
 import (
-	"os"
-	"strings"
+	"context"
+
+	nsq "github.com/nsqio/go-nsq"
+	"goodrain.com/cloud-adaptor/internal/types"
 )
 
-//RainbondRegionVersion rainbond region install version
-var RainbondRegionVersion = "v5.3.0-release"
+// CloudInitTaskHandler -
+type CloudInitTaskHandler interface {
+	HandleMsg(ctx context.Context, initConfig types.InitRainbondConfigMessage) error
+	HandleMessage(m *nsq.Message) error
+}
 
-//OperatorVersion operator image tag
-var OperatorVersion = "v2.0.0"
+//CreateKubernetesTaskHandler create kubernetes task handler
+type CreateKubernetesTaskHandler interface {
+	HandleMsg(ctx context.Context, createConfig types.KubernetesConfigMessage) error
+	HandleMessage(m *nsq.Message) error
+}
 
-//InstallImageRepo install image repo
-var InstallImageRepo = "registry.cn-hangzhou.aliyuncs.com/goodrain"
-
-func init() {
-	if os.Getenv("INSTALL_IMAGE_REPO") != "" {
-		InstallImageRepo = os.Getenv("INSTALL_IMAGE_REPO")
-	}
-	if os.Getenv("RAINBOND_VERSION") != "" {
-		RainbondRegionVersion = os.Getenv("RAINBOND_VERSION")
-	}
-	if strings.HasSuffix(InstallImageRepo, "/") {
-		InstallImageRepo = InstallImageRepo[:len(InstallImageRepo)-1]
-	}
+//UpdateKubernetesTaskHandler -
+type UpdateKubernetesTaskHandler interface {
+	HandleMsg(ctx context.Context, createConfig types.UpdateKubernetesConfigMessage) error
+	HandleMessage(m *nsq.Message) error
 }

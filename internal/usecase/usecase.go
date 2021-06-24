@@ -16,30 +16,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package version
+package usecase
 
-import (
-	"os"
-	"strings"
+import "github.com/google/wire"
+
+// ProviderSet is biz providers.
+var ProviderSet = wire.NewSet(
+	NewClusterUsecase,
+	NewAppStoreUsecase,
+	NewAppTemplate,
 )
-
-//RainbondRegionVersion rainbond region install version
-var RainbondRegionVersion = "v5.3.0-release"
-
-//OperatorVersion operator image tag
-var OperatorVersion = "v2.0.0"
-
-//InstallImageRepo install image repo
-var InstallImageRepo = "registry.cn-hangzhou.aliyuncs.com/goodrain"
-
-func init() {
-	if os.Getenv("INSTALL_IMAGE_REPO") != "" {
-		InstallImageRepo = os.Getenv("INSTALL_IMAGE_REPO")
-	}
-	if os.Getenv("RAINBOND_VERSION") != "" {
-		RainbondRegionVersion = os.Getenv("RAINBOND_VERSION")
-	}
-	if strings.HasSuffix(InstallImageRepo, "/") {
-		InstallImageRepo = InstallImageRepo[:len(InstallImageRepo)-1]
-	}
-}

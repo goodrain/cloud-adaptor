@@ -16,30 +16,27 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package version
+package usecase
 
 import (
-	"os"
-	"strings"
+	"context"
+	"goodrain.com/cloud-adaptor/internal/domain"
+	"goodrain.com/cloud-adaptor/internal/repo"
 )
 
-//RainbondRegionVersion rainbond region install version
-var RainbondRegionVersion = "v5.3.0-release"
+// AppTemplate -
+type AppTemplate struct {
+	templateVersionRepo repo.TemplateVersionRepo
+}
 
-//OperatorVersion operator image tag
-var OperatorVersion = "v2.0.0"
+// NewAppTemplate -
+func NewAppTemplate(templateVersionRepo repo.TemplateVersionRepo) *AppTemplate {
+	return &AppTemplate{
+		templateVersionRepo: templateVersionRepo,
+	}
+}
 
-//InstallImageRepo install image repo
-var InstallImageRepo = "registry.cn-hangzhou.aliyuncs.com/goodrain"
-
-func init() {
-	if os.Getenv("INSTALL_IMAGE_REPO") != "" {
-		InstallImageRepo = os.Getenv("INSTALL_IMAGE_REPO")
-	}
-	if os.Getenv("RAINBOND_VERSION") != "" {
-		RainbondRegionVersion = os.Getenv("RAINBOND_VERSION")
-	}
-	if strings.HasSuffix(InstallImageRepo, "/") {
-		InstallImageRepo = InstallImageRepo[:len(InstallImageRepo)-1]
-	}
+// GetVersion returns the app template version.
+func (a *AppTemplate) GetVersion(ctx context.Context, appStore *domain.AppStore, templateName, version string) (*domain.AppTemplateVersion, error) {
+	return a.templateVersionRepo.GetTemplateVersion(appStore.Name, appStore.URL, templateName, version)
 }

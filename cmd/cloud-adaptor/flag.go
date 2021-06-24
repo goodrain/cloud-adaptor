@@ -16,30 +16,39 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package version
+package main
 
-import (
-	"os"
-	"strings"
-)
+import cli "github.com/urfave/cli/v2"
 
-//RainbondRegionVersion rainbond region install version
-var RainbondRegionVersion = "v5.3.0-release"
-
-//OperatorVersion operator image tag
-var OperatorVersion = "v2.0.0"
-
-//InstallImageRepo install image repo
-var InstallImageRepo = "registry.cn-hangzhou.aliyuncs.com/goodrain"
-
-func init() {
-	if os.Getenv("INSTALL_IMAGE_REPO") != "" {
-		InstallImageRepo = os.Getenv("INSTALL_IMAGE_REPO")
-	}
-	if os.Getenv("RAINBOND_VERSION") != "" {
-		RainbondRegionVersion = os.Getenv("RAINBOND_VERSION")
-	}
-	if strings.HasSuffix(InstallImageRepo, "/") {
-		InstallImageRepo = InstallImageRepo[:len(InstallImageRepo)-1]
-	}
+var dbInfoFlag = []cli.Flag{
+	&cli.StringFlag{
+		Name:    "dbAddr",
+		Value:   "127.0.0.1",
+		Usage:   "The address for database.",
+		EnvVars: []string{"DB_ADDR"},
+	},
+	&cli.IntFlag{
+		Name:    "dbPort",
+		Value:   3306,
+		Usage:   "The port for database.",
+		EnvVars: []string{"DB_PORT"},
+	},
+	&cli.StringFlag{
+		Name:    "dbUser",
+		Value:   "root",
+		Usage:   "The user for database.",
+		EnvVars: []string{"DB_USER"},
+	},
+	&cli.StringFlag{
+		Name:    "dbPass",
+		Value:   "123456",
+		Usage:   "The password for database.",
+		EnvVars: []string{"DB_PASS"},
+	},
+	&cli.StringFlag{
+		Name:    "dbName",
+		Value:   "console",
+		Usage:   "The name for database.",
+		EnvVars: []string{"DB_NAME"},
+	},
 }

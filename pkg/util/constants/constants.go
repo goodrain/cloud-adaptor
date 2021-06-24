@@ -16,30 +16,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package version
+package constants
 
-import (
-	"os"
-	"strings"
+const (
+	// Namespace used by the micro API
+	Namespace = "com.goodrain"
+	// Service is the suffix of FullService
+	Service = "enterprise-server"
+	// FullService is service name used to micro registry
+	FullService = Namespace + "." + Service
+	// CloudInit Cloud resource initialization constant
+	CloudInit = "cloud-init"
+	// CloudCreate Cloud resource create constant
+	CloudCreate = "cloud-create"
+	// CloudUpdate -
+	CloudUpdate = "cloud-update"
 )
-
-//RainbondRegionVersion rainbond region install version
-var RainbondRegionVersion = "v5.3.0-release"
-
-//OperatorVersion operator image tag
-var OperatorVersion = "v2.0.0"
-
-//InstallImageRepo install image repo
-var InstallImageRepo = "registry.cn-hangzhou.aliyuncs.com/goodrain"
-
-func init() {
-	if os.Getenv("INSTALL_IMAGE_REPO") != "" {
-		InstallImageRepo = os.Getenv("INSTALL_IMAGE_REPO")
-	}
-	if os.Getenv("RAINBOND_VERSION") != "" {
-		RainbondRegionVersion = os.Getenv("RAINBOND_VERSION")
-	}
-	if strings.HasSuffix(InstallImageRepo, "/") {
-		InstallImageRepo = InstallImageRepo[:len(InstallImageRepo)-1]
-	}
-}
