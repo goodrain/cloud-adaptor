@@ -61,4 +61,6 @@ var (
 
 	//ErrorGetRegionStatus -
 	ErrorGetRegionStatus = newByMessage(400, 7019, "can not get region status")
+
+	ErrIncorrectRKEConfig = newByMessage(400, 7020, "the rke configuration format is incorrect")
 )

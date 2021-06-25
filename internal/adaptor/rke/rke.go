@@ -2,8 +2,10 @@ package rke
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"goodrain.com/cloud-adaptor/internal/repo"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -31,13 +33,13 @@ import (
 )
 
 type rkeAdaptor struct {
-	Repo *ClusterRepo
+	Repo repo.RKEClusterRepository
 }
 
 //Create create ack adaptor
 func Create() (adaptor.RainbondClusterAdaptor, error) {
 	return &rkeAdaptor{
-		Repo: NewRKEClusterRepo(datastore.GetGDB()),
+		Repo: repo.NewRKEClusterRepo(datastore.GetGDB()),
 	}, nil
 }
 
@@ -546,16 +548,17 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, en *v1alpha1.ExpansionNo
 	clusterStatPath := fmt.Sprintf("%s/rke/%s", configDir, rkecluster.Name)
 
 	os.MkdirAll(clusterStatPath, 0755)
-	var rkeConfig v3.RancherKubernetesEngineConfig
 	filePath := fmt.Sprintf("%s/cluster.yml", clusterStatPath)
-	configFileByte, err := ioutil.ReadFile(filePath)
+
+	configFileByte, err := base64.StdEncoding.DecodeString(en.RKEConfig)
 	if err != nil {
-		logrus.Errorf("read cluster %s config file failure %s ", en.ClusterID, err.Error())
-		rollback("InitClusterConfig", "can not parse cluster config file", "failure")
+		logrus.Errorf("decode the rke config: %v", err)
+		rollback("InitClusterConfig", "failed to decode the rke config", "failure")
 		return nil
 	}
-	err = yaml.Unmarshal(configFileByte, &rkeConfig)
-	if err != nil {
+
+	var rkeConfig v3.RancherKubernetesEngineConfig
+	if err = yaml.Unmarshal(configFileByte, &rkeConfig); err != nil {
 		logrus.Errorf("read cluster %s config file failure %s ", en.ClusterID, err.Error())
 		rollback("InitClusterConfig", "can not parse cluster config file", "failure")
 		return nil

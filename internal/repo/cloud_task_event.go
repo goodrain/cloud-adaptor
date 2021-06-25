@@ -69,7 +69,7 @@ func (t *TaskEventRepo) Create(te *model.TaskEvent) error {
 //ListEvent list task events
 func (t *TaskEventRepo) ListEvent(eid, taskID string) ([]*model.TaskEvent, error) {
 	var list []*model.TaskEvent
-	if err := t.DB.Where("eid = ? and task_id=?", eid, taskID).Take(&list).Error; err != nil {
+	if err := t.DB.Where("eid = ? and task_id=?", eid, taskID).Find(&list).Error; err != nil {
 		return nil, err
 	}
 	return list, nil

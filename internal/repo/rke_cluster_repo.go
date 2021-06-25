@@ -16,28 +16,27 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package rke
+package repo
 
 import (
 	"fmt"
-
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
 	"gorm.io/gorm"
 )
 
-// ClusterRepo -
-type ClusterRepo struct {
+// RKEClusterRepo -
+type RKEClusterRepo struct {
 	DB *gorm.DB `inject:""`
 }
 
-// NewRKEClusterRepo new Enterprise repoo
-func NewRKEClusterRepo(db *gorm.DB) *ClusterRepo {
-	return &ClusterRepo{DB: db}
+// NewRKEClusterRepo creates a new RKEClusterRepository.
+func NewRKEClusterRepo(db *gorm.DB) RKEClusterRepository {
+	return &RKEClusterRepo{DB: db}
 }
 
 //Create create an event
-func (t *ClusterRepo) Create(te *model.RKECluster) error {
+func (t *RKEClusterRepo) Create(te *model.RKECluster) error {
 	var old model.RKECluster
 	if err := t.DB.Where("name=?", te.Name).Take(&old).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -56,12 +55,12 @@ func (t *ClusterRepo) Create(te *model.RKECluster) error {
 }
 
 //Update -
-func (t *ClusterRepo) Update(te *model.RKECluster) error {
+func (t *RKEClusterRepo) Update(te *model.RKECluster) error {
 	return t.DB.Save(te).Error
 }
 
 //GetCluster -
-func (t *ClusterRepo) GetCluster(name string) (*model.RKECluster, error) {
+func (t *RKEClusterRepo) GetCluster(name string) (*model.RKECluster, error) {
 	var rc model.RKECluster
 	if err := t.DB.Where("name=? or clusterID=?", name, name).Take(&rc).Error; err != nil {
 		return nil, err
@@ -70,7 +69,7 @@ func (t *ClusterRepo) GetCluster(name string) (*model.RKECluster, error) {
 }
 
 //ListCluster -
-func (t *ClusterRepo) ListCluster() ([]*model.RKECluster, error) {
+func (t *RKEClusterRepo) ListCluster() ([]*model.RKECluster, error) {
 	var list []*model.RKECluster
 	if err := t.DB.Order("created_at desc").Find(&list).Error; err != nil {
 		return nil, err
@@ -79,7 +78,7 @@ func (t *ClusterRepo) ListCluster() ([]*model.RKECluster, error) {
 }
 
 //DeleteCluster delete cluster
-func (t *ClusterRepo) DeleteCluster(name string) error {
+func (t *RKEClusterRepo) DeleteCluster(name string) error {
 	var rc model.RKECluster
 	if err := t.DB.Where("name=? or clusterID=?", name, name).Delete(&rc).Error; err != nil {
 		return err

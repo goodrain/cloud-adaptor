@@ -20,6 +20,11 @@ import (
 	"gorm.io/gorm"
 )
 
+import (
+	_ "github.com/helm/helm/pkg/repo"
+	_ "k8s.io/helm/pkg/proto/hapi/chart"
+)
+
 // Injectors from wire.go:
 
 // initApp init the application.
@@ -36,7 +41,8 @@ func initApp(contextContext context.Context, db *gorm.DB, arg chan types.Kuberne
 	updateKubernetesTaskRepository := repo.NewUpdateKubernetesTaskRepo(db)
 	taskEventRepository := repo.NewTaskEventRepo(db)
 	rainbondClusterConfigRepository := repo.NewRainbondClusterConfigRepo(db)
-	clusterUsecase := biz.NewClusterUsecase(db, taskProducer, cloudAccesskeyRepository, createKubernetesTaskRepository, initRainbondTaskRepository, updateKubernetesTaskRepository, taskEventRepository, rainbondClusterConfigRepository)
+	rkeClusterRepository := repo.NewRKEClusterRepo(db)
+	clusterUsecase := biz.NewClusterUsecase(db, taskProducer, cloudAccesskeyRepository, createKubernetesTaskRepository, initRainbondTaskRepository, updateKubernetesTaskRepository, taskEventRepository, rainbondClusterConfigRepository, rkeClusterRepository)
 	clusterHandler := handler.NewClusterHandler(clusterUsecase)
 	appStoreUsecase := biz.NewAppStoreUsecase(appStoreRepo)
 	appStoreHandler := handler.NewAppStoreHandler(appStoreUsecase)

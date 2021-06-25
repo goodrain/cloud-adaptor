@@ -53,20 +53,20 @@ func init() {
 
 //Cluster cluster
 type Cluster struct {
-	Name            string    `json:"name,omitempty"`
-	ClusterID       string    `json:"cluster_id,omitempty"`
-	Created         Time      `json:"created,omitempty"`
-	MasterURL       MasterURL `json:"master_url,omitempty"`
-	State           string    `json:"state,omitempty"`
-	ClusterType     string    `json:"cluster_type,omitempty"`
-	CurrentVersion  string    `json:"current_version,omitempty"`
-	RegionID        string    `json:"region_id,omitempty"`
-	ZoneID          string    `json:"zone_id,omitempty"`
-	VPCID           string    `json:"vpc_id,omitempty"`
-	SecurityGroupID string    `json:"security_group_id,omitempty"`
-	VSwitchID       string    `json:"vswitch_id,omitempty"`
-	NetworkMode     string    `json:"network_mode,omitempty"`
-	SubnetCIDR      string    `json:"subnet_cidr,omitempty"`
+	Name              string                 `json:"name,omitempty"`
+	ClusterID         string                 `json:"cluster_id,omitempty"`
+	Created           Time                   `json:"created,omitempty"`
+	MasterURL         MasterURL              `json:"master_url,omitempty"`
+	State             string                 `json:"state,omitempty"`
+	ClusterType       string                 `json:"cluster_type,omitempty"`
+	CurrentVersion    string                 `json:"current_version,omitempty"`
+	RegionID          string                 `json:"region_id,omitempty"`
+	ZoneID            string                 `json:"zone_id,omitempty"`
+	VPCID             string                 `json:"vpc_id,omitempty"`
+	SecurityGroupID   string                 `json:"security_group_id,omitempty"`
+	VSwitchID         string                 `json:"vswitch_id,omitempty"`
+	NetworkMode       string                 `json:"network_mode,omitempty"`
+	SubnetCIDR        string                 `json:"subnet_cidr,omitempty"`
 	PodCIDR           string                 `json:"container_cidr,omitempty"`
 	DockerVersion     string                 `json:"docker_version,omitempty"`
 	KubernetesVersion string                 `json:"kubernetes_version,omitempty"`
@@ -537,4 +537,5 @@ type ExpansionNode struct {
 	ETCDNodeNum        int      `json:"etcdNodeNum,omitempty"`
 	InstanceType       string   `json:"instanceType,omitempty"`
 	DockerVersion      string   `json:"dockerVersion,omitempty"`
+	RKEConfig          string   `json:"rkeConfig"`
 }

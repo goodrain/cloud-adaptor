@@ -15,6 +15,7 @@ type RKECluster struct {
 	CreateLogPath     string `gorm:"column:createLogPath" json:"createLogPath,omitempty"`
 	NodeList          string `gorm:"column:nodeList;type:text" json:"nodeList,omitempty"`
 	Stats             string `gorm:"column:stats" json:"stats,omitempty"`
+	RKEConfig         string `gorm:"column:rkeConfig"`
 }
 
 //CustomCluster custom cluster
