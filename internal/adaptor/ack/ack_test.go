@@ -38,7 +38,7 @@ func TestListCluster(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	list, err := adaptor.ClusterList()
+	list, err := adaptor.ClusterList("test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -52,7 +52,7 @@ func TestGetCluster(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cluster, err := adaptor.DescribeCluster("c528e9ce890cb4b9cbddb3f25c36bfd7d")
+	cluster, err := adaptor.DescribeCluster("test", "c528e9ce890cb4b9cbddb3f25c36bfd7d")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +64,7 @@ func TestGetKubeConfig(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	config, err := adaptor.GetKubeConfig("cd06fdbf66e974bf6a62a8dba27983523")
+	config, err := adaptor.GetKubeConfig("test", "cd06fdbf66e974bf6a62a8dba27983523")
 	if err != nil {
 		t.Fatal(err)
 	}

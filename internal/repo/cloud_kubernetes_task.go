@@ -36,6 +36,7 @@ func NewCreateKubernetesTaskRepo(db *gorm.DB) CreateKubernetesTaskRepository {
 	return &CreateKubernetesTaskRepo{DB: db}
 }
 
+// Transaction -
 func (c *CreateKubernetesTaskRepo) Transaction(tx *gorm.DB) CreateKubernetesTaskRepository {
 	return &CreateKubernetesTaskRepo{DB: tx}
 }

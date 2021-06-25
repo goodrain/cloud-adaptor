@@ -38,8 +38,11 @@ func NewCustomClusterRepo(db *gorm.DB) *ClusterRepo {
 
 //Create create an event
 func (t *ClusterRepo) Create(te *model.CustomCluster) error {
+	if te.Name == "" || te.EnterpriseID == "" {
+		return fmt.Errorf("custom cluster name or eid can not be empty")
+	}
 	var old model.CustomCluster
-	if err := t.DB.Where("name=?", te.Name).Take(&old).Error; err != nil {
+	if err := t.DB.Where("name=? and eid=?", te.Name, te.EnterpriseID).Take(&old).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// not found error, create new
 			if te.ClusterID == "" {
@@ -61,27 +64,27 @@ func (t *ClusterRepo) Update(te *model.CustomCluster) error {
 }
 
 //GetCluster -
-func (t *ClusterRepo) GetCluster(name string) (*model.CustomCluster, error) {
+func (t *ClusterRepo) GetCluster(eid, name string) (*model.CustomCluster, error) {
 	var rc model.CustomCluster
-	if err := t.DB.Where("name=? or clusterID=?", name, name).Take(&rc).Error; err != nil {
+	if err := t.DB.Where("eid=? and(name=? or clusterID=?)", eid, name, name).Take(&rc).Error; err != nil {
 		return nil, err
 	}
 	return &rc, nil
 }
 
 //ListCluster -
-func (t *ClusterRepo) ListCluster() ([]*model.CustomCluster, error) {
+func (t *ClusterRepo) ListCluster(eid string) ([]*model.CustomCluster, error) {
 	var list []*model.CustomCluster
-	if err := t.DB.Find(&list).Error; err != nil {
+	if err := t.DB.Where("eid=?", eid).Find(&list).Error; err != nil {
 		return nil, err
 	}
 	return list, nil
 }
 
 //DeleteCluster delete cluster
-func (t *ClusterRepo) DeleteCluster(name string) error {
+func (t *ClusterRepo) DeleteCluster(eid, name string) error {
 	var rc model.CustomCluster
-	if err := t.DB.Where("name=? or clusterID=?", name, name).Delete(&rc).Error; err != nil {
+	if err := t.DB.Where("eid=? and (name=? or clusterID=?)", eid, name, name).Delete(&rc).Error; err != nil {
 		return err
 	}
 	return nil

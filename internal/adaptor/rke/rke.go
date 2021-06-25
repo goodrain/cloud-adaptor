@@ -1,3 +1,21 @@
+// RAINBOND, Application Management Platform
+// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version. For any non-GPL usage of Rainbond,
+// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// must be obtained first.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 package rke
 
 import (
@@ -5,12 +23,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"goodrain.com/cloud-adaptor/internal/repo"
 	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"goodrain.com/cloud-adaptor/internal/repo"
 
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
 	"github.com/rancher/rke/cluster"
@@ -50,8 +69,8 @@ func toString(s *string) string {
 	return *s
 }
 
-func (r *rkeAdaptor) ClusterList() ([]*v1alpha1.Cluster, error) {
-	rkeclusters, err := r.Repo.ListCluster()
+func (r *rkeAdaptor) ClusterList(eid string) ([]*v1alpha1.Cluster, error) {
+	rkeclusters, err := r.Repo.ListCluster(eid)
 	if err != nil {
 		return nil, fmt.Errorf("get cluster meta info failure %s", err.Error())
 	}
@@ -68,23 +87,24 @@ func (r *rkeAdaptor) ClusterList() ([]*v1alpha1.Cluster, error) {
 	return re, nil
 }
 
-func (r *rkeAdaptor) DescribeCluster(clusterID string) (*v1alpha1.Cluster, error) {
-	rkecluster, err := r.Repo.GetCluster(clusterID)
+func (r *rkeAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluster, error) {
+	rkecluster, err := r.Repo.GetCluster(eid, clusterID)
 	if err != nil {
 		return nil, fmt.Errorf("get cluster %s meta info failure %s", clusterID, err.Error())
 	}
 	return converClusterMeta(rkecluster), nil
 }
 
-func (r *rkeAdaptor) DeleteCluster(clusterID string) error {
-	cluster, _ := r.DescribeCluster(clusterID)
+func (r *rkeAdaptor) DeleteCluster(eid, clusterID string) error {
+	cluster, _ := r.DescribeCluster(eid, clusterID)
 	if cluster != nil && cluster.RainbondInit {
 		return bcode.ErrClusterNotAllowDelete
 	}
-	return r.Repo.DeleteCluster(clusterID)
+	return r.Repo.DeleteCluster(eid, clusterID)
 }
 
 func (r *rkeAdaptor) GetRainbondInitConfig(
+	eid string,
 	cluster *v1alpha1.Cluster,
 	gateway, chaos []*rainbondv1alpha1.K8sNode,
 	rollback func(step, message, status string),
@@ -114,14 +134,15 @@ func (r *rkeAdaptor) GetRainbondInitConfig(
 	}
 }
 
-func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
+func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	rollback("InitClusterConfig", "", "start")
-	rkecluster, err := r.Repo.GetCluster(config.ClusterName)
+	rkecluster, err := r.Repo.GetCluster(eid, config.ClusterName)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			rkecluster = &model.RKECluster{
-				Name:  config.ClusterName,
-				Stats: v1alpha1.InitState,
+				Name:         config.ClusterName,
+				Stats:        v1alpha1.InitState,
+				EnterpriseID: eid,
 			}
 			r.Repo.Create(rkecluster)
 		} else {
@@ -170,7 +191,7 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, config *v1alp
 	if os.Getenv("CONFIG_DIR") != "" {
 		configDir = os.Getenv("CONFIG_DIR")
 	}
-	clusterStatPath := fmt.Sprintf("%s/rke/%s", configDir, config.ClusterName)
+	clusterStatPath := fmt.Sprintf("%s/enterprise/%s/rke/%s", configDir, config.EnterpriseID, config.ClusterName)
 
 	if rkecluster.Stats == v1alpha1.InstallFailed {
 		//TODO: This action will result in an inconsistency with the configuration of the node
@@ -241,7 +262,7 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, config *v1alp
 		}
 		return nil
 	}
-	rollback("InitClusterConfig", filePath, "success")
+	rollback("InitClusterConfig", "init cluster config success", "success")
 
 	// cluster install and up
 	rollback("InstallKubernetes", "", "start")
@@ -313,7 +334,7 @@ func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 	return cluster
 }
 
-func (r *rkeAdaptor) CreateCluster(config v1alpha1.CreateClusterConfig) (*v1alpha1.Cluster, error) {
+func (r *rkeAdaptor) CreateCluster(eid string, config v1alpha1.CreateClusterConfig) (*v1alpha1.Cluster, error) {
 	rkeConfig, ok := config.(*v3.RancherKubernetesEngineConfig)
 	if !ok {
 		return nil, fmt.Errorf("cluster config is not RancherKubernetesEngineConfig")
@@ -521,8 +542,8 @@ func checkAllIncluded(cluster *cluster.Cluster) error {
 	return nil
 }
 
-func (r *rkeAdaptor) GetKubeConfig(clusterID string) (*v1alpha1.KubeConfig, error) {
-	rkecluster, err := r.Repo.GetCluster(clusterID)
+func (r *rkeAdaptor) GetKubeConfig(eid, clusterID string) (*v1alpha1.KubeConfig, error) {
+	rkecluster, err := r.Repo.GetCluster(eid, clusterID)
 	if err != nil {
 		return nil, fmt.Errorf("get cluster meta info failure %s", err.Error())
 	}
@@ -532,10 +553,10 @@ func (r *rkeAdaptor) GetKubeConfig(clusterID string) (*v1alpha1.KubeConfig, erro
 	return &v1alpha1.KubeConfig{Config: rkecluster.KubeConfig}, nil
 }
 
-func (r *rkeAdaptor) ExpansionNode(ctx context.Context, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
+func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	//Check cluster local state file, if not exist, not support expansion node
 	rollback("InitClusterConfig", "", "start")
-	rkecluster, err := r.Repo.GetCluster(en.ClusterID)
+	rkecluster, err := r.Repo.GetCluster(eid, en.ClusterID)
 	if err != nil {
 		logrus.Errorf("get cluster meta info failure %s", err.Error())
 		rollback("InitClusterConfig", "Get cluster meta info failure", "failure")
@@ -545,7 +566,7 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, en *v1alpha1.ExpansionNo
 	if os.Getenv("CONFIG_DIR") != "" {
 		configDir = os.Getenv("CONFIG_DIR")
 	}
-	clusterStatPath := fmt.Sprintf("%s/rke/%s", configDir, rkecluster.Name)
+	clusterStatPath := fmt.Sprintf("%s/enterprise/%s/rke/%s", configDir, rkecluster.EnterpriseID, rkecluster.Name)
 
 	os.MkdirAll(clusterStatPath, 0755)
 	filePath := fmt.Sprintf("%s/cluster.yml", clusterStatPath)
@@ -563,12 +584,16 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, en *v1alpha1.ExpansionNo
 		rollback("InitClusterConfig", "can not parse cluster config file", "failure")
 		return nil
 	}
-	clusterStatFile := fmt.Sprintf("%s/rke/%s/cluster.rkestate", configDir, rkecluster.Name)
+	clusterStatFile := fmt.Sprintf("%s/enterprise/%s/rke/%s/cluster.rkestate", configDir, rkecluster.EnterpriseID, rkecluster.Name)
+	oldClusterStatFile := fmt.Sprintf("%s/rke/%s/cluster.rkestate", configDir, rkecluster.Name)
 	_, err = os.Stat(clusterStatFile)
 	if err != nil {
-		logrus.Errorf("read cluster %s state file failure %s ", en.ClusterID, err.Error())
-		rollback("InitClusterConfig", "state file not exist, can not support expansion node", "failure")
-		return nil
+		_, err = os.Stat(oldClusterStatFile)
+		if err != nil {
+			logrus.Errorf("read cluster %s state file failure %s ", en.ClusterID, err.Error())
+			rollback("InitClusterConfig", "state file not exist, can not support expansion node", "failure")
+			return nil
+		}
 	}
 	//generate new cluster config file
 	var nodeMaps = make(map[string]v3.RKEConfigNode, len(en.Nodes))
@@ -651,6 +676,6 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, en *v1alpha1.ExpansionNo
 		return nil
 	}
 	rollback("UpdateKubernetes", "", "success")
-	clu, _ := r.DescribeCluster(rkecluster.ClusterID)
+	clu, _ := r.DescribeCluster(eid, rkecluster.ClusterID)
 	return clu
 }

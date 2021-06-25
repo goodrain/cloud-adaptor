@@ -1,10 +1,31 @@
+// RAINBOND, Application Management Platform
+// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version. For any non-GPL usage of Rainbond,
+// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// must be obtained first.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 package repo
 
 import (
 	"context"
+	"os"
+	"path"
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"goodrain.com/cloud-adaptor/cmd/cloud-adaptor/config"
 	"goodrain.com/cloud-adaptor/internal/domain"
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/internal/repo/appstore"
@@ -17,14 +38,15 @@ type AppStoreRepo interface {
 	Create(ctx context.Context, appStore *domain.AppStore) error
 	List(eid string) ([]*domain.AppStore, error)
 	Get(ctx context.Context, eid, name string) (*domain.AppStore, error)
-	Delete(eid, name string) error
+	Delete(appStore *domain.AppStore) error
 	Update(ctx context.Context, appStore *domain.AppStore) error
 	Resync(appStore *domain.AppStore)
 }
 
 // NewAppStoreRepo creates a new AppStoreRepo.
-func NewAppStoreRepo(appStoreDao dao.AppStoreDao, storer *appstore.Storer, appTemplater appstore.AppTemplater) AppStoreRepo {
+func NewAppStoreRepo(cfg *config.Config, appStoreDao dao.AppStoreDao, storer *appstore.Storer, appTemplater appstore.AppTemplater) AppStoreRepo {
 	return &appStoreRepo{
+		cfg:          cfg,
 		storer:       storer,
 		appStoreDao:  appStoreDao,
 		appTemplater: appTemplater,
@@ -32,6 +54,7 @@ func NewAppStoreRepo(appStoreDao dao.AppStoreDao, storer *appstore.Storer, appTe
 }
 
 type appStoreRepo struct {
+	cfg          *config.Config
 	appStoreDao  dao.AppStoreDao
 	storer       *appstore.Storer
 	appTemplater appstore.AppTemplater
@@ -116,8 +139,22 @@ func (a *appStoreRepo) Update(ctx context.Context, appStore *domain.AppStore) er
 	return a.appStoreDao.Update(as)
 }
 
-func (a *appStoreRepo) Delete(eid, name string) error {
-	return a.appStoreDao.Delete(eid, name)
+func (a *appStoreRepo) Delete(appStore *domain.AppStore) error {
+	// delete from database
+	if err := a.appStoreDao.Delete(appStore.EID, appStore.Name); err != nil && !errors.Is(err, bcode.ErrAppStoreNotFound) {
+		return err
+	}
+
+	// delete from cache
+	a.storer.DeleteAppTemplates(appStore.Key())
+
+	// delete charts in cache
+	dest := path.Join(a.cfg.Helm.RepoCache, appStore.Name)
+	if err := os.RemoveAll(dest); err != nil {
+		logrus.Warningf("key: %s; delete charts cache: %v", appStore.Key(), err)
+	}
+
+	return nil
 }
 
 func (a *appStoreRepo) Resync(appStore *domain.AppStore) {

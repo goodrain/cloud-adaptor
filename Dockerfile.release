@@ -1,0 +1,14 @@
+ARG VERSION
+ARG LDFLAGS
+FROM golang:1.14-stretch as builder
+ENV CGO_ENABLED=1
+ENV GOPATH=/go
+ADD . /go/src/goodrain.com/cloud-adaptor/
+WORKDIR /go/src/goodrain.com/cloud-adaptor/
+ENV GOPROXY=https://goproxy.io
+RUN go build -ldflags "$LDFLAGS" -o /cloud-adaptor
+
+
+FROM rainbond/rainbond:$VERSION-allinone
+COPY --from=builder /go/src/goodrain.com/cloud-adaptor/chart /app/chart
+COPY --from=builder /cloud-adaptor /app/cloudadaptor

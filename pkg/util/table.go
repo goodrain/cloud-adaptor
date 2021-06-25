@@ -27,6 +27,7 @@ import (
 
 var ansiRegexp = regexp.MustCompile("\x1b[^m]*m")
 
+// Table -
 type Table struct {
 	Rows    [][]string
 	Columns [][]string
@@ -38,6 +39,7 @@ type Table struct {
 	columnsWidth []int
 }
 
+// TableOptions -
 type TableOptions struct {
 	Padding      int
 	UseSeparator bool
@@ -48,6 +50,7 @@ var defaultTableOptions = &TableOptions{
 	UseSeparator: false,
 }
 
+// NewTable -
 func NewTable(rows [][]string, options *TableOptions) *Table {
 	t := &Table{
 		Options: options,
@@ -62,6 +65,7 @@ func NewTable(rows [][]string, options *TableOptions) *Table {
 	return t
 }
 
+// SetHeader -
 func (t *Table) SetHeader(header []string) {
 	t.HasHeader = true
 	// There is a better way to do this
@@ -69,6 +73,7 @@ func (t *Table) SetHeader(header []string) {
 	t.computeProperties()
 }
 
+// AddRow -
 func (t *Table) AddRow(row []string) {
 	t.Rows = append(t.Rows, row)
 	t.computeProperties()
@@ -95,6 +100,7 @@ func (t *Table) recalculate() {
 	}
 }
 
+// Render -
 func (t *Table) Render() string {
 	// allocate a 1k byte buffer
 	bb := make([]byte, 0, 1024)

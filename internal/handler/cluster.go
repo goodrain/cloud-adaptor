@@ -27,19 +27,20 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
-	"goodrain.com/cloud-adaptor/internal/biz"
+	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/ginutil"
+	"goodrain.com/cloud-adaptor/pkg/util/md5util"
 	"goodrain.com/cloud-adaptor/pkg/util/ssh"
 )
 
 // ClusterHandler -
 type ClusterHandler struct {
-	cluster *biz.ClusterUsecase
+	cluster *usecase.ClusterUsecase
 }
 
 // NewClusterHandler new enterprise handler
-func NewClusterHandler(clusterUsecase *biz.ClusterUsecase) *ClusterHandler {
+func NewClusterHandler(clusterUsecase *usecase.ClusterUsecase) *ClusterHandler {
 	return &ClusterHandler{
 		cluster: clusterUsecase,
 	}
@@ -329,6 +330,7 @@ func (e *ClusterHandler) GetAccessKey(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, err)
 		return
 	}
+	access.SecretKey = md5util.Md5Crypt(access.SecretKey, access.EnterpriseID)
 	ginutil.JSON(ctx, access, nil)
 }
 
@@ -600,14 +602,64 @@ func (e *ClusterHandler) GetKubeConfig(ctx *gin.Context) {
 func (e *ClusterHandler) GetRainbondClusterConfig(ctx *gin.Context) {
 	eid := ctx.Param("eid")
 	clusterID := ctx.Param("clusterID")
-	config, err := e.cluster.GetRainbondClusterConfig(eid, clusterID)
-	if err != nil {
-		ginutil.JSON(ctx, nil, err)
-		return
+	_, config := e.cluster.GetRainbondClusterConfig(eid, clusterID)
+	if config == "" {
+		config = `
+# apiVersion: rainbond.io/v1alpha1
+# kind: RainbondCluster
+# metadata:
+#  name: rainbondcluster
+#  namespace: rbd-system
+# spec:
+#  ## set source build cache mode, default is hostpath, options: pv, hostpath
+#  cacheMode: hostpath
+#  configCompleted: true
+#  ## Whether to deploy high availability. default is true if the number of nodes is greater than 3.
+#  enableHA: false
+#  ## etcd config, secret must have ca-file、cert-file and key-file keys.
+#  etcdConfig:
+#	 endpoints:
+#	 - 192.168.10.6:2379
+#	 - 192.168.10.8:2379
+#	 - 192.168.10.4:2379
+#	 secretName: rbd-etcd-secret
+#  ## Specifies the outer network IP address of the gateway. As the access address.
+#  gatewayIngressIPs:
+#    - 39.101.149.237
+#  ## Specifies image hub info, deployment default hub when not set.
+#  imageHub:
+#	 domain: goodrain.me
+#	 password: 526856c5
+#	 username: admin
+#  installVersion: v5.3.0-release
+#  ## Specifies the node that performs the component CI task.
+#  nodesForChaos:
+#   - externalIP: 121.89.192.53
+#	  internalIP: 192.168.10.3
+#	  name: 39.101.149.237
+#  ## Specify the gateway node.
+#  nodesForGateway:
+#   - externalIP: 121.89.192.53
+#	  internalIP: 192.168.10.3
+#	  name: 39.101.149.237
+#  ## Specifies the rainbond component image hub address
+#  rainbondImageRepository: registry.cn-hangzhou.aliyuncs.com/goodrain
+#  ## Specifies shared storage provider.
+#  rainbondVolumeSpecRWX:
+#	 imageRepository: ""
+#	 storageClassName: glusterfs-simple
+#  ## Specifies the db connection info of region.
+#  regionDatabase:
+#	 host: 127.0.0.1
+#	 name: region
+#	 password: rainbond123456!
+#	 port: 3306
+#	 username: root
+#  ## Specifies the default component domain name suffix. Not specified will be assigned by default
+#  suffixHTTPHost: xxxx.grapps.cn`
 	}
-	out, _ := yaml.Marshal(config)
 	re := v1.SetRainbondClusterConfigReq{
-		Config: string(out),
+		Config: config,
 	}
 	ginutil.JSON(ctx, re, nil)
 }

@@ -20,6 +20,7 @@ package repo
 
 import (
 	"fmt"
+
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
 	"gorm.io/gorm"
@@ -37,8 +38,11 @@ func NewRKEClusterRepo(db *gorm.DB) RKEClusterRepository {
 
 //Create create an event
 func (t *RKEClusterRepo) Create(te *model.RKECluster) error {
+	if te.Name == "" || te.EnterpriseID == "" {
+		return fmt.Errorf("rke cluster name or eid can not be empty")
+	}
 	var old model.RKECluster
-	if err := t.DB.Where("name=?", te.Name).Take(&old).Error; err != nil {
+	if err := t.DB.Where("name=? and eid=?", te.Name, te.EnterpriseID).Take(&old).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			// not found error, create new
 			if te.ClusterID == "" {
@@ -60,27 +64,27 @@ func (t *RKEClusterRepo) Update(te *model.RKECluster) error {
 }
 
 //GetCluster -
-func (t *RKEClusterRepo) GetCluster(name string) (*model.RKECluster, error) {
+func (t *RKEClusterRepo) GetCluster(eid, name string) (*model.RKECluster, error) {
 	var rc model.RKECluster
-	if err := t.DB.Where("name=? or clusterID=?", name, name).Take(&rc).Error; err != nil {
+	if err := t.DB.Where("eid=? and (name=? or clusterID=?)", eid, name, name).Take(&rc).Error; err != nil {
 		return nil, err
 	}
 	return &rc, nil
 }
 
 //ListCluster -
-func (t *RKEClusterRepo) ListCluster() ([]*model.RKECluster, error) {
+func (t *RKEClusterRepo) ListCluster(eid string) ([]*model.RKECluster, error) {
 	var list []*model.RKECluster
-	if err := t.DB.Order("created_at desc").Find(&list).Error; err != nil {
+	if err := t.DB.Where("eid=?", eid).Order("created_at desc").Take(&list).Error; err != nil {
 		return nil, err
 	}
 	return list, nil
 }
 
 //DeleteCluster delete cluster
-func (t *RKEClusterRepo) DeleteCluster(name string) error {
+func (t *RKEClusterRepo) DeleteCluster(eid, name string) error {
 	var rc model.RKECluster
-	if err := t.DB.Where("name=? or clusterID=?", name, name).Delete(&rc).Error; err != nil {
+	if err := t.DB.Where("eid=? and (name=? or clusterID=?)", eid, name, name).Delete(&rc).Error; err != nil {
 		return err
 	}
 	return nil

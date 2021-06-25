@@ -74,7 +74,7 @@ type RainbondClusterConfigRepository interface {
 type RKEClusterRepository interface {
 	Create(te *model.RKECluster) error
 	Update(te *model.RKECluster) error
-	GetCluster(name string) (*model.RKECluster, error)
-	ListCluster() ([]*model.RKECluster, error)
-	DeleteCluster(name string) error
+	GetCluster(eid, name string) (*model.RKECluster, error)
+	ListCluster(eid string) ([]*model.RKECluster, error)
+	DeleteCluster(eid, name string) error
 }

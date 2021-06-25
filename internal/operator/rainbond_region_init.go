@@ -1,3 +1,21 @@
+// RAINBOND, Application Management Platform
+// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version. For any non-GPL usage of Rainbond,
+// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// must be obtained first.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 package operator
 
 import (
@@ -108,7 +126,7 @@ func (r *RainbondRegionInit) InitRainbondRegion(initConfig *v1alpha1.RainbondIni
 		if err := cmd.Run(); err != nil {
 			errout := stdout.String()
 			if !strings.Contains(errout, "cannot re-use a name that is still in use") {
-				if strings.Contains(errout, "existing_kind: rbac.authorization.k8s.io/v1, Kind=ClusterRoleBinding") {
+				if strings.Contains(errout, "\"rainbond-operator\" already exists") {
 					func() {
 						ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 						defer cancel()
@@ -177,6 +195,9 @@ func (r *RainbondRegionInit) createRainbondCR(kubeClient *kubernetes.Clientset, 
 		if err := yaml.Unmarshal([]byte(rcc.Config), cluster); err != nil {
 			logrus.Errorf("Unmarshal rainbond config failure %s", err.Error())
 		}
+	}
+	if len(cluster.Spec.GatewayIngressIPs) == 0 {
+		return fmt.Errorf("can not select eip, please specify `gatewayIngressIPs` in the custom cluster init configuration")
 	}
 	if cluster.Spec.EtcdConfig != nil && len(cluster.Spec.EtcdConfig.Endpoints) == 0 {
 		cluster.Spec.EtcdConfig = nil
@@ -464,6 +485,14 @@ func (r *RainbondRegionInit) UninstallRegion(clusterID string) error {
 			return fmt.Errorf("delete csidriver: %v", err)
 		}
 	}
+
+	// delete rainbond-operator ClusterRoleBinding
+	if err := coreClient.RbacV1().ClusterRoleBindings().Delete(ctx, "rainbond-operator", metav1.DeleteOptions{}); err != nil {
+		if !k8sErrors.IsNotFound(err) {
+			return fmt.Errorf("delete cluster role bindings: %v", err)
+		}
+	}
+
 	// delete rainbond cluster
 	var rbdcluster rainbondv1alpha1.RainbondCluster
 	if err := runtimeClient.DeleteAllOf(ctx, &rbdcluster, client.InNamespace(r.namespace)); err != nil {
@@ -491,6 +520,7 @@ func (r *RainbondRegionInit) UninstallRegion(clusterID string) error {
 		case <-timer.C:
 			return fmt.Errorf("waiting namespace deleted timeout")
 		case <-ticker.C:
+			logrus.Debugf("waiting namespace rbd-system deleted")
 		}
 	}
 }

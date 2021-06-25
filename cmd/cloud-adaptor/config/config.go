@@ -1,3 +1,21 @@
+// RAINBOND, Application Management Platform
+// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version. For any non-GPL usage of Rainbond,
+// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// must be obtained first.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 package config
 
 import (
@@ -17,6 +35,7 @@ type Config struct {
 	LogLevel  string
 	DB        *DB
 	NSQConfig *NSQConfig
+	Helm      *Helm
 }
 
 //NSQConfig config
@@ -32,6 +51,12 @@ type DB struct {
 	User string
 	Pass string
 	Name string
+}
+
+// Helm holds configurations for helm.
+type Helm struct {
+	RepoFile  string
+	RepoCache string
 }
 
 func parseByEnvAndCtx(ctx *cli.Context, name, envName string) string {
@@ -76,6 +101,10 @@ func GetDefaultConfig(ctx *cli.Context) *Config {
 			User: parseByEnvAndCtx(ctx, "dbUser", "MYSQL_USER"),
 			Pass: parseByEnvAndCtx(ctx, "dbPass", "MYSQL_PASS"),
 			Name: parseByEnvAndCtx(ctx, "dbName", "MYSQL_DB"),
+		},
+		Helm: &Helm{
+			RepoFile:  parseByEnvAndCtx(ctx, "helm-repo-file", "HELM_REPO_FILE"),
+			RepoCache: parseByEnvAndCtx(ctx, "helm-cache", "HELM_CACHE"),
 		},
 	}
 }

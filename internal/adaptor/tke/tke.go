@@ -1,3 +1,21 @@
+// RAINBOND, Application Management Platform
+// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version. For any non-GPL usage of Rainbond,
+// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// must be obtained first.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 package tke
 
 import (
@@ -40,7 +58,7 @@ func toString(s *string) string {
 	return *s
 }
 
-func (t *tkeAdaptor) ClusterList() ([]*v1alpha1.Cluster, error) {
+func (t *tkeAdaptor) ClusterList(eid string) ([]*v1alpha1.Cluster, error) {
 	req := tke.NewDescribeClustersRequest()
 	res, err := t.tkeclient.DescribeClusters(req)
 	if err != nil {
@@ -67,20 +85,20 @@ func (t *tkeAdaptor) ClusterList() ([]*v1alpha1.Cluster, error) {
 	return clusters, nil
 }
 
-func (t *tkeAdaptor) DescribeCluster(clusterID string) (*v1alpha1.Cluster, error) {
+func (t *tkeAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluster, error) {
 	return nil, nil
 }
 
-func (t *tkeAdaptor) CreateCluster(v1alpha1.CreateClusterConfig) (*v1alpha1.Cluster, error) {
+func (t *tkeAdaptor) CreateCluster(string, v1alpha1.CreateClusterConfig) (*v1alpha1.Cluster, error) {
 	return nil, nil
 }
 
 //DeleteCluster delete cluster
-func (t *tkeAdaptor) DeleteCluster(clusterID string) error {
+func (t *tkeAdaptor) DeleteCluster(eid, clusterID string) error {
 	return nil
 }
 
-func (t *tkeAdaptor) GetKubeConfig(clusterID string) (*v1alpha1.KubeConfig, error) {
+func (t *tkeAdaptor) GetKubeConfig(eid, clusterID string) (*v1alpha1.KubeConfig, error) {
 	return nil, nil
 }
 
@@ -160,13 +178,13 @@ func (t *tkeAdaptor) DescribeAvailableResourceZones(regionID, InstanceType strin
 	return nil, nil
 }
 
-func (t *tkeAdaptor) CreateRainbondKubernetes(ctx context.Context, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
+func (t *tkeAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, config *v1alpha1.KubernetesClusterConfig, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	return nil
 }
-func (t *tkeAdaptor) GetRainbondInitConfig(cluster *v1alpha1.Cluster, gateway, chaos []*rainbondv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.RainbondInitConfig {
+func (t *tkeAdaptor) GetRainbondInitConfig(eid string, cluster *v1alpha1.Cluster, gateway, chaos []*rainbondv1alpha1.K8sNode, rollback func(step, message, status string)) *v1alpha1.RainbondInitConfig {
 	return nil
 }
 
-func (t *tkeAdaptor) ExpansionNode(ctx context.Context, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
+func (t *tkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1.ExpansionNode, rollback func(step, message, status string)) *v1alpha1.Cluster {
 	return nil
 }

@@ -1,9 +1,9 @@
 FROM golang:1.13 as builder
 ENV CGO_ENABLED=0
 ENV GOPATH=/go
-ENV GOPROXY=https://goproxy.io
+ENV GOPROXY=https://goproxy.cn
 
-WORKDIR /go/src/github.com/goodrain/cloud-adaptor
+WORKDIR /go/src/goodrain.com/cloud-adaptor
 COPY . .
 
 ARG GOARCH

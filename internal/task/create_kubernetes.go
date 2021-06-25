@@ -22,7 +22,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"goodrain.com/cloud-adaptor/internal/biz"
 	"runtime/debug"
 
 	"github.com/nsqio/go-nsq"
@@ -30,6 +29,7 @@ import (
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
+	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/internal/types"
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
 )
@@ -59,7 +59,7 @@ func (c *CreateKubernetesCluster) Run(ctx context.Context) {
 	}
 	c.rollback("Init", "cloud adaptor create success", "success")
 	// create cluster
-	adaptor.CreateRainbondKubernetes(ctx, c.config, c.rollback)
+	adaptor.CreateRainbondKubernetes(ctx, c.config.EnterpriseID, c.config, c.rollback)
 }
 
 //GetChan get message chan
@@ -73,7 +73,7 @@ type createKubernetesTaskHandler struct {
 }
 
 // NewCreateKubernetesTaskHandler -
-func NewCreateKubernetesTaskHandler(clusterUsecase *biz.ClusterUsecase) CreateKubernetesTaskHandler {
+func NewCreateKubernetesTaskHandler(clusterUsecase *usecase.ClusterUsecase) CreateKubernetesTaskHandler {
 	return &createKubernetesTaskHandler{
 		eventHandler: &CallBackEvent{
 			TopicName:      constants.CloudCreate,

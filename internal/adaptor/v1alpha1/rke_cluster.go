@@ -1,3 +1,21 @@
+// RAINBOND, Application Management Platform
+// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version. For any non-GPL usage of Rainbond,
+// one or multiple Commercial Licenses authorized by Goodrain Co., Ltd.
+// must be obtained first.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 package v1alpha1
 
 import (
@@ -66,7 +84,11 @@ func GetDefaultRKECreateClusterConfig(config KubernetesClusterConfig) CreateClus
 			return nodes
 		}(),
 		Services: v3.RKEConfigServices{
-			Etcd:    v3.ETCDService{},
+			Etcd: v3.ETCDService{
+				BaseService: v3.BaseService{
+					ExtraEnv: []string{"ETCD_AUTO_COMPACTION_RETENTION=1"},
+				},
+			},
 			KubeAPI: v3.KubeAPIService{ServiceClusterIPRange: serviceClusterIPRange},
 			// KubeController Service
 			KubeController: v3.KubeControllerService{ClusterCIDR: podIPRange, ServiceClusterIPRange: serviceClusterIPRange},
@@ -74,6 +96,9 @@ func GetDefaultRKECreateClusterConfig(config KubernetesClusterConfig) CreateClus
 			Scheduler: v3.SchedulerService{},
 			// Kubelet Service
 			Kubelet: v3.KubeletService{
+				BaseService: v3.BaseService{
+					ExtraBinds: []string{"/grlocaldata:/grlocaldata:rw,z", "/cache:/cache:rw,z"},
+				},
 				ClusterDomain:    "cluster.local",
 				ClusterDNSServer: "10.43.0.10",
 			},
@@ -170,6 +195,9 @@ func GetDefaultRKECreateClusterConfig(config KubernetesClusterConfig) CreateClus
 		},
 		Authorization: v3.AuthzConfig{Mode: "rbac"},
 		Ingress: v3.IngressConfig{
+			Provider: "none",
+		},
+		Monitoring: v3.MonitoringConfig{
 			Provider: "none",
 		},
 	}

@@ -22,7 +22,7 @@ package model
 type AppStore struct {
 	Model
 	EID      string `gorm:"uniqueIndex:name;column:eid;size:32"`
-	Name     string `gorm:"uniqueIndex:name;column:name;size:255"`
+	Name     string `gorm:"uniqueIndex:name;column:name;size:32"`
 	URL      string `gorm:"column:url"`
 	Branch   string `gorm:"column:branch"`
 	Username string `gorm:"column:username"`
