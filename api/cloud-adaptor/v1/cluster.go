@@ -232,3 +232,13 @@ type UpdateKubernetesTask struct {
 	EnterpriseID string `json:"eid"`
 	Status       string `json:"status"`
 }
+
+// GetDefaultRKEConfigReq -
+type GetDefaultRKEConfigReq struct {
+	Nodes v1alpha1.NodeList `json:"nodes,omitempty"`
+}
+
+// GetDefaultRKEConfigResp rancher kubernetes engine configuration.
+type GetDefaultRKEConfigResp struct {
+	EncodedRKEConfig string `json:"encodeRKEConfig"`
+}

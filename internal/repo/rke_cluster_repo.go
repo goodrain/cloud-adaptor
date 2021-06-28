@@ -75,7 +75,7 @@ func (t *RKEClusterRepo) GetCluster(eid, name string) (*model.RKECluster, error)
 //ListCluster -
 func (t *RKEClusterRepo) ListCluster(eid string) ([]*model.RKECluster, error) {
 	var list []*model.RKECluster
-	if err := t.DB.Where("eid=?", eid).Order("created_at desc").Take(&list).Error; err != nil {
+	if err := t.DB.Where("eid=?", eid).Order("created_at desc").Find(&list).Error; err != nil {
 		return nil, err
 	}
 	return list, nil

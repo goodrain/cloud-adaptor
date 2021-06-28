@@ -347,7 +347,7 @@ func (c *ClusterUsecase) getRKEConfig(eid string, cluster *model.RKECluster) (*v
 	if configDir == "" {
 		configDir = "/tmp"
 	}
-	clusterYMLPath := fmt.Sprintf("%s/enterprise/%s/rke/%s", configDir, cluster.EnterpriseID, cluster.Name)
+	clusterYMLPath := fmt.Sprintf("%s/enterprise/%s/rke/%s/cluster.yml", configDir, cluster.EnterpriseID, cluster.Name)
 	oldclusterYMLPath := fmt.Sprintf("%s/rke/%s/cluster.yml", configDir, cluster.Name)
 
 	bytes, err := ioutil.ReadFile(clusterYMLPath)
@@ -806,4 +806,19 @@ func (c *ClusterUsecase) UninstallRainbondRegion(eid, clusterID, provider string
 		logrus.Infof("complete uninstall cluster %s by provider %s", clusterID, provider)
 	}()
 	return nil
+}
+
+// GetDefaultRKEConfig return a defualt rke config.
+func (c *ClusterUsecase) GetDefaultRKEConfig(req *v1.GetDefaultRKEConfigReq) (*v1.GetDefaultRKEConfigResp, error) {
+	rkeConfig, _ := v1alpha1.GetDefaultRKECreateClusterConfig(v1alpha1.KubernetesClusterConfig{
+		Nodes: req.Nodes,
+	}).(*v3.RancherKubernetesEngineConfig)
+
+	rkeConfigBytes, err := yaml.Marshal(rkeConfig)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	encodedRKEConfig := base64.StdEncoding.EncodeToString(rkeConfigBytes)
+	return &v1.GetDefaultRKEConfigResp{EncodedRKEConfig: encodedRKEConfig}, nil
 }

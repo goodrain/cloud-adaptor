@@ -151,6 +151,18 @@ definitions:
     - name
     - url
     type: object
+  v1.GetDefaultRKEConfigReq:
+    properties:
+      nodes:
+        items:
+          $ref: '#/definitions/v1alpha1.ConfigNode'
+        type: array
+    type: object
+  v1.GetDefaultRKEConfigResp:
+    properties:
+      encodeRKEConfig:
+        type: string
+    type: object
   v1.TemplateVersion:
     properties:
       annotations:
@@ -206,9 +218,10 @@ definitions:
         description: The name of the chart
         type: string
       questions:
-        additionalProperties: true
         description: The questions content of the chart
-        type: object
+        items:
+          $ref: '#/definitions/v3.Question'
+        type: array
       readme:
         description: The readme content of the chart.
         type: string
@@ -256,6 +269,141 @@ definitions:
         type: string
     required:
     - url
+    type: object
+  v1.UpdateKubernetesReq:
+    properties:
+      clusterID:
+        type: string
+      etcdNodeNum:
+        type: integer
+      instanceType:
+        type: string
+      masterNodeNum:
+        type: integer
+      nodes:
+        items:
+          $ref: '#/definitions/v1alpha1.ConfigNode'
+        type: array
+      provider:
+        type: string
+      rkeConfig:
+        type: string
+      workerNum:
+        type: integer
+      workerResourceType:
+        type: string
+    type: object
+  v1.UpdateKubernetesTask:
+    properties:
+      clusterID:
+        type: string
+      eid:
+        type: string
+      nodeNumber:
+        type: integer
+      providerName:
+        type: string
+      status:
+        type: string
+      taskID:
+        type: string
+    type: object
+  v1alpha1.ConfigNode:
+    properties:
+      dockerSocketPath:
+        type: string
+      internalIP:
+        type: string
+      ip:
+        type: string
+      roles:
+        items:
+          type: string
+        type: array
+      sshPort:
+        type: integer
+      sshUser:
+        type: string
+    type: object
+  v3.Question:
+    properties:
+      default:
+        type: string
+      description:
+        type: string
+      group:
+        type: string
+      invalidChars:
+        type: string
+      label:
+        type: string
+      max:
+        type: integer
+      maxLength:
+        type: integer
+      min:
+        type: integer
+      minLength:
+        type: integer
+      options:
+        items:
+          type: string
+        type: array
+      required:
+        type: boolean
+      satisfies:
+        type: string
+      showIf:
+        type: string
+      showSubquestionIf:
+        type: string
+      subquestions:
+        items:
+          $ref: '#/definitions/v3.SubQuestion'
+        type: array
+      type:
+        type: string
+      validChars:
+        type: string
+      variable:
+        type: string
+    type: object
+  v3.SubQuestion:
+    properties:
+      default:
+        type: string
+      description:
+        type: string
+      group:
+        type: string
+      invalidChars:
+        type: string
+      label:
+        type: string
+      max:
+        type: integer
+      maxLength:
+        type: integer
+      min:
+        type: integer
+      minLength:
+        type: integer
+      options:
+        items:
+          type: string
+        type: array
+      required:
+        type: boolean
+      satisfies:
+        type: string
+      showIf:
+        type: string
+      type:
+        type: string
+      validChars:
+        type: string
+      variable:
+        type: string
     type: object
 info:
   contact:
@@ -581,6 +729,98 @@ paths:
       summary: returns the app template version.
       tags:
       - appstores
+  /api/v1/enterprises/:eid/kclusters/default-rkeconfig:
+    get:
+      consumes:
+      - application/json
+      operationId: getDefaultRKEConfig
+      parameters:
+      - description: the enterprise id
+        in: path
+        name: eid
+        required: true
+        type: string
+      - description: .
+        in: body
+        name: createAppStoreReq
+        required: true
+        schema:
+          $ref: '#/definitions/v1.GetDefaultRKEConfigReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.GetDefaultRKEConfigResp'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+      summary: return a default rke config.
+      tags:
+      - cluster
+  /api/v1/enterprises/:eid/update-cluster:
+    post:
+      consumes:
+      - application/json
+      operationId: updateKubernetesCluster
+      parameters:
+      - description: the enterprise id
+        in: path
+        name: eid
+        required: true
+        type: string
+      - description: .
+        in: body
+        name: updateKubernetesReq
+        required: true
+        schema:
+          $ref: '#/definitions/v1.UpdateKubernetesReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.UpdateKubernetesTask'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+      summary: updates kubernetes cluster.
+      tags:
+      - cluster
+  /api/v1/enterprises/:eid/update-cluster/:clusterID:
+    get:
+      consumes:
+      - application/json
+      operationId: getUpdateKubernetesTask
+      parameters:
+      - description: the enterprise id
+        in: path
+        name: eid
+        required: true
+        type: string
+      - description: the cluster id
+        in: path
+        name: clusterID
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.UpdateKubernetesTask'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ginutil.Result'
+      summary: returns the information of the cluster.
+      tags:
+      - cluster
 schemes:
 - http,
 - https

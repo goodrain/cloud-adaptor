@@ -37,6 +37,7 @@ import (
 	// Import all dependent packages in main.go for swag to generate doc.
 	// More detail: https://github.com/swaggo/swag/issues/817#issuecomment-730895033
 	_ "github.com/helm/helm/pkg/repo"
+	_ "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	_ "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	_ "k8s.io/helm/pkg/proto/hapi/chart"
 )
