@@ -20,7 +20,6 @@ package rke
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -152,39 +151,35 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, c
 		}
 	}
 
-	if len(config.Nodes) < 0 {
+	rkeConfig := config.RKEConfig
+	if len(rkeConfig.Nodes) < 0 {
 		rollback("InitClusterConfig", "Provide at least one node", "failure")
 		return nil
 	}
 	var masterNode, etcdNode, workerNode int
-	for _, node := range config.Nodes {
-		if strings.Contains(strings.Join(node.Roles, ","), "controlplane") {
+	for _, node := range rkeConfig.Nodes {
+		if strings.Contains(strings.Join(node.Role, ","), "controlplane") {
 			masterNode++
 		}
-		if strings.Contains(strings.Join(node.Roles, ","), "worker") {
+		if strings.Contains(strings.Join(node.Role, ","), "worker") {
 			workerNode++
 		}
-		if strings.Contains(strings.Join(node.Roles, ","), "etcd") {
+		if strings.Contains(strings.Join(node.Role, ","), "etcd") {
 			etcdNode++
 		}
 	}
-	config.WorkerNodeNum = workerNode
-	config.MasterNodeNum = masterNode
-	config.ETCDNodeNum = etcdNode
-	if config.WorkerNodeNum == 0 {
+	if workerNode == 0 {
 		rollback("InitClusterConfig", "Provide at least one compute node", "failure")
 		return nil
 	}
-	if config.MasterNodeNum == 0 {
+	if masterNode == 0 {
 		rollback("InitClusterConfig", "Provide at least one master node", "failure")
 		return nil
 	}
-	if config.ETCDNodeNum == 0 {
+	if etcdNode == 0 {
 		rollback("InitClusterConfig", "Provide at least one etcd node", "failure")
 		return nil
 	}
-	clusterConfig := v1alpha1.GetDefaultRKECreateClusterConfig(*config)
-	rkeConfig, _ := clusterConfig.(*v3.RancherKubernetesEngineConfig)
 
 	// create rke cluster config
 	configDir := "/tmp"
@@ -571,19 +566,6 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1
 	os.MkdirAll(clusterStatPath, 0755)
 	filePath := fmt.Sprintf("%s/cluster.yml", clusterStatPath)
 
-	configFileByte, err := base64.StdEncoding.DecodeString(en.RKEConfig)
-	if err != nil {
-		logrus.Errorf("decode the rke config: %v", err)
-		rollback("InitClusterConfig", "failed to decode the rke config", "failure")
-		return nil
-	}
-
-	var rkeConfig v3.RancherKubernetesEngineConfig
-	if err = yaml.Unmarshal(configFileByte, &rkeConfig); err != nil {
-		logrus.Errorf("read cluster %s config file failure %s ", en.ClusterID, err.Error())
-		rollback("InitClusterConfig", "can not parse cluster config file", "failure")
-		return nil
-	}
 	clusterStatFile := fmt.Sprintf("%s/enterprise/%s/rke/%s/cluster.rkestate", configDir, rkecluster.EnterpriseID, rkecluster.Name)
 	oldClusterStatFile := fmt.Sprintf("%s/rke/%s/cluster.rkestate", configDir, rkecluster.Name)
 	_, err = os.Stat(clusterStatFile)
@@ -595,43 +577,13 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1
 			return nil
 		}
 	}
-	//generate new cluster config file
-	var nodeMaps = make(map[string]v3.RKEConfigNode, len(en.Nodes))
-	for _, node := range en.Nodes {
-		nodeMaps[node.IP] = v3.RKEConfigNode{
-			NodeName: "",
-			Address:  node.IP,
-			Port: func() string {
-				if node.SSHPort != 0 {
-					return fmt.Sprintf("%d", node.SSHPort)
-				}
-				return "22"
-			}(),
-			DockerSocket: node.DockerSocketPath,
-			User: func() string {
-				if node.SSHUser != "" {
-					return node.SSHUser
-				}
-				return "docker"
-			}(),
-			SSHKeyPath:      "~/.ssh/id_rsa",
-			Role:            node.Roles,
-			InternalAddress: node.InternalAddress,
-		}
-	}
-	rkeConfig.Nodes = func() []v3.RKEConfigNode {
-		var nodes []v3.RKEConfigNode
-		for k := range nodeMaps {
-			nodes = append(nodes, nodeMaps[k])
-		}
-		return nodes
-	}()
+
 	if err := os.Rename(filePath, filePath+".bak"); err != nil {
 		rollback("InitClusterConfig", err.Error(), "failure")
 		logrus.Errorf("move old cluster config file failure %s", err.Error())
 		return nil
 	}
-	out, _ := yaml.Marshal(rkeConfig)
+	out, _ := yaml.Marshal(en.RKEConfig)
 	if err := ioutil.WriteFile(filePath, out, 0755); err != nil {
 		rollback("InitClusterConfig", err.Error(), "failure")
 		logrus.Errorf("write rke cluster config file failure %s", err.Error())
@@ -655,7 +607,7 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1
 
 	//up cluster
 	flags := cluster.GetExternalFlags(false, false, false, false, "", filePath)
-	if err := cmd.ClusterInit(ctx, &rkeConfig, hosts.DialersOptions{}, flags); err != nil {
+	if err := cmd.ClusterInit(ctx, en.RKEConfig, hosts.DialersOptions{}, flags); err != nil {
 		rollback("InitClusterConfig", err.Error(), "failure")
 		return nil
 	}
@@ -668,13 +620,7 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1
 		rollback("UpdateKubernetes", err.Error(), "failure")
 		return nil
 	}
-	nodeList, _ := json.Marshal(en.Nodes)
-	rkecluster.NodeList = string(nodeList)
-	if err := r.Repo.Update(rkecluster); err != nil {
-		logrus.Errorf("update rke cluster node failure %s", err.Error())
-		rollback("UpdateKubernetes", "update cluster meta info failure", "failure")
-		return nil
-	}
+
 	rollback("UpdateKubernetes", "", "success")
 	clu, _ := r.DescribeCluster(eid, rkecluster.ClusterID)
 	return clu

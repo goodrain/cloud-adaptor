@@ -25,6 +25,7 @@ import (
 
 	"github.com/ghodss/yaml"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/usecase"
@@ -101,8 +102,8 @@ func (e *ClusterHandler) AddKubernetesCluster(ctx *gin.Context) {
 		return
 	}
 	if req.Provider == "rke" {
-		if err := req.Nodes.Validate(); err != nil {
-			ginutil.JSON(ctx, nil, err)
+		if req.EncodedRKEConfig == "" {
+			ginutil.JSON(ctx, nil, bcode.ErrIncorrectRKEConfig)
 			return
 		}
 	}
@@ -140,8 +141,8 @@ func (e *ClusterHandler) UpdateKubernetesCluster(ctx *gin.Context) {
 		return
 	}
 	if req.Provider == "rke" {
-		if err := req.Nodes.Validate(); err != nil {
-			ginutil.JSON(ctx, nil, err)
+		if req.EncodedRKEConfig == "" {
+			ginutil.Error(ctx, errors.WithMessage(bcode.ErrIncorrectRKEConfig, "rke config is required"))
 			return
 		}
 	}
@@ -699,25 +700,23 @@ func (e *ClusterHandler) UninstallRegion(ctx *gin.Context) {
 	ginutil.JSON(ctx, nil, nil)
 }
 
-// @Summary return a default rke config.
+// @Summary update rke config purely
 // @Tags cluster
-// @ID getDefaultRKEConfig
+// @ID pruneUpdateRKEConfig
 // @Accept  json
 // @Produce  json
 // @Param eid path string true "the enterprise id"
-// @Param createAppStoreReq body v1.GetDefaultRKEConfigReq true "."
-// @Success 200 {object} v1.GetDefaultRKEConfigResp
+// @Param pruneUpdateRKEConfigReq body v1.PruneUpdateRKEConfigReq true "."
+// @Success 200 {object} v1.PruneUpdateRKEConfigResp
 // @Failure 500 {object} ginutil.Result
-// @Router /api/v1/enterprises/:eid/kclusters/default-rkeconfig [get]
-func (e *ClusterHandler) getDefaultRKEConfig(c *gin.Context) {
-	var req v1.GetDefaultRKEConfigReq
-	if c.Request.ContentLength > 0 {
-		if err := ginutil.ShouldBindJSON(c, &req); err != nil {
-			ginutil.Error(c, err)
-			return
-		}
+// @Router /api/v1/enterprises/:eid/kclusters/prune-update-rkeconfig [POST]
+func (e *ClusterHandler) pruneUpdateRKEConfig(c *gin.Context) {
+	var req v1.PruneUpdateRKEConfigReq
+	if err := ginutil.ShouldBindJSON(c, &req); err != nil {
+		ginutil.Error(c, err)
+		return
 	}
 
-	rkeConfig, err := e.cluster.GetDefaultRKEConfig(&req)
+	rkeConfig, err := e.cluster.PruneUpdateRKEConfig(&req)
 	ginutil.JSONv2(c, rkeConfig, err)
 }

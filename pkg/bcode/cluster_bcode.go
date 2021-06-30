@@ -63,4 +63,5 @@ var (
 	ErrorGetRegionStatus = newByMessage(400, 7019, "can not get region status")
 
 	ErrIncorrectRKEConfig = newByMessage(400, 7020, "the rke configuration format is incorrect")
+	ErrRKEConfigLost      = newByMessage(404, 7021, "rancher kubernetes engine configuration lost")
 )

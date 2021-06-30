@@ -67,7 +67,7 @@ type CreateKubernetesReq struct {
 	Region             string   `json:"region"`
 	EIP                []string `json:"eip,omitempty"`
 	// rke
-	Nodes v1alpha1.NodeList `json:"nodes,omitempty"`
+	EncodedRKEConfig string `json:"encodedRKEConfig"`
 	// custom
 	KubeConfig string `json:"kubeconfig,omitempty"`
 }
@@ -75,15 +75,14 @@ type CreateKubernetesReq struct {
 //UpdateKubernetesReq update kubernetes req
 //swagger:model UpdateKubernetesReq
 type UpdateKubernetesReq struct {
-	Provider           string            `json:"provider"`
-	ClusterID          string            `json:"clusterID"`
-	Nodes              v1alpha1.NodeList `json:"nodes,omitempty"`
-	WorkerResourceType string            `json:"workerResourceType,omitempty"`
-	WorkerNodeNum      int               `json:"workerNum,omitempty"`
-	MasterNodeNum      int               `json:"masterNodeNum,omitempty"`
-	ETCDNodeNum        int               `json:"etcdNodeNum,omitempty"`
-	InstanceType       string            `json:"instanceType,omitempty"`
-	RKEConfig          string            `json:"rkeConfig"`
+	Provider           string `json:"provider"`
+	ClusterID          string `json:"clusterID"`
+	WorkerResourceType string `json:"workerResourceType,omitempty"`
+	WorkerNodeNum      int    `json:"workerNum,omitempty"`
+	MasterNodeNum      int    `json:"masterNodeNum,omitempty"`
+	ETCDNodeNum        int    `json:"etcdNodeNum,omitempty"`
+	InstanceType       string `json:"instanceType,omitempty"`
+	EncodedRKEConfig   string `json:"encodedRKEConfig"`
 }
 
 //CreateKubernetesRes create kubernetes res
@@ -233,12 +232,14 @@ type UpdateKubernetesTask struct {
 	Status       string `json:"status"`
 }
 
-// GetDefaultRKEConfigReq -
-type GetDefaultRKEConfigReq struct {
-	Nodes v1alpha1.NodeList `json:"nodes,omitempty"`
+// PruneUpdateRKEConfigReq -
+type PruneUpdateRKEConfigReq struct {
+	Nodes            v1alpha1.NodeList `json:"nodes,omitempty"`
+	EncodedRKEConfig string            `json:"encodedRKEConfig"`
 }
 
-// GetDefaultRKEConfigResp rancher kubernetes engine configuration.
-type GetDefaultRKEConfigResp struct {
-	EncodedRKEConfig string `json:"encodeRKEConfig"`
+// PruneUpdateRKEConfigResp rancher kubernetes engine configuration.
+type PruneUpdateRKEConfigResp struct {
+	Nodes            v1alpha1.NodeList `json:"nodes"`
+	EncodedRKEConfig string            `json:"encodeRKEConfig"`
 }

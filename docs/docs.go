@@ -499,8 +499,8 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/enterprises/:eid/kclusters/default-rkeconfig": {
-            "get": {
+        "/api/v1/enterprises/:eid/kclusters/prune-update-rkeconfig": {
+            "post": {
                 "consumes": [
                     "application/json"
                 ],
@@ -510,8 +510,8 @@ var doc = `{
                 "tags": [
                     "cluster"
                 ],
-                "summary": "return a default rke config.",
-                "operationId": "getDefaultRKEConfig",
+                "summary": "update rke config purely",
+                "operationId": "pruneUpdateRKEConfig",
                 "parameters": [
                     {
                         "type": "string",
@@ -522,11 +522,11 @@ var doc = `{
                     },
                     {
                         "description": ".",
-                        "name": "createAppStoreReq",
+                        "name": "pruneUpdateRKEConfigReq",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.GetDefaultRKEConfigReq"
+                            "$ref": "#/definitions/v1.PruneUpdateRKEConfigReq"
                         }
                     }
                 ],
@@ -534,7 +534,7 @@ var doc = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.GetDefaultRKEConfigResp"
+                            "$ref": "#/definitions/v1.PruneUpdateRKEConfigResp"
                         }
                     },
                     "500": {
@@ -845,9 +845,12 @@ var doc = `{
                 }
             }
         },
-        "v1.GetDefaultRKEConfigReq": {
+        "v1.PruneUpdateRKEConfigReq": {
             "type": "object",
             "properties": {
+                "encodeRKEConfig": {
+                    "type": "string"
+                },
                 "nodes": {
                     "type": "array",
                     "items": {
@@ -856,11 +859,17 @@ var doc = `{
                 }
             }
         },
-        "v1.GetDefaultRKEConfigResp": {
+        "v1.PruneUpdateRKEConfigResp": {
             "type": "object",
             "properties": {
                 "encodeRKEConfig": {
                     "type": "string"
+                },
+                "nodes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1alpha1.ConfigNode"
+                    }
                 }
             }
         },
@@ -1020,12 +1029,6 @@ var doc = `{
                 },
                 "masterNodeNum": {
                     "type": "integer"
-                },
-                "nodes": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/v1alpha1.ConfigNode"
-                    }
                 },
                 "provider": {
                     "type": "string"

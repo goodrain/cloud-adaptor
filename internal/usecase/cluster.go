@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
@@ -135,6 +136,26 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 			return nil, errors.Wrap(err, "create custom cluster")
 		}
 	}
+
+	var rkeConfig v3.RancherKubernetesEngineConfig
+	if req.Provider == "rke" {
+		decRKEConfig, err := base64.StdEncoding.DecodeString(req.EncodedRKEConfig)
+		if err != nil {
+			return nil, errors.Wrap(bcode.ErrIncorrectRKEConfig, "decode encoded rke config")
+		}
+		if err := yaml.Unmarshal(decRKEConfig, &rkeConfig); err != nil {
+			return nil, errors.Wrap(bcode.ErrIncorrectRKEConfig, "unmarshal rke config")
+		}
+		// validate nodes
+		nodeList, err := c.rkeConfigToNodeList(&rkeConfig)
+		if err != nil {
+			return nil, err
+		}
+		if err := nodeList.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
 	var accessKey *model.CloudAccessKey
 	var err error
 	if req.Provider != "rke" && req.Provider != "custom" {
@@ -165,7 +186,7 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 			WorkerNodeNum:      newTask.WorkerNum,
 			Provider:           newTask.Provider,
 			Region:             newTask.Region,
-			Nodes:              req.Nodes,
+			RKEConfig:          &rkeConfig,
 			EnterpriseID:       eid,
 		}}
 	if accessKey != nil {
@@ -181,6 +202,29 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 	}
 	logrus.Infof("send create kubernetes task %s to queue", newTask.TaskID)
 	return newTask, nil
+}
+
+func (c *ClusterUsecase) rkeConfigToNodeList(rkeConfig *v3.RancherKubernetesEngineConfig) (v1alpha1.NodeList, error) {
+	if rkeConfig == nil {
+		return nil, nil
+	}
+
+	var nodeList v1alpha1.NodeList
+	for _, node := range rkeConfig.Nodes {
+		port, err := strconv.Atoi(node.Port)
+		if err != nil {
+			return nil, errors.Wrapf(bcode.ErrIncorrectRKEConfig, "invalid node port %s", node.Port)
+		}
+		nodeList = append(nodeList, v1alpha1.ConfigNode{
+			IP:               node.Address,
+			InternalAddress:  node.InternalAddress,
+			SSHUser:          node.User,
+			SSHPort:          port,
+			DockerSocketPath: node.DockerSocket,
+			Roles:            node.Role,
+		})
+	}
+	return nodeList, nil
 }
 
 //InitRainbondRegion init rainbond region
@@ -243,17 +287,30 @@ func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubern
 	if req.Provider != "rke" {
 		return nil, bcode.ErrNotSupportUpdateKubernetes
 	}
+
+	decodedRkeConfig, err := base64.StdEncoding.DecodeString(req.EncodedRKEConfig)
+	if err != nil {
+		logrus.Errorf("decode encoded rke config: %v", err)
+		return nil, errors.Wrap(bcode.ErrIncorrectRKEConfig, "decode encoded rke config")
+	}
+	var rkeConfig v3.RancherKubernetesEngineConfig
+	if err := yaml.Unmarshal(decodedRkeConfig, &rkeConfig); err != nil {
+		logrus.Errorf("unmarshal rke config: %v", err)
+		return nil, errors.Wrap(bcode.ErrIncorrectRKEConfig, "unmarshal rke config")
+	}
+
 	newTask := &model.UpdateKubernetesTask{
 		TaskID:       uuidutil.NewUUID(),
 		Provider:     req.Provider,
 		EnterpriseID: eid,
 		ClusterID:    req.ClusterID,
-		NodeNumber:   len(req.Nodes),
+		NodeNumber:   len(rkeConfig.Nodes),
 	}
 	if err := c.UpdateKubernetesTaskRepo.Create(newTask); err != nil {
 		logrus.Errorf("save update kubernetes task failure %s", err.Error())
 		return nil, bcode.ServerErr
 	}
+
 	//send task
 	taskReq := types.UpdateKubernetesConfigMessage{
 		EnterpriseID: eid,
@@ -261,9 +318,8 @@ func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubern
 		Config: &v1alpha1.ExpansionNode{
 			Provider:     req.Provider,
 			ClusterID:    req.ClusterID,
-			Nodes:        req.Nodes,
 			EnterpriseID: eid,
-			RKEConfig:    req.RKEConfig,
+			RKEConfig:    &rkeConfig,
 		}}
 	if err := c.TaskProducer.SendUpdateKuerbetesTask(taskReq); err != nil {
 		logrus.Errorf("send create kubernetes task failure %s", err.Error())
@@ -309,23 +365,21 @@ func (c *ClusterUsecase) GetUpdateKubernetesTask(eid, clusterID, providerName st
 			return nil, err
 		}
 
-		nodeList, err := c.GetRKENodeList(eid, clusterID)
-		if err != nil {
-			return nil, err
-		}
-		re.NodeList = nodeList
-
 		rkeConfig, err := c.getRKEConfig(eid, cluster)
 		if err != nil {
 			return nil, err
 		}
-
 		rkeConfigBytes, err := yaml.Marshal(rkeConfig)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
-
 		re.RKEConfig = base64.StdEncoding.EncodeToString(rkeConfigBytes)
+
+		nodeList, err := c.rkeConfigToNodeList(rkeConfig)
+		if err != nil {
+			return nil, err
+		}
+		re.NodeList = nodeList
 	}
 
 	return &re, nil
@@ -358,7 +412,7 @@ func (c *ClusterUsecase) getRKEConfig(eid string, cluster *model.RKECluster) (*v
 		bytes, err = ioutil.ReadFile(oldclusterYMLPath)
 		if err != nil {
 			if !os.IsNotExist(err) {
-				return nil, errors.Wrap(err, "read old rke config file")
+				return nil, errors.Wrap(bcode.ErrRKEConfigLost, err.Error())
 			}
 			return nil, nil
 		}
@@ -808,17 +862,68 @@ func (c *ClusterUsecase) UninstallRainbondRegion(eid, clusterID, provider string
 	return nil
 }
 
-// GetDefaultRKEConfig return a defualt rke config.
-func (c *ClusterUsecase) GetDefaultRKEConfig(req *v1.GetDefaultRKEConfigReq) (*v1.GetDefaultRKEConfigResp, error) {
-	rkeConfig, _ := v1alpha1.GetDefaultRKECreateClusterConfig(v1alpha1.KubernetesClusterConfig{
-		Nodes: req.Nodes,
-	}).(*v3.RancherKubernetesEngineConfig)
+// PruneUpdateRKEConfig update rke config purely.
+func (c *ClusterUsecase) PruneUpdateRKEConfig(req *v1.PruneUpdateRKEConfigReq) (*v1.PruneUpdateRKEConfigResp, error) {
+	var rkeConfig *v3.RancherKubernetesEngineConfig
+	if req.EncodedRKEConfig == "" {
+		rkeConfig = v1alpha1.GetDefaultRKECreateClusterConfig(v1alpha1.KubernetesClusterConfig{
+			Nodes: req.Nodes,
+		}).(*v3.RancherKubernetesEngineConfig)
+	} else {
+		var rkeConfig2 v3.RancherKubernetesEngineConfig
+		decodedRKEConfig, err := base64.StdEncoding.DecodeString(req.EncodedRKEConfig)
+		if err != nil {
+			return nil, errors.Wrapf(bcode.ErrIncorrectRKEConfig, "decode encoded rke config: %v", err)
+		}
+		if err := yaml.Unmarshal(decodedRKEConfig, &rkeConfig2); err != nil {
+			return nil, errors.Wrapf(bcode.ErrIncorrectRKEConfig, "unmarshal rke config: %v", err)
+		}
+		if len(req.Nodes) > 0 {
+			rkeConfig2.Nodes = c.nodeListToRKEConfigNodes(req.Nodes)
+		}
+		rkeConfig = &rkeConfig2
+	}
 
 	rkeConfigBytes, err := yaml.Marshal(rkeConfig)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-
 	encodedRKEConfig := base64.StdEncoding.EncodeToString(rkeConfigBytes)
-	return &v1.GetDefaultRKEConfigResp{EncodedRKEConfig: encodedRKEConfig}, nil
+
+	nodeList, err := c.rkeConfigToNodeList(rkeConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1.PruneUpdateRKEConfigResp{
+		Nodes:            nodeList,
+		EncodedRKEConfig: encodedRKEConfig,
+	}, nil
+}
+
+func (c *ClusterUsecase) nodeListToRKEConfigNodes(nodeList v1alpha1.NodeList) []v3.RKEConfigNode {
+	var nodes []v3.RKEConfigNode
+	for _, node := range nodeList {
+		nodes = append(nodes, v3.RKEConfigNode{
+			NodeName: "",
+			Address:  node.IP,
+			Port: func() string {
+				if node.SSHPort != 0 {
+					return fmt.Sprintf("%d", node.SSHPort)
+				}
+				return "22"
+			}(),
+			DockerSocket: node.DockerSocketPath,
+			User: func() string {
+				if node.SSHUser != "" {
+					return node.SSHUser
+				}
+				return "docker"
+			}(),
+			SSHKeyPath:      "~/.ssh/id_rsa",
+			Role:            node.Roles,
+			InternalAddress: node.InternalAddress,
+		})
+	}
+	return nodes
 }

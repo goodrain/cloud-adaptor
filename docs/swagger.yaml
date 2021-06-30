@@ -151,17 +151,23 @@ definitions:
     - name
     - url
     type: object
-  v1.GetDefaultRKEConfigReq:
+  v1.PruneUpdateRKEConfigReq:
     properties:
+      encodeRKEConfig:
+        type: string
       nodes:
         items:
           $ref: '#/definitions/v1alpha1.ConfigNode'
         type: array
     type: object
-  v1.GetDefaultRKEConfigResp:
+  v1.PruneUpdateRKEConfigResp:
     properties:
       encodeRKEConfig:
         type: string
+      nodes:
+        items:
+          $ref: '#/definitions/v1alpha1.ConfigNode'
+        type: array
     type: object
   v1.TemplateVersion:
     properties:
@@ -280,10 +286,6 @@ definitions:
         type: string
       masterNodeNum:
         type: integer
-      nodes:
-        items:
-          $ref: '#/definitions/v1alpha1.ConfigNode'
-        type: array
       provider:
         type: string
       rkeConfig:
@@ -729,11 +731,11 @@ paths:
       summary: returns the app template version.
       tags:
       - appstores
-  /api/v1/enterprises/:eid/kclusters/default-rkeconfig:
-    get:
+  /api/v1/enterprises/:eid/kclusters/prune-update-rkeconfig:
+    post:
       consumes:
       - application/json
-      operationId: getDefaultRKEConfig
+      operationId: pruneUpdateRKEConfig
       parameters:
       - description: the enterprise id
         in: path
@@ -742,22 +744,22 @@ paths:
         type: string
       - description: .
         in: body
-        name: createAppStoreReq
+        name: pruneUpdateRKEConfigReq
         required: true
         schema:
-          $ref: '#/definitions/v1.GetDefaultRKEConfigReq'
+          $ref: '#/definitions/v1.PruneUpdateRKEConfigReq'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.GetDefaultRKEConfigResp'
+            $ref: '#/definitions/v1.PruneUpdateRKEConfigResp'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/ginutil.Result'
-      summary: return a default rke config.
+      summary: update rke config purely
       tags:
       - cluster
   /api/v1/enterprises/:eid/update-cluster:

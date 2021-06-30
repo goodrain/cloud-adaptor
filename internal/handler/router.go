@@ -93,7 +93,7 @@ func (r *Router) NewRouter() *gin.Engine {
 	entv1.GET("/kclusters/:clusterID/rainbondcluster", r.cluster.GetRainbondClusterConfig)
 	entv1.PUT("/kclusters/:clusterID/rainbondcluster", r.cluster.SetRainbondClusterConfig)
 	entv1.POST("/kclusters/:clusterID/uninstall", r.cluster.UninstallRegion)
-	entv1.GET("/kclusters/default-rkeconfig", r.cluster.getDefaultRKEConfig)
+	entv1.POST("/kclusters/prune-update-rkeconfig", r.cluster.pruneUpdateRKEConfig)
 
 	entv1.POST("/accesskey", r.cluster.AddAccessKey)
 	entv1.GET("/accesskey", r.cluster.GetAccessKey)
