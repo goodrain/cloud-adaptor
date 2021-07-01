@@ -39,8 +39,8 @@ func init() {
 	if os.Getenv("RAINBOND_VERSION") != "" {
 		RainbondRegionVersion = os.Getenv("RAINBOND_VERSION")
 	}
-	if os.Getenv("OPEARTOR_VERSION") != "" {
-		OperatorVersion = os.Getenv("OPEARTOR_VERSION")
+	if os.Getenv("OPERATOR_VERSION") != "" {
+		OperatorVersion = os.Getenv("OPERATOR_VERSION")
 	}
 	if strings.HasSuffix(InstallImageRepo, "/") {
 		InstallImageRepo = InstallImageRepo[:len(InstallImageRepo)-1]

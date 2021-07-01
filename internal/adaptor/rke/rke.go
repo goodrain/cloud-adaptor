@@ -328,6 +328,15 @@ func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 			if err == nil {
 				cluster.RainbondInit = true
 			}
+
+			ctx2, cancel := context.WithTimeout(context.Background(), time.Second*3)
+			defer cancel()
+			nodeList, err := coreclient.CoreV1().Nodes().List(ctx2, metav1.ListOptions{})
+			if err != nil {
+				logrus.Warningf("list nodes: %v", err)
+			} else {
+				cluster.Size = len(nodeList.Items)
+			}
 		}
 	}
 	return cluster
