@@ -402,14 +402,14 @@ func (c *ClusterUsecase) getRKEConfig(eid string, cluster *model.RKECluster) (*v
 		configDir = "/tmp"
 	}
 	clusterYMLPath := fmt.Sprintf("%s/enterprise/%s/rke/%s/cluster.yml", configDir, cluster.EnterpriseID, cluster.Name)
-	oldclusterYMLPath := fmt.Sprintf("%s/rke/%s/cluster.yml", configDir, cluster.Name)
+	oldClusterYMLPath := fmt.Sprintf("%s/rke/%s/cluster.yml", configDir, cluster.Name)
 
 	bytes, err := ioutil.ReadFile(clusterYMLPath)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			return nil, errors.Wrap(err, "read rke config file")
 		}
-		bytes, err = ioutil.ReadFile(oldclusterYMLPath)
+		bytes, err = ioutil.ReadFile(oldClusterYMLPath)
 		if err != nil {
 			if !os.IsNotExist(err) {
 				return nil, errors.Wrap(bcode.ErrRKEConfigLost, err.Error())

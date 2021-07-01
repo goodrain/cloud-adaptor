@@ -38,5 +38,5 @@ func NewAppTemplate(templateVersionRepo repo.TemplateVersionRepo) *AppTemplate {
 
 // GetVersion returns the app template version.
 func (a *AppTemplate) GetVersion(ctx context.Context, appStore *domain.AppStore, templateName, version string) (*domain.AppTemplateVersion, error) {
-	return a.templateVersionRepo.GetTemplateVersion(appStore.Name, appStore.URL, templateName, version)
+	return a.templateVersionRepo.GetTemplateVersion(appStore, templateName, version)
 }

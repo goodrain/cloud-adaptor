@@ -152,6 +152,10 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, c
 	}
 
 	rkeConfig := config.RKEConfig
+	if rkeConfig == nil {
+		rollback("InitClusterConfig", "RKE config not found", "failure")
+		return nil
+	}
 	if len(rkeConfig.Nodes) < 0 {
 		rollback("InitClusterConfig", "Provide at least one node", "failure")
 		return nil

@@ -41,14 +41,14 @@ func NewTemplateVersioner(cfg *config.Config) *TemplateVersioner {
 }
 
 // LoadChart loads chart.
-func (t *TemplateVersioner) LoadChart(repo, repoURL, templateName, version string) (*chart.Chart, error) {
+func (t *TemplateVersioner) LoadChart(repo, repoURL, username, password, templateName, version string) (*chart.Chart, error) {
 	helmCmd, err := helm.NewHelm("nonamespace", t.repoFile, t.repoCache)
 	if err != nil {
 		return nil, errors.WithMessage(err, "create a new helm command")
 	}
 
 	repoCmd := helm.NewRepo(t.repoFile, t.repoCache)
-	if err := repoCmd.Add(repo, repoURL, "", ""); err != nil {
+	if err := repoCmd.Add(repo, repoURL, username, password); err != nil {
 		return nil, errors.WithMessage(err, "add helm repo")
 	}
 

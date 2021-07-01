@@ -28,6 +28,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
+	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
 	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/ginutil"
@@ -716,6 +717,16 @@ func (e *ClusterHandler) pruneUpdateRKEConfig(c *gin.Context) {
 		ginutil.Error(c, err)
 		return
 	}
+
+	// clean invalid nodes
+	var nodes v1alpha1.NodeList
+	for _, node := range req.Nodes {
+		if node.IP == "" || node.InternalAddress == "" {
+			continue
+		}
+		nodes = append(nodes, node)
+	}
+	req.Nodes = nodes
 
 	rkeConfig, err := e.cluster.PruneUpdateRKEConfig(&req)
 	ginutil.JSONv2(c, rkeConfig, err)
