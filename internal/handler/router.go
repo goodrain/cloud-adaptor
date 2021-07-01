@@ -71,7 +71,7 @@ var CORSMidle = func(f gin.HandlerFunc) gin.HandlerFunc {
 
 // NewRouter creates a new Router
 func (r *Router) NewRouter() *gin.Engine {
-	gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.DebugMode)
 	e := gin.Default()
 	e.OPTIONS("/*path", CORSMidle(func(ctx *gin.Context) {}))
 
@@ -84,8 +84,8 @@ func (r *Router) NewRouter() *gin.Engine {
 	entv1 := apiv1.Group("/enterprises/:eid")
 	// cluster
 	entv1.GET("/kclusters", r.cluster.ListKubernetesClusters)
-	entv1.GET("/kclusters/:clusterID/regionconfig", r.cluster.GetRegionConfig)
 	entv1.POST("/kclusters", r.cluster.AddKubernetesCluster)
+	entv1.GET("/kclusters/:clusterID/regionconfig", r.cluster.GetRegionConfig)
 	entv1.DELETE("/kclusters/:clusterID", r.cluster.DeleteKubernetesCluster)
 	entv1.POST("/kclusters/:clusterID/reinstall", r.cluster.ReInstallKubernetesCluster)
 	entv1.GET("/kclusters/:clusterID/createlog", r.cluster.GetLogContent)
@@ -93,6 +93,7 @@ func (r *Router) NewRouter() *gin.Engine {
 	entv1.GET("/kclusters/:clusterID/rainbondcluster", r.cluster.GetRainbondClusterConfig)
 	entv1.PUT("/kclusters/:clusterID/rainbondcluster", r.cluster.SetRainbondClusterConfig)
 	entv1.POST("/kclusters/:clusterID/uninstall", r.cluster.UninstallRegion)
+	entv1.POST("/kclusters/prune-update-rkeconfig", r.cluster.pruneUpdateRKEConfig)
 
 	entv1.POST("/accesskey", r.cluster.AddAccessKey)
 	entv1.GET("/accesskey", r.cluster.GetAccessKey)

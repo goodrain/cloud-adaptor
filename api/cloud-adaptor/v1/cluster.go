@@ -20,6 +20,7 @@ package v1
 
 import (
 	"encoding/json"
+
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
 	"goodrain.com/cloud-adaptor/internal/model"
 )
@@ -66,7 +67,7 @@ type CreateKubernetesReq struct {
 	Region             string   `json:"region"`
 	EIP                []string `json:"eip,omitempty"`
 	// rke
-	Nodes v1alpha1.NodeList `json:"nodes,omitempty"`
+	EncodedRKEConfig string `json:"encodedRKEConfig"`
 	// custom
 	KubeConfig string `json:"kubeconfig,omitempty"`
 }
@@ -74,14 +75,14 @@ type CreateKubernetesReq struct {
 //UpdateKubernetesReq update kubernetes req
 //swagger:model UpdateKubernetesReq
 type UpdateKubernetesReq struct {
-	Provider           string            `json:"provider"`
-	ClusterID          string            `json:"clusterID"`
-	Nodes              v1alpha1.NodeList `json:"nodes,omitempty"`
-	WorkerResourceType string            `json:"workerResourceType,omitempty"`
-	WorkerNodeNum      int               `json:"workerNum,omitempty"`
-	MasterNodeNum      int               `json:"masterNodeNum,omitempty"`
-	ETCDNodeNum        int               `json:"etcdNodeNum,omitempty"`
-	InstanceType       string            `json:"instanceType,omitempty"`
+	Provider           string `json:"provider"`
+	ClusterID          string `json:"clusterID"`
+	WorkerResourceType string `json:"workerResourceType,omitempty"`
+	WorkerNodeNum      int    `json:"workerNum,omitempty"`
+	MasterNodeNum      int    `json:"masterNodeNum,omitempty"`
+	ETCDNodeNum        int    `json:"etcdNodeNum,omitempty"`
+	InstanceType       string `json:"instanceType,omitempty"`
+	EncodedRKEConfig   string `json:"encodedRKEConfig"`
 }
 
 //CreateKubernetesRes create kubernetes res
@@ -93,8 +94,9 @@ type CreateKubernetesRes struct {
 //UpdateKubernetesRes create kubernetes res
 //swagger:model UpdateKubernetesRes
 type UpdateKubernetesRes struct {
-	Task     *model.UpdateKubernetesTask `json:"task"`
-	NodeList v1alpha1.NodeList           `json:"nodeList"`
+	Task      *model.UpdateKubernetesTask `json:"task"`
+	NodeList  v1alpha1.NodeList           `json:"nodeList"`
+	RKEConfig string                      `json:"rkeConfig"`
 }
 
 //GetLastCreateKubernetesClusterTaskReq get last create kubernetes task
@@ -218,4 +220,26 @@ type SetRainbondClusterConfigReq struct {
 //UninstallRegionReq -
 type UninstallRegionReq struct {
 	ProviderName string `json:"provider_name" binding:"required"`
+}
+
+//UpdateKubernetesTask -
+type UpdateKubernetesTask struct {
+	TaskID       string `json:"taskID"`
+	ClusterID    string `json:"clusterID"`
+	Provider     string `json:"providerName"`
+	NodeNumber   int    `json:"nodeNumber"`
+	EnterpriseID string `json:"eid"`
+	Status       string `json:"status"`
+}
+
+// PruneUpdateRKEConfigReq -
+type PruneUpdateRKEConfigReq struct {
+	Nodes            v1alpha1.NodeList `json:"nodes,omitempty"`
+	EncodedRKEConfig string            `json:"encodedRKEConfig"`
+}
+
+// PruneUpdateRKEConfigResp rancher kubernetes engine configuration.
+type PruneUpdateRKEConfigResp struct {
+	Nodes            v1alpha1.NodeList `json:"nodes"`
+	EncodedRKEConfig string            `json:"encodeRKEConfig"`
 }

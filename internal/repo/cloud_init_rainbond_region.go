@@ -63,7 +63,7 @@ func (c *InitRainbondRegionTaskRepo) Create(ck *model.InitRainbondTask) error {
 //GetTaskByClusterID get cluster task
 func (c *InitRainbondRegionTaskRepo) GetTaskByClusterID(eid string, providerName, clusterID string) (*model.InitRainbondTask, error) {
 	var old model.InitRainbondTask
-	if err := c.DB.Where("eid = ? and provider_name=? and cluster_id=?", eid, providerName, clusterID).Take(&old).Error; err != nil {
+	if err := c.DB.Where("eid=? and provider_name=? and cluster_id=?", eid, providerName, clusterID).Last(&old).Error; err != nil {
 		return nil, err
 	}
 	return &old, nil

@@ -116,6 +116,7 @@ func AutoMigrate(db *gorm.DB) error {
 		"UpdateKubernetesTask": model.UpdateKubernetesTask{},
 		"RainbondClusterConfig": model.RainbondClusterConfig{},
 		"AppStore": model.AppStore{},
+		"TaskEvent": model.TaskEvent{},
 	}
 
 	for name, mod := range models {

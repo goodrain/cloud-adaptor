@@ -29,6 +29,7 @@ import (
 	"time"
 
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
+	v3 "github.com/rancher/rke/types"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -53,20 +54,20 @@ func init() {
 
 //Cluster cluster
 type Cluster struct {
-	Name            string    `json:"name,omitempty"`
-	ClusterID       string    `json:"cluster_id,omitempty"`
-	Created         Time      `json:"created,omitempty"`
-	MasterURL       MasterURL `json:"master_url,omitempty"`
-	State           string    `json:"state,omitempty"`
-	ClusterType     string    `json:"cluster_type,omitempty"`
-	CurrentVersion  string    `json:"current_version,omitempty"`
-	RegionID        string    `json:"region_id,omitempty"`
-	ZoneID          string    `json:"zone_id,omitempty"`
-	VPCID           string    `json:"vpc_id,omitempty"`
-	SecurityGroupID string    `json:"security_group_id,omitempty"`
-	VSwitchID       string    `json:"vswitch_id,omitempty"`
-	NetworkMode     string    `json:"network_mode,omitempty"`
-	SubnetCIDR      string    `json:"subnet_cidr,omitempty"`
+	Name              string                 `json:"name,omitempty"`
+	ClusterID         string                 `json:"cluster_id,omitempty"`
+	Created           Time                   `json:"created,omitempty"`
+	MasterURL         MasterURL              `json:"master_url,omitempty"`
+	State             string                 `json:"state,omitempty"`
+	ClusterType       string                 `json:"cluster_type,omitempty"`
+	CurrentVersion    string                 `json:"current_version,omitempty"`
+	RegionID          string                 `json:"region_id,omitempty"`
+	ZoneID            string                 `json:"zone_id,omitempty"`
+	VPCID             string                 `json:"vpc_id,omitempty"`
+	SecurityGroupID   string                 `json:"security_group_id,omitempty"`
+	VSwitchID         string                 `json:"vswitch_id,omitempty"`
+	NetworkMode       string                 `json:"network_mode,omitempty"`
+	SubnetCIDR        string                 `json:"subnet_cidr,omitempty"`
 	PodCIDR           string                 `json:"container_cidr,omitempty"`
 	DockerVersion     string                 `json:"docker_version,omitempty"`
 	KubernetesVersion string                 `json:"kubernetes_version,omitempty"`
@@ -196,26 +197,27 @@ type CreateClusterConfig interface {
 
 //KubernetesClusterConfig kubernetes cluster commmon config
 type KubernetesClusterConfig struct {
-	EnterpriseID       string   `json:"eid"`
-	AccessKey          string   `json:"access_key"`
-	SecretKey          string   `json:"secret_key"`
-	Provider           string   `json:"provider_name"`
-	ClusterName        string   `json:"name"`
-	Region             string   `json:"region,omitempty"`
-	ClusterCIDR        string   `json:"clusterCIDR,omitempty"`
-	ServiceCIDR        string   `json:"serviceCIDR,omitempty"`
-	ClusterType        string   `json:"clusterType,omitempty"`
-	VpcID              string   `json:"vpcID,omitempty"`
-	VSwitchID          string   `json:"vSwitchID,omitempty"`
-	NetworkMode        string   `json:"networkMode,omitempty"`
-	WorkerResourceType string   `json:"workerResourceType,omitempty"`
-	WorkerNodeNum      int      `json:"workerNum,omitempty"`
-	Nodes              NodeList `json:"nodes,omitempty"`
-	MasterNodeNum      int      `json:"masterNodeNum,omitempty"`
-	ETCDNodeNum        int      `json:"etcdNodeNum,omitempty"`
-	InstanceType       string   `json:"instanceType,omitempty"`
-	DockerVersion      string   `json:"dockerVersion,omitempty"`
-	KubernetesVersion  string   `json:"kubernetesVersion,omitempty"`
+	EnterpriseID       string                            `json:"eid"`
+	AccessKey          string                            `json:"access_key"`
+	SecretKey          string                            `json:"secret_key"`
+	Provider           string                            `json:"provider_name"`
+	ClusterName        string                            `json:"name"`
+	Region             string                            `json:"region,omitempty"`
+	ClusterCIDR        string                            `json:"clusterCIDR,omitempty"`
+	ServiceCIDR        string                            `json:"serviceCIDR,omitempty"`
+	ClusterType        string                            `json:"clusterType,omitempty"`
+	VpcID              string                            `json:"vpcID,omitempty"`
+	VSwitchID          string                            `json:"vSwitchID,omitempty"`
+	NetworkMode        string                            `json:"networkMode,omitempty"`
+	WorkerResourceType string                            `json:"workerResourceType,omitempty"`
+	WorkerNodeNum      int                               `json:"workerNum,omitempty"`
+	Nodes              NodeList                          `json:"nodes,omitempty"`
+	RKEConfig          *v3.RancherKubernetesEngineConfig `json:"rkeConfig"`
+	MasterNodeNum      int                               `json:"masterNodeNum,omitempty"`
+	ETCDNodeNum        int                               `json:"etcdNodeNum,omitempty"`
+	InstanceType       string                            `json:"instanceType,omitempty"`
+	DockerVersion      string                            `json:"dockerVersion,omitempty"`
+	KubernetesVersion  string                            `json:"kubernetesVersion,omitempty"`
 }
 
 //NodeList node list
@@ -378,7 +380,7 @@ func (c *KubeConfig) GetKubeClient() (*kubernetes.Clientset, client.Client, erro
 	}
 	runtimeClient, err := client.New(config, client.Options{Scheme: scheme, Mapper: mapper})
 	if err != nil {
-		return nil, nil, fmt.Errorf("New kube client failure %+v", err)
+		return nil, nil, fmt.Errorf("new kube client failure %+v", err)
 	}
 	return coreClient, runtimeClient, nil
 }
@@ -527,16 +529,18 @@ type AvailableResourceZone struct {
 
 //ExpansionNode expansion node
 type ExpansionNode struct {
-	EnterpriseID       string   `json:"eid"`
-	Provider           string   `json:"provider"`
-	AccessKey          string   `json:"accessKey"`
-	SecretKey          string   `json:"secretKey"`
-	ClusterID          string   `json:"clusterID"`
-	Nodes              NodeList `json:"nodes,omitempty"`
-	WorkerResourceType string   `json:"workerResourceType,omitempty"`
-	WorkerNodeNum      int      `json:"workerNum,omitempty"`
-	MasterNodeNum      int      `json:"masterNodeNum,omitempty"`
-	ETCDNodeNum        int      `json:"etcdNodeNum,omitempty"`
-	InstanceType       string   `json:"instanceType,omitempty"`
-	DockerVersion      string   `json:"dockerVersion,omitempty"`
+	EnterpriseID string `json:"eid"`
+	Provider     string `json:"provider"`
+	AccessKey    string `json:"accessKey"`
+	SecretKey    string `json:"secretKey"`
+	ClusterID    string `json:"clusterID"`
+	// Deprecated.
+	Nodes              NodeList                          `json:"nodes,omitempty"`
+	WorkerResourceType string                            `json:"workerResourceType,omitempty"`
+	WorkerNodeNum      int                               `json:"workerNum,omitempty"`
+	MasterNodeNum      int                               `json:"masterNodeNum,omitempty"`
+	ETCDNodeNum        int                               `json:"etcdNodeNum,omitempty"`
+	InstanceType       string                            `json:"instanceType,omitempty"`
+	DockerVersion      string                            `json:"dockerVersion,omitempty"`
+	RKEConfig          *v3.RancherKubernetesEngineConfig `json:"rkeConfig"`
 }

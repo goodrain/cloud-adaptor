@@ -19,19 +19,22 @@
 package usecase
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 
-	"github.com/ghodss/yaml"
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
+	"github.com/pkg/errors"
+	v3 "github.com/rancher/rke/types"
 	"github.com/sirupsen/logrus"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor"
 	"goodrain.com/cloud-adaptor/internal/adaptor/custom"
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
-	"goodrain.com/cloud-adaptor/internal/adaptor/rke"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/internal/nsqc/producer"
@@ -41,19 +44,21 @@ import (
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/md5util"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
+	"gopkg.in/yaml.v2"
 	"gorm.io/gorm"
 )
 
 // ClusterUsecase cluster manage usecase
 type ClusterUsecase struct {
-	DB                        *gorm.DB                             `inject:""`
-	TaskProducer              producer.TaskProducer                `inject:""`
-	CloudAccessKeyRepo        repo.CloudAccesskeyRepository        `inject:""`
-	CreateKubernetesTaskRepo  repo.CreateKubernetesTaskRepository  `inject:""`
-	InitRainbondTaskRepo      repo.InitRainbondTaskRepository      `inject:""`
-	UpdateKubernetesTaskRepo  repo.UpdateKubernetesTaskRepository  `inject:""`
-	TaskEventRepo             repo.TaskEventRepository             `inject:""`
-	RainbondClusterConfigRepo repo.RainbondClusterConfigRepository `inject:""`
+	DB                        *gorm.DB
+	TaskProducer              producer.TaskProducer
+	CloudAccessKeyRepo        repo.CloudAccesskeyRepository
+	CreateKubernetesTaskRepo  repo.CreateKubernetesTaskRepository
+	InitRainbondTaskRepo      repo.InitRainbondTaskRepository
+	UpdateKubernetesTaskRepo  repo.UpdateKubernetesTaskRepository
+	TaskEventRepo             repo.TaskEventRepository
+	RainbondClusterConfigRepo repo.RainbondClusterConfigRepository
+	rkeClusterRepo            repo.RKEClusterRepository
 }
 
 // NewClusterUsecase new cluster usecase
@@ -65,6 +70,7 @@ func NewClusterUsecase(db *gorm.DB,
 	UpdateKubernetesTaskRepo repo.UpdateKubernetesTaskRepository,
 	TaskEventRepo repo.TaskEventRepository,
 	RainbondClusterConfigRepo repo.RainbondClusterConfigRepository,
+	rkeClusterRepo repo.RKEClusterRepository,
 ) *ClusterUsecase {
 	return &ClusterUsecase{
 		DB:                        db,
@@ -75,6 +81,7 @@ func NewClusterUsecase(db *gorm.DB,
 		UpdateKubernetesTaskRepo:  UpdateKubernetesTaskRepo,
 		TaskEventRepo:             TaskEventRepo,
 		RainbondClusterConfigRepo: RainbondClusterConfigRepo,
+		rkeClusterRepo:            rkeClusterRepo,
 	}
 }
 
@@ -117,8 +124,7 @@ func (c *ClusterUsecase) ListKubernetesCluster(eid string, re v1.ListKubernetesC
 //CreateKubernetesCluster create kubernetes cluster task
 func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubernetesReq) (*model.CreateKubernetesTask, error) {
 	if c.TaskProducer == nil {
-		logrus.Errorf("TaskProducer is nil")
-		return nil, bcode.ServerErr
+		return nil, errors.New("TaskProducer is nil")
 	}
 	if req.Provider == "custom" {
 		if err := custom.NewCustomClusterRepo(c.DB).Create(&model.CustomCluster{
@@ -127,10 +133,29 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 			KubeConfig:   req.KubeConfig,
 			EnterpriseID: eid,
 		}); err != nil {
-			logrus.Errorf("create custom cluster failure %s", err.Error())
-			return nil, bcode.ServerErr
+			return nil, errors.Wrap(err, "create custom cluster")
 		}
 	}
+
+	var rkeConfig v3.RancherKubernetesEngineConfig
+	if req.Provider == "rke" {
+		decRKEConfig, err := base64.StdEncoding.DecodeString(req.EncodedRKEConfig)
+		if err != nil {
+			return nil, errors.Wrap(bcode.ErrIncorrectRKEConfig, "decode encoded rke config")
+		}
+		if err := yaml.Unmarshal(decRKEConfig, &rkeConfig); err != nil {
+			return nil, errors.Wrap(bcode.ErrIncorrectRKEConfig, "unmarshal rke config")
+		}
+		// validate nodes
+		nodeList, err := c.rkeConfigToNodeList(&rkeConfig)
+		if err != nil {
+			return nil, err
+		}
+		if err := nodeList.Validate(); err != nil {
+			return nil, err
+		}
+	}
+
 	var accessKey *model.CloudAccessKey
 	var err error
 	if req.Provider != "rke" && req.Provider != "custom" {
@@ -149,8 +174,7 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 		TaskID:             uuidutil.NewUUID(),
 	}
 	if err := c.CreateKubernetesTaskRepo.Create(newTask); err != nil {
-		logrus.Errorf("create kubernetes task failure %s", err.Error())
-		return nil, bcode.ServerErr
+		return nil, errors.Wrap(err, "create kubernetes task")
 	}
 	//send task
 	taskReq := types.KubernetesConfigMessage{
@@ -162,7 +186,7 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 			WorkerNodeNum:      newTask.WorkerNum,
 			Provider:           newTask.Provider,
 			Region:             newTask.Region,
-			Nodes:              req.Nodes,
+			RKEConfig:          &rkeConfig,
 			EnterpriseID:       eid,
 		}}
 	if accessKey != nil {
@@ -178,6 +202,29 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 	}
 	logrus.Infof("send create kubernetes task %s to queue", newTask.TaskID)
 	return newTask, nil
+}
+
+func (c *ClusterUsecase) rkeConfigToNodeList(rkeConfig *v3.RancherKubernetesEngineConfig) (v1alpha1.NodeList, error) {
+	if rkeConfig == nil {
+		return nil, nil
+	}
+
+	var nodeList v1alpha1.NodeList
+	for _, node := range rkeConfig.Nodes {
+		port, err := strconv.Atoi(node.Port)
+		if err != nil {
+			return nil, errors.Wrapf(bcode.ErrIncorrectRKEConfig, "invalid node port %s", node.Port)
+		}
+		nodeList = append(nodeList, v1alpha1.ConfigNode{
+			IP:               node.Address,
+			InternalAddress:  node.InternalAddress,
+			SSHUser:          node.User,
+			SSHPort:          port,
+			DockerSocketPath: node.DockerSocket,
+			Roles:            node.Role,
+		})
+	}
+	return nodeList, nil
 }
 
 //InitRainbondRegion init rainbond region
@@ -232,7 +279,7 @@ func (c *ClusterUsecase) InitRainbondRegion(eid string, req v1.InitRainbondRegio
 }
 
 //UpdateKubernetesCluster -
-func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubernetesReq) (*model.UpdateKubernetesTask, error) {
+func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubernetesReq) (*v1.UpdateKubernetesTask, error) {
 	if c.TaskProducer == nil {
 		logrus.Errorf("TaskProducer is nil")
 		return nil, bcode.ServerErr
@@ -240,17 +287,30 @@ func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubern
 	if req.Provider != "rke" {
 		return nil, bcode.ErrNotSupportUpdateKubernetes
 	}
+
+	decodedRkeConfig, err := base64.StdEncoding.DecodeString(req.EncodedRKEConfig)
+	if err != nil {
+		logrus.Errorf("decode encoded rke config: %v", err)
+		return nil, errors.Wrap(bcode.ErrIncorrectRKEConfig, "decode encoded rke config")
+	}
+	var rkeConfig v3.RancherKubernetesEngineConfig
+	if err := yaml.Unmarshal(decodedRkeConfig, &rkeConfig); err != nil {
+		logrus.Errorf("unmarshal rke config: %v", err)
+		return nil, errors.Wrap(bcode.ErrIncorrectRKEConfig, "unmarshal rke config")
+	}
+
 	newTask := &model.UpdateKubernetesTask{
 		TaskID:       uuidutil.NewUUID(),
 		Provider:     req.Provider,
 		EnterpriseID: eid,
 		ClusterID:    req.ClusterID,
-		NodeNumber:   len(req.Nodes),
+		NodeNumber:   len(rkeConfig.Nodes),
 	}
 	if err := c.UpdateKubernetesTaskRepo.Create(newTask); err != nil {
 		logrus.Errorf("save update kubernetes task failure %s", err.Error())
 		return nil, bcode.ServerErr
 	}
+
 	//send task
 	taskReq := types.UpdateKubernetesConfigMessage{
 		EnterpriseID: eid,
@@ -258,8 +318,8 @@ func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubern
 		Config: &v1alpha1.ExpansionNode{
 			Provider:     req.Provider,
 			ClusterID:    req.ClusterID,
-			Nodes:        req.Nodes,
 			EnterpriseID: eid,
+			RKEConfig:    &rkeConfig,
 		}}
 	if err := c.TaskProducer.SendUpdateKuerbetesTask(taskReq); err != nil {
 		logrus.Errorf("send create kubernetes task failure %s", err.Error())
@@ -269,7 +329,13 @@ func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubern
 		}
 	}
 	logrus.Infof("send create kubernetes task %s to queue", newTask.TaskID)
-	return newTask, nil
+	return &v1.UpdateKubernetesTask{
+		TaskID:       newTask.TaskID,
+		Provider:     newTask.Provider,
+		EnterpriseID: newTask.EnterpriseID,
+		ClusterID:    newTask.ClusterID,
+		NodeNumber:   newTask.NodeNumber,
+	}, nil
 }
 
 //GetInitRainbondTaskByClusterID get init rainbond task
@@ -284,21 +350,85 @@ func (c *ClusterUsecase) GetInitRainbondTaskByClusterID(eid, clusterID, provider
 	return task, nil
 }
 
-//GetUpdateKubernetesTaskByClusterID get update kubernetes task
-func (c *ClusterUsecase) GetUpdateKubernetesTaskByClusterID(eid, clusterID, providerName string) (*model.UpdateKubernetesTask, error) {
+//GetUpdateKubernetesTask get update kubernetes task
+func (c *ClusterUsecase) GetUpdateKubernetesTask(eid, clusterID, providerName string) (*v1.UpdateKubernetesRes, error) {
+	task, err := c.getUpdateKubernetesTask(eid, clusterID, providerName)
+	if err != nil {
+		return nil, err
+	}
+
+	var re v1.UpdateKubernetesRes
+	re.Task = task
+	if providerName == "rke" {
+		cluster, err := c.rkeClusterRepo.GetCluster(eid, clusterID)
+		if err != nil {
+			return nil, err
+		}
+
+		rkeConfig, err := c.getRKEConfig(eid, cluster)
+		if err != nil {
+			return nil, err
+		}
+		rkeConfigBytes, err := yaml.Marshal(rkeConfig)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		re.RKEConfig = base64.StdEncoding.EncodeToString(rkeConfigBytes)
+
+		nodeList, err := c.rkeConfigToNodeList(rkeConfig)
+		if err != nil {
+			return nil, err
+		}
+		re.NodeList = nodeList
+	}
+
+	return &re, nil
+}
+
+func (c *ClusterUsecase) getUpdateKubernetesTask(eid, clusterID, providerName string) (*model.UpdateKubernetesTask, error) {
 	task, err := c.UpdateKubernetesTaskRepo.GetTaskByClusterID(eid, providerName, clusterID)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, nil
 		}
-		return nil, bcode.ServerErr
+		return nil, err
 	}
 	return task, nil
 }
 
+func (c *ClusterUsecase) getRKEConfig(eid string, cluster *model.RKECluster) (*v3.RancherKubernetesEngineConfig, error) {
+	configDir := os.Getenv("CONFIG_DIR")
+	if configDir == "" {
+		configDir = "/tmp"
+	}
+	clusterYMLPath := fmt.Sprintf("%s/enterprise/%s/rke/%s/cluster.yml", configDir, cluster.EnterpriseID, cluster.Name)
+	oldClusterYMLPath := fmt.Sprintf("%s/rke/%s/cluster.yml", configDir, cluster.Name)
+
+	bytes, err := ioutil.ReadFile(clusterYMLPath)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return nil, errors.Wrap(err, "read rke config file")
+		}
+		bytes, err = ioutil.ReadFile(oldClusterYMLPath)
+		if err != nil {
+			if !os.IsNotExist(err) {
+				return nil, errors.Wrap(bcode.ErrRKEConfigLost, err.Error())
+			}
+			return nil, nil
+		}
+	}
+
+	var rkeConfig v3.RancherKubernetesEngineConfig
+	if err = yaml.Unmarshal(bytes, &rkeConfig); err != nil {
+		return nil, errors.WithStack(bcode.ErrIncorrectRKEConfig)
+	}
+
+	return &rkeConfig, nil
+}
+
 //GetRKENodeList get rke kubernetes node list
 func (c *ClusterUsecase) GetRKENodeList(eid, clusterID string) (v1alpha1.NodeList, error) {
-	cluster, err := rke.NewRKEClusterRepo(c.DB).GetCluster(eid, clusterID)
+	cluster, err := repo.NewRKEClusterRepo(c.DB).GetCluster(eid, clusterID)
 	if err != nil {
 		return nil, bcode.NotFound
 	}
@@ -625,7 +755,7 @@ func (c *ClusterUsecase) InstallCluster(eid, clusterID string) (*model.CreateKub
 		logrus.Errorf("TaskProducer is nil")
 		return nil, bcode.ServerErr
 	}
-	cluster, err := rke.NewRKEClusterRepo(c.DB).GetCluster(eid, clusterID)
+	cluster, err := repo.NewRKEClusterRepo(c.DB).GetCluster(eid, clusterID)
 	if err != nil {
 		return nil, err
 	}
@@ -730,4 +860,70 @@ func (c *ClusterUsecase) UninstallRainbondRegion(eid, clusterID, provider string
 		logrus.Infof("complete uninstall cluster %s by provider %s", clusterID, provider)
 	}()
 	return nil
+}
+
+// PruneUpdateRKEConfig update rke config purely.
+func (c *ClusterUsecase) PruneUpdateRKEConfig(req *v1.PruneUpdateRKEConfigReq) (*v1.PruneUpdateRKEConfigResp, error) {
+	var rkeConfig *v3.RancherKubernetesEngineConfig
+	if req.EncodedRKEConfig == "" {
+		rkeConfig = v1alpha1.GetDefaultRKECreateClusterConfig(v1alpha1.KubernetesClusterConfig{
+			Nodes: req.Nodes,
+		}).(*v3.RancherKubernetesEngineConfig)
+	} else {
+		var rkeConfig2 v3.RancherKubernetesEngineConfig
+		decodedRKEConfig, err := base64.StdEncoding.DecodeString(req.EncodedRKEConfig)
+		if err != nil {
+			return nil, errors.Wrapf(bcode.ErrIncorrectRKEConfig, "decode encoded rke config: %v", err)
+		}
+		if err := yaml.Unmarshal(decodedRKEConfig, &rkeConfig2); err != nil {
+			return nil, errors.Wrapf(bcode.ErrIncorrectRKEConfig, "unmarshal rke config: %v", err)
+		}
+		if len(req.Nodes) > 0 {
+			rkeConfig2.Nodes = c.nodeListToRKEConfigNodes(req.Nodes)
+		}
+		rkeConfig = &rkeConfig2
+	}
+
+	rkeConfigBytes, err := yaml.Marshal(rkeConfig)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	encodedRKEConfig := base64.StdEncoding.EncodeToString(rkeConfigBytes)
+
+	nodeList, err := c.rkeConfigToNodeList(rkeConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return &v1.PruneUpdateRKEConfigResp{
+		Nodes:            nodeList,
+		EncodedRKEConfig: encodedRKEConfig,
+	}, nil
+}
+
+func (c *ClusterUsecase) nodeListToRKEConfigNodes(nodeList v1alpha1.NodeList) []v3.RKEConfigNode {
+	var nodes []v3.RKEConfigNode
+	for _, node := range nodeList {
+		nodes = append(nodes, v3.RKEConfigNode{
+			NodeName: "",
+			Address:  node.IP,
+			Port: func() string {
+				if node.SSHPort != 0 {
+					return fmt.Sprintf("%d", node.SSHPort)
+				}
+				return "22"
+			}(),
+			DockerSocket: node.DockerSocketPath,
+			User: func() string {
+				if node.SSHUser != "" {
+					return node.SSHUser
+				}
+				return "docker"
+			}(),
+			SSHKeyPath:      "~/.ssh/id_rsa",
+			Role:            node.Roles,
+			InternalAddress: node.InternalAddress,
+		})
+	}
+	return nodes
 }

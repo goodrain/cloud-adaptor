@@ -21,6 +21,7 @@ package rke
 import (
 	"context"
 	"fmt"
+	"goodrain.com/cloud-adaptor/internal/repo"
 	"testing"
 
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
@@ -53,7 +54,7 @@ func TestCreateCluster(t *testing.T) {
 
 func TestExpansionNode(t *testing.T) {
 	rke := &rkeAdaptor{
-		Repo: NewRKEClusterRepo(datastore.NewDB()),
+		Repo: repo.NewRKEClusterRepo(datastore.NewDB()),
 	}
 	rke.ExpansionNode(context.TODO(), "test", &v1alpha1.ExpansionNode{
 		ClusterID: "local-104",

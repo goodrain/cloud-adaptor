@@ -70,3 +70,12 @@ type RainbondClusterConfigRepository interface {
 	Create(ent *model.RainbondClusterConfig) error
 	Get(clusterID string) (*model.RainbondClusterConfig, error)
 }
+
+// RKEClusterRepository -
+type RKEClusterRepository interface {
+	Create(te *model.RKECluster) error
+	Update(te *model.RKECluster) error
+	GetCluster(eid, name string) (*model.RKECluster, error)
+	ListCluster(eid string) ([]*model.RKECluster, error)
+	DeleteCluster(eid, name string) error
+}

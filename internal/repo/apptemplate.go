@@ -38,7 +38,7 @@ type questions struct {
 // TemplateVersionRepo -
 type TemplateVersionRepo interface {
 	// returns the specified version fo the app template.
-	GetTemplateVersion(appStoreName, appStoreURL, templateName, version string) (*domain.AppTemplateVersion, error)
+	GetTemplateVersion(appStore *domain.AppStore, templateName, version string) (*domain.AppTemplateVersion, error)
 }
 
 // NewTemplateVersionRepo creates a new template version.
@@ -52,8 +52,8 @@ type templateVersionRepo struct {
 	templateVersioner *appstore.TemplateVersioner
 }
 
-func (t *templateVersionRepo) GetTemplateVersion(appStoreName, appStoreURL, templateName, version string) (*domain.AppTemplateVersion, error) {
-	chart, err := t.templateVersioner.LoadChart(appStoreName, appStoreURL, templateName, version)
+func (t *templateVersionRepo) GetTemplateVersion(appStore *domain.AppStore, templateName, version string) (*domain.AppTemplateVersion, error) {
+	chart, err := t.templateVersioner.LoadChart(appStore.Name, appStore.URL, appStore.Username, appStore.Password, templateName, version)
 	if err != nil {
 		if strings.Contains(errors.Cause(err).Error(), "improper constraint: ") ||
 			strings.Contains(errors.Cause(err).Error(), "no chart version found for") {
