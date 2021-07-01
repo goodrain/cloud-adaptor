@@ -18,6 +18,7 @@
 
 package bcode
 
+// cluster 7000~7999
 var (
 	//ErrorProviderNotSupport provider not support
 	ErrorProviderNotSupport = newByMessage(400, 7001, "provider not support")

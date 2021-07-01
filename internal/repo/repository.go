@@ -71,6 +71,7 @@ type RainbondClusterConfigRepository interface {
 	Get(clusterID string) (*model.RainbondClusterConfig, error)
 }
 
+// RKEClusterRepository -
 type RKEClusterRepository interface {
 	Create(te *model.RKECluster) error
 	Update(te *model.RKECluster) error
