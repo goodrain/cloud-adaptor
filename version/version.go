@@ -24,10 +24,10 @@ import (
 )
 
 //RainbondRegionVersion rainbond region install version
-var RainbondRegionVersion = "v5.3.0-release"
+var RainbondRegionVersion = "v5.3.1-release"
 
 //OperatorVersion operator image tag
-var OperatorVersion = "v2.0.0"
+var OperatorVersion = "v2.0.1"
 
 //InstallImageRepo install image repo
 var InstallImageRepo = "registry.cn-hangzhou.aliyuncs.com/goodrain"
@@ -38,6 +38,9 @@ func init() {
 	}
 	if os.Getenv("RAINBOND_VERSION") != "" {
 		RainbondRegionVersion = os.Getenv("RAINBOND_VERSION")
+	}
+	if os.Getenv("OPEARTOR_VERSION") != "" {
+		OperatorVersion = os.Getenv("OPEARTOR_VERSION")
 	}
 	if strings.HasSuffix(InstallImageRepo, "/") {
 		InstallImageRepo = InstallImageRepo[:len(InstallImageRepo)-1]
