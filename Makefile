@@ -6,3 +6,6 @@ release: build
 
 swag-init:
 	swag init -g cmd/cloud-adaptor/main.go --parseDependency --parseDepth 1
+
+dev:
+	HELM_REPO_FILE=./data/helm/repo/repository.yaml HELM_CACHE=./data/helm/cache go run ./cmd/cloud-adaptor
