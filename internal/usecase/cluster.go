@@ -230,9 +230,8 @@ func (c *ClusterUsecase) rkeConfigToNodeList(rkeConfig *v3.RancherKubernetesEngi
 //InitRainbondRegion init rainbond region
 func (c *ClusterUsecase) InitRainbondRegion(eid string, req v1.InitRainbondRegionReq) (*model.InitRainbondTask, error) {
 	oldTask, err := c.InitRainbondTaskRepo.GetTaskByClusterID(eid, req.Provider, req.ClusterID)
-	if err != nil && err != gorm.ErrRecordNotFound {
-		logrus.Errorf("query last init rainbond task failure %s", err.Error())
-		return nil, bcode.ServerErr
+	if err != nil && !errors.Is(err, bcode.ErrInitRainbondTaskNotFound) {
+		return nil, err
 	}
 	if oldTask != nil && !req.Retry {
 		return oldTask, bcode.ErrorLastTaskNotComplete
