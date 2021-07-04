@@ -16,33 +16,38 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package version
+package middleware
 
 import (
-	"os"
-	"strings"
+	"github.com/gin-gonic/gin"
+	"github.com/google/wire"
+	"goodrain.com/cloud-adaptor/internal/repo"
+	"goodrain.com/cloud-adaptor/pkg/util/ginutil"
 )
 
-//RainbondRegionVersion rainbond region install version
-var RainbondRegionVersion = "v5.3.1-release"
+// ProviderSet is a middleware provider.
+var ProviderSet = wire.NewSet(NewMiddleware)
 
-//OperatorVersion operator image tag
-var OperatorVersion = "v2.0.1"
+// Middleware -
+type Middleware struct {
+	appStoreRepo repo.AppStoreRepo
+}
 
-//InstallImageRepo install image repo
-var InstallImageRepo = "registry.cn-hangzhou.aliyuncs.com/goodrain"
+// NewMiddleware creates a new middleware.
+func NewMiddleware(appStoreRepo repo.AppStoreRepo) *Middleware {
+	return &Middleware{
+		appStoreRepo: appStoreRepo,
+	}
+}
 
-func init() {
-	if os.Getenv("INSTALL_IMAGE_REPO") != "" {
-		InstallImageRepo = os.Getenv("INSTALL_IMAGE_REPO")
+// AppStore -
+func (a *Middleware) AppStore(c *gin.Context) {
+	eid := c.Param("eid")
+	name := c.Param("name")
+	appStore, err := a.appStoreRepo.Get(c.Request.Context(), eid, name)
+	if err != nil {
+		ginutil.Error(c, err)
+		return
 	}
-	if os.Getenv("RAINBOND_VERSION") != "" {
-		RainbondRegionVersion = os.Getenv("RAINBOND_VERSION")
-	}
-	if os.Getenv("OPERATOR_VERSION") != "" {
-		OperatorVersion = os.Getenv("OPERATOR_VERSION")
-	}
-	if strings.HasSuffix(InstallImageRepo, "/") {
-		InstallImageRepo = InstallImageRepo[:len(InstallImageRepo)-1]
-	}
+	c.Set("appStore", appStore)
 }

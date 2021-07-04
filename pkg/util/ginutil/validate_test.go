@@ -16,33 +16,54 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package version
+package ginutil
 
 import (
-	"os"
-	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-//RainbondRegionVersion rainbond region install version
-var RainbondRegionVersion = "v5.3.1-release"
-
-//OperatorVersion operator image tag
-var OperatorVersion = "v2.0.1"
-
-//InstallImageRepo install image repo
-var InstallImageRepo = "registry.cn-hangzhou.aliyuncs.com/goodrain"
-
-func init() {
-	if os.Getenv("INSTALL_IMAGE_REPO") != "" {
-		InstallImageRepo = os.Getenv("INSTALL_IMAGE_REPO")
+func TestAppStoreName(t *testing.T) {
+	tests := []struct {
+		tname string
+		name  string
+		want  bool
+	}{
+		{
+			tname: "33 characters",
+			name:  "abcabcabcabcabcaabcabcabcabcabcax",
+			want:  false,
+		},
+		{
+			tname: "3 characters",
+			name:  "abc",
+			want:  false,
+		},
+		{
+			tname: "4 characters",
+			name:  "abcd",
+			want:  true,
+		},
+		{
+			tname: "32 characters",
+			name:  "abcabcabcabcabcaabcabcabcabcabca",
+			want:  true,
+		},
+		{
+			tname: "start with number",
+			name:  "1abc",
+			want:  false,
+		},
+		{
+			tname: "invalid character",
+			name:  ".,';",
+			want:  false,
+		},
 	}
-	if os.Getenv("RAINBOND_VERSION") != "" {
-		RainbondRegionVersion = os.Getenv("RAINBOND_VERSION")
-	}
-	if os.Getenv("OPERATOR_VERSION") != "" {
-		OperatorVersion = os.Getenv("OPERATOR_VERSION")
-	}
-	if strings.HasSuffix(InstallImageRepo, "/") {
-		InstallImageRepo = InstallImageRepo[:len(InstallImageRepo)-1]
+	for _, tc := range tests {
+		t.Run(tc.tname, func(t *testing.T) {
+			assert.Equal(t, tc.want, validateAppStoreName(tc.name))
+		})
 	}
 }

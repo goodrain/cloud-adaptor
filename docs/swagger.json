@@ -1,0 +1,1206 @@
+{
+    "schemes": [
+        "http,",
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "Cloud Adaptor",
+        "title": "Cloud Adaptor API",
+        "contact": {
+            "name": "Rainbond",
+            "url": "https://rainbond.com"
+        },
+        "version": "1.0"
+    },
+    "basePath": "/api/v1",
+    "paths": {
+        "/api/v1/enterprises/:eid/appstores": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appstores"
+                ],
+                "summary": "returns a list of app stores.",
+                "operationId": "listAppStores",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the enterprise id",
+                        "name": "eid",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/v1.AppStore"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appstores"
+                ],
+                "summary": "creates a new app store.",
+                "operationId": "createAppStore",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the enterprise id",
+                        "name": "eid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": ".",
+                        "name": "createAppStoreReq",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.CreateAppStoreReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AppStore"
+                        }
+                    },
+                    "400": {
+                        "description": "8002, app store unavailable",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    },
+                    "409": {
+                        "description": "8001, app store name conflict",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/enterprises/:eid/appstores/:name": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appstores"
+                ],
+                "summary": "returns the app store.",
+                "operationId": "getAppStore",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the enterprise id",
+                        "name": "eid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the name of the app store",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AppStore"
+                        }
+                    },
+                    "404": {
+                        "description": "8000, app store not found",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appstores"
+                ],
+                "summary": "updates the app store..",
+                "operationId": "updateAppStore",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the enterprise id",
+                        "name": "eid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the name of the app store",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": ".",
+                        "name": "updateAppStoreReq",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.UpdateAppStoreReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AppStore"
+                        }
+                    },
+                    "404": {
+                        "description": "8000, app store not found",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appstores"
+                ],
+                "summary": "deletes the app store.",
+                "operationId": "deleteAppStore",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the enterprise id",
+                        "name": "eid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the name of the app store",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "404": {
+                        "description": "8000, app store not found",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/enterprises/:eid/appstores/:name/apps": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appstores"
+                ],
+                "summary": "returns a list of app templates.",
+                "operationId": "listTemplates",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the enterprise id",
+                        "name": "eid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the name of the app store",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/v1.AppTemplate"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "8000, app store not found",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/enterprises/:eid/appstores/:name/apps/:templateName": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appstores"
+                ],
+                "summary": "returns the app template.",
+                "operationId": "getAppTemplate",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the enterprise id",
+                        "name": "eid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the name of the app store",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the name of the app template",
+                        "name": "templateName",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.AppTemplate"
+                        }
+                    },
+                    "404": {
+                        "description": "8000, app store not found",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/enterprises/:eid/appstores/:name/resync": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appstores"
+                ],
+                "summary": "resync the app templates.",
+                "operationId": "resyncAppStore",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the enterprise id",
+                        "name": "eid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the name of the app store",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "404": {
+                        "description": "8000, app store not found",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/enterprises/:eid/appstores/:name/templates/:templateName/versions/:version": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "appstores"
+                ],
+                "summary": "returns the app template version.",
+                "operationId": "getAppTemplateVersion",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the enterprise id",
+                        "name": "eid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the name of the app store",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the name of the app template",
+                        "name": "templateName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the version of the app template",
+                        "name": "version",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.TemplateVersion"
+                        }
+                    },
+                    "404": {
+                        "description": "8003, app template not found",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/enterprises/:eid/kclusters/prune-update-rkeconfig": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cluster"
+                ],
+                "summary": "update rke config purely",
+                "operationId": "pruneUpdateRKEConfig",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the enterprise id",
+                        "name": "eid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": ".",
+                        "name": "pruneUpdateRKEConfigReq",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.PruneUpdateRKEConfigReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.PruneUpdateRKEConfigResp"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/enterprises/:eid/update-cluster": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cluster"
+                ],
+                "summary": "updates kubernetes cluster.",
+                "operationId": "updateKubernetesCluster",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the enterprise id",
+                        "name": "eid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": ".",
+                        "name": "updateKubernetesReq",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/v1.UpdateKubernetesReq"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.UpdateKubernetesTask"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/enterprises/:eid/update-cluster/:clusterID": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "cluster"
+                ],
+                "summary": "returns the information of the cluster.",
+                "operationId": "getUpdateKubernetesTask",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "the enterprise id",
+                        "name": "eid",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the cluster id",
+                        "name": "clusterID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/v1.UpdateKubernetesTask"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/ginutil.Result"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "chart.Maintainer": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "description": "Email is an optional email address to contact the named maintainer",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name is a user name or organization name",
+                    "type": "string"
+                },
+                "url": {
+                    "description": "Url is an optional URL to an address for the named maintainer",
+                    "type": "string"
+                }
+            }
+        },
+        "ginutil.Result": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {
+                    "type": "object"
+                },
+                "msg": {
+                    "type": "string"
+                }
+            }
+        },
+        "repo.ChartVersion": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "description": "Annotations are additional mappings uninterpreted by Tiller,\nmade available for inspection by other applications.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "apiVersion": {
+                    "description": "The API Version of this chart.",
+                    "type": "string"
+                },
+                "appVersion": {
+                    "description": "The version of the application enclosed inside of this chart.",
+                    "type": "string"
+                },
+                "condition": {
+                    "description": "The condition to check to enable chart",
+                    "type": "string"
+                },
+                "created": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "description": "Whether or not this chart is deprecated",
+                    "type": "boolean"
+                },
+                "description": {
+                    "description": "A one-sentence description of the chart",
+                    "type": "string"
+                },
+                "digest": {
+                    "type": "string"
+                },
+                "engine": {
+                    "description": "The name of the template engine to use. Defaults to 'gotpl'.",
+                    "type": "string"
+                },
+                "home": {
+                    "description": "The URL to a relevant project page, git repo, or contact person",
+                    "type": "string"
+                },
+                "icon": {
+                    "description": "The URL to an icon file.",
+                    "type": "string"
+                },
+                "keywords": {
+                    "description": "A list of string keywords",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "kubeVersion": {
+                    "description": "KubeVersion is a SemVer constraint specifying the version of Kubernetes required.",
+                    "type": "string"
+                },
+                "maintainers": {
+                    "description": "A list of name and URL/email address combinations for the maintainer(s)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/chart.Maintainer"
+                    }
+                },
+                "name": {
+                    "description": "The name of the chart",
+                    "type": "string"
+                },
+                "removed": {
+                    "type": "boolean"
+                },
+                "sources": {
+                    "description": "Source is the URL to the source code of this chart",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tags": {
+                    "description": "The tags to check to enable chart",
+                    "type": "string"
+                },
+                "tillerVersion": {
+                    "description": "TillerVersion is a SemVer constraints on what version of Tiller is required.\nSee SemVer ranges here: https://github.com/Masterminds/semver#basic-comparisons",
+                    "type": "string"
+                },
+                "urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "version": {
+                    "description": "A SemVer 2 conformant version string of the chart",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.AppStore": {
+            "type": "object",
+            "properties": {
+                "branch": {
+                    "description": "The branch of app store, which category is git repo.",
+                    "type": "string"
+                },
+                "eid": {
+                    "description": "The enterprise id.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "The name of app store.",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "The password of the private app store",
+                    "type": "string"
+                },
+                "url": {
+                    "description": "The url of app store.",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "The username of the private app store",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.AppTemplate": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "description": "The name of app template.",
+                    "type": "string"
+                },
+                "versions": {
+                    "description": "A list of app template versions.",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/repo.ChartVersion"
+                    }
+                }
+            }
+        },
+        "v1.CreateAppStoreReq": {
+            "type": "object",
+            "required": [
+                "name",
+                "url"
+            ],
+            "properties": {
+                "branch": {
+                    "description": "The branch of app store, which category is git repo.",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "The name of app store.",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "The password of the private app store",
+                    "type": "string"
+                },
+                "url": {
+                    "description": "The url of app store.",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "The username of the private app store",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.PruneUpdateRKEConfigReq": {
+            "type": "object",
+            "properties": {
+                "encodeRKEConfig": {
+                    "type": "string"
+                },
+                "nodes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1alpha1.ConfigNode"
+                    }
+                }
+            }
+        },
+        "v1.PruneUpdateRKEConfigResp": {
+            "type": "object",
+            "properties": {
+                "encodeRKEConfig": {
+                    "type": "string"
+                },
+                "nodes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v1alpha1.ConfigNode"
+                    }
+                }
+            }
+        },
+        "v1.TemplateVersion": {
+            "type": "object",
+            "properties": {
+                "annotations": {
+                    "description": "Annotations are additional mappings uninterpreted by Tiller,\nmade available for inspection by other applications.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "apiVersion": {
+                    "description": "The API Version of this chart.",
+                    "type": "string"
+                },
+                "appVersion": {
+                    "description": "The version of the application enclosed inside of this chart.",
+                    "type": "string"
+                },
+                "condition": {
+                    "description": "The condition to check to enable chart",
+                    "type": "string"
+                },
+                "created": {
+                    "type": "string"
+                },
+                "deprecated": {
+                    "description": "Whether or not this chart is deprecated",
+                    "type": "boolean"
+                },
+                "description": {
+                    "description": "A one-sentence description of the chart",
+                    "type": "string"
+                },
+                "digest": {
+                    "type": "string"
+                },
+                "engine": {
+                    "description": "The name of the template engine to use. Defaults to 'gotpl'.",
+                    "type": "string"
+                },
+                "home": {
+                    "description": "The URL to a relevant project page, git repo, or contact person",
+                    "type": "string"
+                },
+                "icon": {
+                    "description": "The URL to an icon file.",
+                    "type": "string"
+                },
+                "keywords": {
+                    "description": "A list of string keywords",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "kubeVersion": {
+                    "description": "KubeVersion is a SemVer constraint specifying the version of Kubernetes required.",
+                    "type": "string"
+                },
+                "maintainers": {
+                    "description": "A list of name and URL/email address combinations for the maintainer(s)",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/chart.Maintainer"
+                    }
+                },
+                "name": {
+                    "description": "The name of the chart",
+                    "type": "string"
+                },
+                "questions": {
+                    "description": "The questions content of the chart",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v3.Question"
+                    }
+                },
+                "readme": {
+                    "description": "The readme content of the chart.",
+                    "type": "string"
+                },
+                "removed": {
+                    "type": "boolean"
+                },
+                "sources": {
+                    "description": "Source is the URL to the source code of this chart",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "tags": {
+                    "description": "The tags to check to enable chart",
+                    "type": "string"
+                },
+                "tillerVersion": {
+                    "description": "TillerVersion is a SemVer constraints on what version of Tiller is required.\nSee SemVer ranges here: https://github.com/Masterminds/semver#basic-comparisons",
+                    "type": "string"
+                },
+                "urls": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "values": {
+                    "description": "A list of values files.",
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "version": {
+                    "description": "A SemVer 2 conformant version string of the chart",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.UpdateAppStoreReq": {
+            "type": "object",
+            "required": [
+                "url"
+            ],
+            "properties": {
+                "branch": {
+                    "description": "The branch of app store, which category is git repo.",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "The password of the private app store",
+                    "type": "string"
+                },
+                "url": {
+                    "description": "The url of app store.",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "The username of the private app store",
+                    "type": "string"
+                }
+            }
+        },
+        "v1.UpdateKubernetesReq": {
+            "type": "object",
+            "properties": {
+                "clusterID": {
+                    "type": "string"
+                },
+                "etcdNodeNum": {
+                    "type": "integer"
+                },
+                "instanceType": {
+                    "type": "string"
+                },
+                "masterNodeNum": {
+                    "type": "integer"
+                },
+                "provider": {
+                    "type": "string"
+                },
+                "rkeConfig": {
+                    "type": "string"
+                },
+                "workerNum": {
+                    "type": "integer"
+                },
+                "workerResourceType": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1.UpdateKubernetesTask": {
+            "type": "object",
+            "properties": {
+                "clusterID": {
+                    "type": "string"
+                },
+                "eid": {
+                    "type": "string"
+                },
+                "nodeNumber": {
+                    "type": "integer"
+                },
+                "providerName": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "taskID": {
+                    "type": "string"
+                }
+            }
+        },
+        "v1alpha1.ConfigNode": {
+            "type": "object",
+            "properties": {
+                "dockerSocketPath": {
+                    "type": "string"
+                },
+                "internalIP": {
+                    "type": "string"
+                },
+                "ip": {
+                    "type": "string"
+                },
+                "roles": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "sshPort": {
+                    "type": "integer"
+                },
+                "sshUser": {
+                    "type": "string"
+                }
+            }
+        },
+        "v3.Question": {
+            "type": "object",
+            "properties": {
+                "default": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "invalidChars": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "max": {
+                    "type": "integer"
+                },
+                "maxLength": {
+                    "type": "integer"
+                },
+                "min": {
+                    "type": "integer"
+                },
+                "minLength": {
+                    "type": "integer"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "required": {
+                    "type": "boolean"
+                },
+                "satisfies": {
+                    "type": "string"
+                },
+                "showIf": {
+                    "type": "string"
+                },
+                "showSubquestionIf": {
+                    "type": "string"
+                },
+                "subquestions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/v3.SubQuestion"
+                    }
+                },
+                "type": {
+                    "type": "string"
+                },
+                "validChars": {
+                    "type": "string"
+                },
+                "variable": {
+                    "type": "string"
+                }
+            }
+        },
+        "v3.SubQuestion": {
+            "type": "object",
+            "properties": {
+                "default": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "group": {
+                    "type": "string"
+                },
+                "invalidChars": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "max": {
+                    "type": "integer"
+                },
+                "maxLength": {
+                    "type": "integer"
+                },
+                "min": {
+                    "type": "integer"
+                },
+                "minLength": {
+                    "type": "integer"
+                },
+                "options": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "required": {
+                    "type": "boolean"
+                },
+                "satisfies": {
+                    "type": "string"
+                },
+                "showIf": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "validChars": {
+                    "type": "string"
+                },
+                "variable": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

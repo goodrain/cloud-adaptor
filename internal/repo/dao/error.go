@@ -16,33 +16,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package version
+package dao
 
-import (
-	"os"
-	"strings"
-)
+import "strings"
 
-//RainbondRegionVersion rainbond region install version
-var RainbondRegionVersion = "v5.3.1-release"
-
-//OperatorVersion operator image tag
-var OperatorVersion = "v2.0.1"
-
-//InstallImageRepo install image repo
-var InstallImageRepo = "registry.cn-hangzhou.aliyuncs.com/goodrain"
-
-func init() {
-	if os.Getenv("INSTALL_IMAGE_REPO") != "" {
-		InstallImageRepo = os.Getenv("INSTALL_IMAGE_REPO")
-	}
-	if os.Getenv("RAINBOND_VERSION") != "" {
-		RainbondRegionVersion = os.Getenv("RAINBOND_VERSION")
-	}
-	if os.Getenv("OPERATOR_VERSION") != "" {
-		OperatorVersion = os.Getenv("OPERATOR_VERSION")
-	}
-	if strings.HasSuffix(InstallImageRepo, "/") {
-		InstallImageRepo = InstallImageRepo[:len(InstallImageRepo)-1]
-	}
+func isDuplicateEntry(err error) bool {
+	return strings.HasPrefix(err.Error(), "UNIQUE constraint failed") ||
+		strings.HasPrefix(err.Error(), "Error 1062: Duplicate entry")
 }

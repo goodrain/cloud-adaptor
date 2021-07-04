@@ -16,33 +16,32 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package version
+package ginutil
 
 import (
-	"os"
-	"strings"
+	"fmt"
+	"regexp"
+
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 )
 
-//RainbondRegionVersion rainbond region install version
-var RainbondRegionVersion = "v5.3.1-release"
-
-//OperatorVersion operator image tag
-var OperatorVersion = "v2.0.1"
-
-//InstallImageRepo install image repo
-var InstallImageRepo = "registry.cn-hangzhou.aliyuncs.com/goodrain"
-
 func init() {
-	if os.Getenv("INSTALL_IMAGE_REPO") != "" {
-		InstallImageRepo = os.Getenv("INSTALL_IMAGE_REPO")
+	if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+		registerValidation(v, "appStoreName", appStoreName)
 	}
-	if os.Getenv("RAINBOND_VERSION") != "" {
-		RainbondRegionVersion = os.Getenv("RAINBOND_VERSION")
+}
+
+func registerValidation(v *validator.Validate, tag string, fn validator.Func, callValidationEvenIfNull ...bool) {
+	if err := v.RegisterValidation(tag, fn, callValidationEvenIfNull...); err != nil {
+		panic(fmt.Sprintf("register %s validation: %v", tag, err))
 	}
-	if os.Getenv("OPERATOR_VERSION") != "" {
-		OperatorVersion = os.Getenv("OPERATOR_VERSION")
-	}
-	if strings.HasSuffix(InstallImageRepo, "/") {
-		InstallImageRepo = InstallImageRepo[:len(InstallImageRepo)-1]
-	}
+}
+
+var appStoreName validator.Func = func(fl validator.FieldLevel) bool {
+	return validateAppStoreName(fl.Field().String())
+}
+
+func validateAppStoreName(name string) bool {
+	return regexp.MustCompile("^[a-z][a-z0-9]{3,31}$").MatchString(name)
 }

@@ -16,33 +16,25 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package version
+package repo
 
 import (
-	"os"
-	"strings"
+	"github.com/google/wire"
+	"goodrain.com/cloud-adaptor/internal/repo/appstore"
 )
 
-//RainbondRegionVersion rainbond region install version
-var RainbondRegionVersion = "v5.3.1-release"
-
-//OperatorVersion operator image tag
-var OperatorVersion = "v2.0.1"
-
-//InstallImageRepo install image repo
-var InstallImageRepo = "registry.cn-hangzhou.aliyuncs.com/goodrain"
-
-func init() {
-	if os.Getenv("INSTALL_IMAGE_REPO") != "" {
-		InstallImageRepo = os.Getenv("INSTALL_IMAGE_REPO")
-	}
-	if os.Getenv("RAINBOND_VERSION") != "" {
-		RainbondRegionVersion = os.Getenv("RAINBOND_VERSION")
-	}
-	if os.Getenv("OPERATOR_VERSION") != "" {
-		OperatorVersion = os.Getenv("OPERATOR_VERSION")
-	}
-	if strings.HasSuffix(InstallImageRepo, "/") {
-		InstallImageRepo = InstallImageRepo[:len(InstallImageRepo)-1]
-	}
-}
+// ProviderSet is data providers.
+var ProviderSet = wire.NewSet(
+	NewCloudAccessKeyRepo,
+	NewCreateKubernetesTaskRepo,
+	NewInitRainbondRegionTaskRepo,
+	NewUpdateKubernetesTaskRepo,
+	NewTaskEventRepo,
+	NewRainbondClusterConfigRepo,
+	NewAppStoreRepo,
+	NewRKEClusterRepo,
+	NewTemplateVersionRepo,
+	appstore.NewStorer,
+	appstore.NewAppTemplater,
+	appstore.NewTemplateVersioner,
+)
