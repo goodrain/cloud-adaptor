@@ -341,11 +341,8 @@ func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubern
 //GetInitRainbondTaskByClusterID get init rainbond task
 func (c *ClusterUsecase) GetInitRainbondTaskByClusterID(eid, clusterID, providerName string) (*model.InitRainbondTask, error) {
 	task, err := c.InitRainbondTaskRepo.GetTaskByClusterID(eid, providerName, clusterID)
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, bcode.NotFound
-		}
-		return nil, bcode.ServerErr
+	if err != nil && !errors.Is(err, bcode.ErrInitRainbondTaskNotFound) {
+		return nil, err
 	}
 	return task, nil
 }
