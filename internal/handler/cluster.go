@@ -361,11 +361,7 @@ func (e *ClusterHandler) GetInitRainbondTask(ctx *gin.Context) {
 		return
 	}
 	task, err := e.cluster.GetInitRainbondTaskByClusterID(eid, clusterID, req.ProviderName)
-	if err != nil {
-		ginutil.JSON(ctx, nil, err)
-		return
-	}
-	ginutil.JSON(ctx, task, nil)
+	ginutil.JSON(ctx, task, err)
 }
 
 // CreateInitRainbondTask returns the information of .

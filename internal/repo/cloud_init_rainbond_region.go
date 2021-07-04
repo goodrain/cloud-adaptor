@@ -21,7 +21,9 @@ package repo
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	"goodrain.com/cloud-adaptor/internal/model"
+	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
 	"gorm.io/gorm"
 )
@@ -64,7 +66,10 @@ func (c *InitRainbondRegionTaskRepo) Create(ck *model.InitRainbondTask) error {
 func (c *InitRainbondRegionTaskRepo) GetTaskByClusterID(eid string, providerName, clusterID string) (*model.InitRainbondTask, error) {
 	var old model.InitRainbondTask
 	if err := c.DB.Where("eid=? and provider_name=? and cluster_id=?", eid, providerName, clusterID).Last(&old).Error; err != nil {
-		return nil, err
+		if err == gorm.ErrRecordNotFound {
+			return nil, errors.Wrap(bcode.ErrInitRainbondTaskNotFound, "get init rainbond task")
+		}
+		return nil, errors.Wrap(err, "get init rainbond task")
 	}
 	return &old, nil
 }
