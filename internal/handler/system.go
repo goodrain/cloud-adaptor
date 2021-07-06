@@ -208,31 +208,31 @@ func (s SystemHandler) Recover(c *gin.Context) {
 					tx.Rollback()
 				}
 			}()
-			if func() error {
+			if err := func() error {
 				var data model.BackupListModelData
 				err = json.Unmarshal(bytes, &data)
 				if err != nil {
 					logrus.Errorf("unmarshal db backup file failure ", err.Error())
 				}
-				if err := tx.Delete(&model.CloudAccessKey{}).Error; err != nil {
+				if err := tx.Where("1 = 1").Delete(&model.CloudAccessKey{}).Error; err != nil {
 					return err
 				}
-				if err := tx.Delete(&model.CreateKubernetesTask{}).Error; err != nil {
+				if err := tx.Where("1 = 1").Delete(&model.CreateKubernetesTask{}).Error; err != nil {
 					return err
 				}
-				if err := tx.Delete(&model.InitRainbondTask{}).Error; err != nil {
+				if err := tx.Where("1 = 1").Delete(&model.InitRainbondTask{}).Error; err != nil {
 					return err
 				}
-				if err := tx.Delete(&model.UpdateKubernetesTask{}).Error; err != nil {
+				if err := tx.Where("1 = 1").Delete(&model.UpdateKubernetesTask{}).Error; err != nil {
 					return err
 				}
-				if err := tx.Delete(&model.TaskEvent{}).Error; err != nil {
+				if err := tx.Where("1 = 1").Delete(&model.TaskEvent{}).Error; err != nil {
 					return err
 				}
-				if err := tx.Delete(&model.CustomCluster{}).Error; err != nil {
+				if err := tx.Where("1 = 1").Delete(&model.CustomCluster{}).Error; err != nil {
 					return err
 				}
-				if err := tx.Delete(&model.RKECluster{}).Error; err != nil {
+				if err := tx.Where("1 = 1").Delete(&model.RKECluster{}).Error; err != nil {
 					return err
 				}
 				for _, accessKey := range data.CloudAccessKeys {
