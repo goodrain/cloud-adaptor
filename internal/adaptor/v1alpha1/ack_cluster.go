@@ -20,12 +20,17 @@ package v1alpha1
 
 import (
 	"net"
+	"os"
 	"strings"
 )
 
 //GetDefaultACKCreateClusterConfig get create ack cluster default config
 func GetDefaultACKCreateClusterConfig(config KubernetesClusterConfig) CreateClusterConfig {
-	kubernetesVersion := "1.18.8-aliyun.1"
+	defaultAckVersion := os.Getenv("DEFAULT_ACK_VERSION")
+	if defaultAckVersion == "" {
+		defaultAckVersion = "1.18.8-aliyun.1"
+	}
+	kubernetesVersion := defaultAckVersion
 	if config.KubernetesVersion != "" && strings.Contains(config.KubernetesVersion, "aliyun") {
 		kubernetesVersion = config.KubernetesVersion
 	}
