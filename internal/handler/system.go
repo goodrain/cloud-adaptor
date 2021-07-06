@@ -65,6 +65,7 @@ func (s SystemHandler) Backup(ctx *gin.Context) {
 	s.db.Model(&model.CustomCluster{}).Scan(&result.CustomClusters)
 	s.db.Model(&model.RKECluster{}).Scan(&result.RKEClusters)
 	s.db.Model(&model.RainbondClusterConfig{}).Scan(&result.RainbondClusterConfigs)
+	s.db.Model(&model.AppStore{}).Scan(&result.AppStores)
 	data, err := json.Marshal(result)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
@@ -235,6 +236,13 @@ func (s SystemHandler) Recover(c *gin.Context) {
 				if err := tx.Where("1 = 1").Delete(&model.RKECluster{}).Error; err != nil {
 					return err
 				}
+				if err := tx.Where("1 = 1").Delete(&model.RainbondClusterConfig{}).Error; err != nil {
+					return err
+				}
+				if err := tx.Where("1 = 1").Delete(&model.AppStore{}).Error; err != nil {
+					return err
+				}
+
 				for _, accessKey := range data.CloudAccessKeys {
 					if err := tx.Create(&accessKey).Error; err != nil {
 						return fmt.Errorf("recover accessKey failure %s", err.Error())
@@ -274,6 +282,11 @@ func (s SystemHandler) Recover(c *gin.Context) {
 				for _, rcc := range data.RainbondClusterConfigs {
 					if err := tx.Create(&rcc).Error; err != nil {
 						return fmt.Errorf("recover rainbondClusterConfigs failure %s", err.Error())
+					}
+				}
+				for _, appStore := range data.AppStores {
+					if err := tx.Create(&appStore).Error; err != nil {
+						return fmt.Errorf("recover appStores failure %s", err.Error())
 					}
 				}
 				logrus.Infof("recover db backup data success")
