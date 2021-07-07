@@ -24,7 +24,6 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"goodrain.com/cloud-adaptor/internal/middleware"
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
-
 	// go-swag
 	_ "goodrain.com/cloud-adaptor/docs"
 )
@@ -35,6 +34,7 @@ type Router struct {
 	cluster    *ClusterHandler
 	system     *SystemHandler
 	appStore   *AppStoreHandler
+	license    *LicenseHandler
 }
 
 // NewRouter creates a new router.
@@ -43,12 +43,14 @@ func NewRouter(
 	cluster *ClusterHandler,
 	appStore *AppStoreHandler,
 	system *SystemHandler,
+	license *LicenseHandler,
 ) *Router {
 	return &Router{
 		middleware: middleware,
 		cluster:    cluster,
 		appStore:   appStore,
 		system:     system,
+		license:    license,
 	}
 }
 
@@ -81,6 +83,7 @@ func (r *Router) NewRouter() *gin.Engine {
 	apiv1.GET("/backup", r.system.Backup)
 	apiv1.POST("/recover", r.system.Recover)
 	apiv1.GET("/init_node_cmd", r.cluster.GetInitNodeCmd)
+	apiv1.GET("/license", r.license.GetLicense)
 	entv1 := apiv1.Group("/enterprises/:eid")
 	// cluster
 	entv1.GET("/kclusters", r.cluster.ListKubernetesClusters)
