@@ -765,8 +765,21 @@ func (c *ClusterUsecase) InstallCluster(eid, clusterID string) (*model.CreateKub
 		logrus.Errorf("create kubernetes task failure %s", err.Error())
 		return nil, bcode.ServerErr
 	}
-	var nodes v1alpha1.NodeList
-	json.Unmarshal([]byte(cluster.NodeList), &nodes)
+
+	// get rke config
+	rkeConfig, err := c.getRKEConfig(eid, cluster)
+	if err != nil {
+		return nil, err
+	}
+	// validate nodes
+	nodeList, err := c.rkeConfigToNodeList(rkeConfig)
+	if err != nil {
+		return nil, err
+	}
+	if err := nodeList.Validate(); err != nil {
+		return nil, err
+	}
+
 	//send task
 	taskReq := types.KubernetesConfigMessage{
 		EnterpriseID: eid,
@@ -774,8 +787,8 @@ func (c *ClusterUsecase) InstallCluster(eid, clusterID string) (*model.CreateKub
 		KubernetesConfig: &v1alpha1.KubernetesClusterConfig{
 			ClusterName:  newTask.Name,
 			Provider:     newTask.Provider,
-			Nodes:        nodes,
 			EnterpriseID: eid,
+			RKEConfig:    rkeConfig,
 		}}
 	if err := c.TaskProducer.SendCreateKuerbetesTask(taskReq); err != nil {
 		logrus.Errorf("send create kubernetes task failure %s", err.Error())
