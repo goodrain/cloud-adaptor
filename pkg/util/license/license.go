@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package license
+package licenseutil
 
 import (
 	"crypto/aes"
@@ -31,7 +31,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-//LicenseInfo license data
+// LicenseInfo license data
 type LicenseInfo struct {
 	Code        string    `json:"code"`
 	Company     string    `json:"company"`
@@ -44,6 +44,7 @@ type LicenseInfo struct {
 	IsPermanent bool      `json:"is_permanent"`
 }
 
+// HaveFeature -
 func (l *LicenseInfo) HaveFeature(code string) bool {
 	for _, f := range l.Features {
 		if f.Code == strings.ToUpper(code) {
@@ -53,6 +54,7 @@ func (l *LicenseInfo) HaveFeature(code string) bool {
 	return false
 }
 
+// Feature -
 type Feature struct {
 	Name string `json:"name"`
 	Code string `json:"code"`
@@ -102,6 +104,7 @@ func ReadLicense() *LicenseInfo {
 	return &info
 }
 
+// Decrypt -
 func Decrypt(key []byte, encrypted string) ([]byte, error) {
 	ciphertext, err := base64.RawURLEncoding.DecodeString(encrypted)
 	if err != nil {

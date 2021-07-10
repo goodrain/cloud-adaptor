@@ -26,13 +26,13 @@ import( "github.com/gin-gonic/gin"
 type LicenseHandler struct {
 }
 
-// NewClusterHandler new enterprise handler
+// NewLicenseHandler new license handler
 func NewLicenseHandler() *LicenseHandler {
 	return &LicenseHandler{}
 }
 
-//Backup backup all data
+// GetLicense -
 func (l *LicenseHandler) GetLicense(ctx *gin.Context) {
-	license := license.ReadLicense()
+	license := licenseutil.ReadLicense()
 	ginutil.JSON(ctx, license)
 }
