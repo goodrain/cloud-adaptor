@@ -33,14 +33,15 @@ import (
 
 //LicenseInfo license data
 type LicenseInfo struct {
-	Code      string    `json:"code"`
-	Company   string    `json:"company"`
-	Cluster   int64    `json:"cluster"`
-	Node      int64     `json:"node"`
-	Memory    int64     `json:"memory"`
-	EndTime   string    `json:"end_time"`
-	StartTime string    `json:"start_time"`
-	Features  []Feature `json:"features"`
+	Code        string    `json:"code"`
+	Company     string    `json:"company"`
+	Cluster     int64     `json:"cluster"`
+	Node        int64     `json:"node"`
+	Memory      int64     `json:"memory"`
+	EndTime     string    `json:"end_time"`
+	StartTime   string    `json:"start_time"`
+	Features    []Feature `json:"features"`
+	IsPermanent bool      `json:"is_permanent"`
 }
 
 func (l *LicenseInfo) HaveFeature(code string) bool {
