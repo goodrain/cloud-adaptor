@@ -297,7 +297,8 @@ func (e *ClusterHandler) GetTaskEventList(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, err)
 		return
 	}
-	ginutil.JSON(ctx, v1.TaskEventListRes{Events: events}, nil)
+	clusterID, _ := e.cluster.GetClusterIDByTaskID(eid, taskID)
+	ginutil.JSON(ctx, v1.TaskEventListRes{Events: events, ClusterID: clusterID}, nil)
 }
 
 //AddAccessKey add access keys
