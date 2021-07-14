@@ -26,6 +26,7 @@ import (
 	"fmt"
 	"net/http"
 	"runtime/debug"
+	"strings"
 	"time"
 
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
@@ -34,11 +35,11 @@ import (
 	"github.com/sirupsen/logrus"
 	apiv1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
-	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/internal/datastore"
 	"goodrain.com/cloud-adaptor/internal/operator"
 	"goodrain.com/cloud-adaptor/internal/repo"
 	"goodrain.com/cloud-adaptor/internal/types"
+	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
 	"goodrain.com/cloud-adaptor/version"
 	v1 "k8s.io/api/core/v1"
@@ -81,6 +82,21 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 			return
 		}
 	}
+	splitVersions := strings.Split(cluster.KubernetesVersion, ".")
+	if len(splitVersions) < 2 {
+		c.rollback("CheckCluster", fmt.Sprintf("current cluster version is %s, init rainbond support kubernetes version is 1.13-1.19", cluster.KubernetesVersion), "failure")
+		return
+	}
+	if splitVersions[0] == "v1" || splitVersions[0] == "1" {
+		if splitVersions[1] > "19" || splitVersions[1] < "13" {
+			c.rollback("CheckCluster", fmt.Sprintf("current cluster version is %s, init rainbond support kubernetes version is 1.13-1.19", cluster.KubernetesVersion), "failure")
+			return
+		}
+	} else {
+		c.rollback("CheckCluster", fmt.Sprintf("current cluster version is %s, init rainbond support kubernetes version is 1.13-1.19", cluster.KubernetesVersion), "failure")
+		return
+	}
+
 	// check cluster status
 	if cluster.State != "running" {
 		c.rollback("CheckCluster", fmt.Sprintf("cluster status is %s,not support init rainbond", cluster.State), "failure")
