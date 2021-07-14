@@ -126,7 +126,8 @@ type GetTaskEventListReq struct {
 //TaskEventListRes get event list of task
 //swagger:model TaskEventListRes
 type TaskEventListRes struct {
-	Events []*model.TaskEvent `json:"events"`
+	Events    []*model.TaskEvent `json:"events"`
+	ClusterID string             `json:"clusterID"`
 }
 
 //InitRainbondRegionReq init rainbond region

@@ -923,3 +923,23 @@ func (c *ClusterUsecase) nodeListToRKEConfigNodes(nodeList v1alpha1.NodeList) []
 	}
 	return nodes
 }
+
+//GetClusterIDByTaskID get cluster by taskID
+func (c *ClusterUsecase) GetClusterIDByTaskID(eid, taskID string) (string, error) {
+	initTask, err := c.InitRainbondTaskRepo.GetTask(eid, taskID)
+	if err != nil && err != gorm.ErrRecordNotFound{
+		return "", err
+	}
+	if err == gorm.ErrRecordNotFound {
+		createTask, err := c.CreateKubernetesTaskRepo.GetTask(eid, taskID)
+		if err != nil {
+			return "", err
+		}
+		cluster, err := c.rkeClusterRepo.GetCluster(eid, createTask.Name)
+		if err != nil {
+			return "", err
+		}
+		return cluster.ClusterID, nil
+	}
+	return initTask.ClusterID, nil
+}
