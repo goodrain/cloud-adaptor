@@ -29,7 +29,6 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/goodrain/rainbond-operator/api/v1alpha1"
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
 	"github.com/goodrain/rainbond-operator/util/retryutil"
 	"github.com/nsqio/go-nsq"
@@ -205,7 +204,7 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 			continue
 		}
 
-		idx, condition := status.RainbondCluster.Status.GetCondition(v1alpha1.RainbondClusterConditionTypeRunning)
+		idx, condition := status.RainbondCluster.Status.GetCondition(rainbondv1alpha1.RainbondClusterConditionTypeRunning)
 		if idx != -1 && condition.Status == v1.ConditionTrue && status.RegionConfig != nil && packageMessage && !apiReadyMessage {
 			if err := checkAPIHealthy(status.RegionConfig); err != nil {
 				c.rollback("InitRainbondRegionRegionConfig", err.Error(), "failure")
