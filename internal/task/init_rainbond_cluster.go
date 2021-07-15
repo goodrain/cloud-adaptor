@@ -24,21 +24,24 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"runtime/debug"
 	"time"
 
+	"github.com/goodrain/rainbond-operator/api/v1alpha1"
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
+	"github.com/goodrain/rainbond-operator/util/retryutil"
 	"github.com/nsqio/go-nsq"
 	"github.com/rancher/rke/k8s"
 	"github.com/sirupsen/logrus"
 	apiv1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
-	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/internal/datastore"
 	"goodrain.com/cloud-adaptor/internal/operator"
 	"goodrain.com/cloud-adaptor/internal/repo"
 	"goodrain.com/cloud-adaptor/internal/types"
+	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
 	"goodrain.com/cloud-adaptor/version"
 	v1 "k8s.io/api/core/v1"
@@ -177,7 +180,7 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 			continue
 		}
 
-		if status.RainbondCluster.Spec.ImageHub != nil && status.RainbondCluster.Spec.ImageHub.Domain != "" && !imageHubMessage {
+		if idx, condition := status.RainbondCluster.Status.GetCondition(rainbondv1alpha1.RainbondClusterConditionTypeImageRepository); !imageHubMessage && idx != -1 && condition.Status == v1.ConditionTrue {
 			c.rollback("InitRainbondRegionImageHub", "", "success")
 			c.rollback("InitRainbondRegionPackage", "", "start")
 			imageHubMessage = true
@@ -202,12 +205,15 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 			continue
 		}
 
-		if status.RegionConfig != nil && packageMessage {
-			if checkAPIHealthy(status.RegionConfig) && !apiReadyMessage {
-				c.rollback("InitRainbondRegionRegionConfig", "", "success")
+		idx, condition := status.RainbondCluster.Status.GetCondition(v1alpha1.RainbondClusterConditionTypeRunning)
+		if idx != -1 && condition.Status == v1.ConditionTrue && status.RegionConfig != nil && packageMessage && !apiReadyMessage {
+			if err := checkAPIHealthy(status.RegionConfig); err != nil {
+				c.rollback("InitRainbondRegionRegionConfig", err.Error(), "failure")
 				apiReadyMessage = true
-				break
+				return
 			}
+			c.rollback("InitRainbondRegionRegionConfig", "", "success")
+			break
 		}
 	}
 	c.rollback("InitRainbondRegion", cluster.ClusterID, "success")
@@ -280,16 +286,15 @@ func getK8sNode(node v1.Node) *rainbondv1alpha1.K8sNode {
 	return &Knode
 }
 
-func checkAPIHealthy(configmap *v1.ConfigMap) bool {
+func checkAPIHealthy(configmap *v1.ConfigMap) error {
 	if configmap.BinaryData["ca.pem"] == nil {
-		return false
+		return fmt.Errorf("ca.pem not found")
 	}
 	pool := x509.NewCertPool()
 	pool.AppendCertsFromPEM(configmap.BinaryData["ca.pem"])
 	cliCrt, err := tls.X509KeyPair(configmap.BinaryData["client.pem"], configmap.BinaryData["client.key.pem"])
 	if err != nil {
-		logrus.Errorf("Loadx509keypair err: %s", err)
-		return false
+		return fmt.Errorf("load x509 key pair: %v", err)
 	}
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -304,18 +309,24 @@ func checkAPIHealthy(configmap *v1.ConfigMap) bool {
 	url := fmt.Sprintf("%s/v2/health", configmap.Data["apiAddress"])
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		logrus.Errorf("create request failure: %s", err)
-		return false
+		return fmt.Errorf("create request failure: %v", err)
 	}
-	res, err := client.Do(req)
-	if err != nil {
-		logrus.Errorf("ping region api failure: %s", err)
-		return false
-	}
-	if res.StatusCode == 200 {
-		return true
-	}
-	return false
+	return retryutil.Retry(1*time.Second, 3, func() (bool, error) {
+		res, err := client.Do(req)
+		if err != nil {
+			switch err := err.(type) {
+			case net.Error:
+				if err.Timeout() {
+					return false, fmt.Errorf("time out ping region api, please check if port 8443 accessible : %v", err)
+				}
+			}
+			return false, fmt.Errorf("ping region api: %v", err)
+		}
+		if res.StatusCode == 200 {
+			return true, nil
+		}
+		return true, fmt.Errorf("pint region api. expect statu code 200, but got %d", res.StatusCode)
+	})
 }
 
 //cloudInitTaskHandler cloud init task handler
