@@ -60,6 +60,17 @@ func (c *InitRainbondCluster) rollback(step, message, status string) {
 	c.result <- apiv1.Message{StepType: step, Message: message, Status: status}
 }
 
+func checkVersion(kubernetesVersion string) bool {
+	clusterVersion, err := versionutil.ParseGeneric(kubernetesVersion)
+	if err != nil {
+		logrus.Errorf("parse kubernetes version %s failed", kubernetesVersion)
+		return false
+	}
+	minK8sVersion, _ := versionutil.ParseGeneric("v1.16.0")
+	maxK8sVersion, _ := versionutil.ParseGeneric("v1.20.0")
+	return clusterVersion.AtLeast(minK8sVersion) && clusterVersion.LessThan(maxK8sVersion)
+}
+
 //Run run take time 214.10s
 func (c *InitRainbondCluster) Run(ctx context.Context) {
 	defer c.rollback("Close", "", "")
@@ -88,16 +99,9 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 		return
 	}
 	// check cluster version
-	clusterVersion, err := versionutil.ParseGeneric(cluster.KubernetesVersion)
-	if err != nil {
-		logrus.Errorf("parse kubernetes version %s failed", cluster.KubernetesVersion)
-	} else {
-		minK8sVersion, _ := versionutil.ParseGeneric("v1.16.0")
-		maxK8sVersion, _ := versionutil.ParseGeneric("v1.20.0")
-		if clusterVersion.AtLeast(minK8sVersion) && clusterVersion.LessThan(maxK8sVersion) {
-			c.rollback("CheckCluster", fmt.Sprintf("current cluster version is %s, init rainbond support kubernetes version is 1.16-1.19", cluster.KubernetesVersion), "failure")
-			return
-		}
+	if !checkVersion(cluster.KubernetesVersion) {
+		c.rollback("CheckCluster", fmt.Sprintf("current cluster version is %s, init rainbond support kubernetes version is 1.16-1.19", cluster.KubernetesVersion), "failure")
+		return
 	}
 	// check cluster connection status
 	logrus.Infof("init kubernetes url %s", cluster.MasterURL)
