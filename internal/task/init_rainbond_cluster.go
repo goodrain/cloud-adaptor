@@ -34,16 +34,17 @@ import (
 	"github.com/sirupsen/logrus"
 	apiv1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
-	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/internal/datastore"
 	"goodrain.com/cloud-adaptor/internal/operator"
 	"goodrain.com/cloud-adaptor/internal/repo"
 	"goodrain.com/cloud-adaptor/internal/types"
+	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
 	"goodrain.com/cloud-adaptor/version"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	versionutil "k8s.io/apimachinery/pkg/util/version"
 )
 
 //InitRainbondCluster init rainbond cluster
@@ -85,6 +86,18 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 	if cluster.State != "running" {
 		c.rollback("CheckCluster", fmt.Sprintf("cluster status is %s,not support init rainbond", cluster.State), "failure")
 		return
+	}
+	// check cluster version
+	clusterVersion, err := versionutil.ParseGeneric(cluster.KubernetesVersion)
+	if err != nil {
+		logrus.Errorf("parse kubernetes version %s failed", cluster.KubernetesVersion)
+	} else {
+		minK8sVersion, _ := versionutil.ParseGeneric("v1.16.0")
+		maxK8sVersion, _ := versionutil.ParseGeneric("v1.20.0")
+		if clusterVersion.AtLeast(minK8sVersion) && clusterVersion.LessThan(maxK8sVersion) {
+			c.rollback("CheckCluster", fmt.Sprintf("current cluster version is %s, init rainbond support kubernetes version is 1.16-1.19", cluster.KubernetesVersion), "failure")
+			return
+		}
 	}
 	// check cluster connection status
 	logrus.Infof("init kubernetes url %s", cluster.MasterURL)
