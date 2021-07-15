@@ -139,6 +139,16 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 
 	var rkeConfig v3.RancherKubernetesEngineConfig
 	if req.Provider == "rke" {
+		rkeCluster := &model.RKECluster{
+			Name:         req.Name,
+			Stats:        v1alpha1.InitState,
+			EnterpriseID: eid,
+		}
+		// Only the request to successfully create the rke cluster can send the task
+		if err := c.rkeClusterRepo.Create(rkeCluster); err != nil {
+			return nil, err
+		}
+
 		decRKEConfig, err := base64.StdEncoding.DecodeString(req.EncodedRKEConfig)
 		if err != nil {
 			return nil, errors.Wrap(bcode.ErrIncorrectRKEConfig, "decode encoded rke config")
