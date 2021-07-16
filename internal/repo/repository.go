@@ -36,6 +36,7 @@ type CreateKubernetesTaskRepository interface {
 	GetLastTask(eid string, providerName string) (*model.CreateKubernetesTask, error)
 	UpdateStatus(eid string, taskID string, status string) error
 	GetTask(eid string, taskID string) (*model.CreateKubernetesTask, error)
+	GetLatestOneByName(name string) (*model.CreateKubernetesTask, error)
 }
 
 //InitRainbondTaskRepository init rainbond region task
