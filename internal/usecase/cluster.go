@@ -313,7 +313,7 @@ func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubern
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
-	if lastTask != nil && lastTask.Status == "complete" {
+	if lastTask != nil && lastTask.Status != "complete" {
 		return nil, errors.WithStack(bcode.ErrLastUpdateKuberentesTaskNotComplete)
 	}
 
