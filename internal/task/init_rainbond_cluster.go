@@ -20,17 +20,12 @@ package task
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"net"
-	"net/http"
 	"runtime/debug"
 	"time"
 
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
-	"github.com/goodrain/rainbond-operator/util/retryutil"
 	"github.com/nsqio/go-nsq"
 	"github.com/rancher/rke/k8s"
 	"github.com/sirupsen/logrus"
@@ -205,13 +200,8 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 		}
 
 		idx, condition := status.RainbondCluster.Status.GetCondition(rainbondv1alpha1.RainbondClusterConditionTypeRunning)
-		if idx != -1 && condition.Status == v1.ConditionTrue && status.RegionConfig != nil && packageMessage && !apiReadyMessage {
-			if err := checkAPIHealthy(status.RegionConfig); err != nil {
-				c.rollback("InitRainbondRegionRegionConfig", err.Error(), "failure")
-				apiReadyMessage = true
-				return
-			}
-			c.rollback("InitRainbondRegionRegionConfig", "", "success")
+		if idx != -1 && condition.Status == v1.ConditionTrue && packageMessage && !apiReadyMessage {
+			apiReadyMessage = true
 			break
 		}
 	}
@@ -283,49 +273,6 @@ func getK8sNode(node v1.Node) *rainbondv1alpha1.K8sNode {
 		Knode.ExternalIP = externamAddress
 	}
 	return &Knode
-}
-
-func checkAPIHealthy(configmap *v1.ConfigMap) error {
-	if configmap.BinaryData["ca.pem"] == nil {
-		return fmt.Errorf("ca.pem not found")
-	}
-	pool := x509.NewCertPool()
-	pool.AppendCertsFromPEM(configmap.BinaryData["ca.pem"])
-	cliCrt, err := tls.X509KeyPair(configmap.BinaryData["client.pem"], configmap.BinaryData["client.key.pem"])
-	if err != nil {
-		return fmt.Errorf("load x509 key pair: %v", err)
-	}
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			RootCAs:      pool,
-			Certificates: []tls.Certificate{cliCrt},
-		},
-	}
-	client := &http.Client{
-		Transport: tr,
-		Timeout:   5 * time.Second,
-	}
-	url := fmt.Sprintf("%s/v2/health", configmap.Data["apiAddress"])
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return fmt.Errorf("create request failure: %v", err)
-	}
-	return retryutil.Retry(1*time.Second, 3, func() (bool, error) {
-		res, err := client.Do(req)
-		if err != nil {
-			switch err := err.(type) {
-			case net.Error:
-				if err.Timeout() {
-					return false, fmt.Errorf("time out ping region api, please check if port 8443 accessible : %v", err)
-				}
-			}
-			return false, fmt.Errorf("ping region api: %v", err)
-		}
-		if res.StatusCode == 200 {
-			return true, nil
-		}
-		return true, fmt.Errorf("pint region api. expect statu code 200, but got %d", res.StatusCode)
-	})
 }
 
 //cloudInitTaskHandler cloud init task handler
