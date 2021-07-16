@@ -308,6 +308,15 @@ func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubern
 		return nil, errors.Wrap(bcode.ErrIncorrectRKEConfig, "unmarshal rke config")
 	}
 
+	// check if the last task is complete
+	lastTask, err := c.UpdateKubernetesTaskRepo.GetTaskByClusterID(eid, req.Provider, req.ClusterID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	if lastTask != nil && lastTask.Status == "complete" {
+		return nil, errors.WithStack(bcode.ErrLastUpdateKuberentesTaskNotComplete)
+	}
+
 	newTask := &model.UpdateKubernetesTask{
 		TaskID:       uuidutil.NewUUID(),
 		Provider:     req.Provider,
@@ -315,9 +324,12 @@ func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubern
 		ClusterID:    req.ClusterID,
 		NodeNumber:   len(rkeConfig.Nodes),
 	}
+	if lastTask != nil {
+		// optimistic lock
+		newTask.Version = lastTask.Version + 1
+	}
 	if err := c.UpdateKubernetesTaskRepo.Create(newTask); err != nil {
-		logrus.Errorf("save update kubernetes task failure %s", err.Error())
-		return nil, bcode.ServerErr
+		return nil, errors.Wrap(err, "save update kubernetes task failure")
 	}
 
 	//send task

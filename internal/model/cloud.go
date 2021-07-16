@@ -53,8 +53,10 @@ type InitRainbondTask struct {
 //UpdateKubernetesTask -
 type UpdateKubernetesTask struct {
 	Model
-	TaskID       string `gorm:"column:task_id" json:"taskID"`
-	ClusterID    string `gorm:"column:cluster_id" json:"clusterID"`
+	TaskID    string `gorm:"column:task_id" json:"taskID"`
+	ClusterID string `gorm:"column:cluster_id;uniqueIndex:version;" json:"clusterID"`
+	// Version for optimistic lock
+	Version      int    `gorm:"column:version;uniqueIndex:version;" json:"version"`
 	Provider     string `gorm:"column:provider_name" json:"providerName"`
 	NodeNumber   int    `gorm:"column:node_number" json:"nodeNumber"`
 	EnterpriseID string `gorm:"column:eid" json:"eid"`
