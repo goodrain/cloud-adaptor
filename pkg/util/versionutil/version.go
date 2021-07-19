@@ -23,6 +23,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/version"
 )
 
+// CheckVersion Check whether the k8s version is between 1.16 and 1.19
 func CheckVersion(kubernetesVersion string) bool {
 	clusterVersion, err := version.ParseGeneric(kubernetesVersion)
 	if err != nil {
