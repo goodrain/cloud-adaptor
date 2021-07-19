@@ -22,6 +22,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"goodrain.com/cloud-adaptor/pkg/util/versionutil"
 	"strings"
 	"sync"
 	"time"
@@ -65,6 +66,9 @@ func (c *customAdaptor) ClusterList(eid string) ([]*v1alpha1.Cluster, error) {
 				logrus.Warningf("query kubernetes cluster failure %s", err.Error())
 			}
 			if cluster != nil {
+				if versionutil.CheckVersion(cluster.KubernetesVersion) {
+					cluster.CanInit = true
+				}
 				re = append(re, cluster)
 			}
 		}(clu)

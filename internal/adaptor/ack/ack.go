@@ -22,6 +22,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"goodrain.com/cloud-adaptor/pkg/util/versionutil"
 	"strings"
 	"sync"
 	"time"
@@ -216,6 +217,9 @@ func (a *ackAdaptor) ClusterList(eid string) ([]*v1alpha1.Cluster, error) {
 				json.Unmarshal(versionByte, &info)
 				if err == nil {
 					cluster.CurrentVersion = info.String()
+					if versionutil.CheckVersion(cluster.CurrentVersion){
+						cluster.CanInit = true
+					}
 				} else {
 					cluster.Parameters["Message"] = "无法直接与集群 KubeAPI 通信"
 					cluster.Parameters["DisableRainbondInit"] = true

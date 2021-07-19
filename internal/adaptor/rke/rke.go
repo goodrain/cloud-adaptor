@@ -22,6 +22,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"goodrain.com/cloud-adaptor/pkg/util/versionutil"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -320,6 +321,9 @@ func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 			json.Unmarshal(versionByte, &info)
 			if err == nil {
 				cluster.CurrentVersion = info.String()
+				if versionutil.CheckVersion(cluster.CurrentVersion){
+					cluster.CanInit = true
+				}
 			} else {
 				cluster.State = v1alpha1.OfflineState
 				cluster.Parameters["DisableRainbondInit"] = true
