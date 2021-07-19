@@ -218,6 +218,7 @@ type KubernetesClusterConfig struct {
 	InstanceType       string                            `json:"instanceType,omitempty"`
 	DockerVersion      string                            `json:"dockerVersion,omitempty"`
 	KubernetesVersion  string                            `json:"kubernetesVersion,omitempty"`
+	ClusterID          string                            `json:"clusterID,omitempty"`
 }
 
 //NodeList node list

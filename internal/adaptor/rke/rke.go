@@ -142,6 +142,7 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, c
 				Name:         config.ClusterName,
 				Stats:        v1alpha1.InitState,
 				EnterpriseID: eid,
+				ClusterID:    config.ClusterID,
 			}
 			r.Repo.Create(rkecluster)
 		} else {

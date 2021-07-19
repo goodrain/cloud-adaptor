@@ -38,6 +38,7 @@ type CreateKubernetesTask struct {
 	EnterpriseID       string `gorm:"column:eid" json:"eid"`
 	TaskID             string `gorm:"column:task_id" json:"taskID"`
 	Status             string `gorm:"column:status" json:"status"`
+	ClusterID          string `gorm:"column:cluster_id" json:"clusterID"`
 }
 
 //InitRainbondTask init rainbond task
