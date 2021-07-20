@@ -66,4 +66,6 @@ var (
 	ErrIncorrectRKEConfig       = newByMessage(400, 7020, "the rke configuration format is incorrect")
 	ErrRKEConfigLost            = newByMessage(404, 7021, "rancher kubernetes engine configuration lost")
 	ErrInitRainbondTaskNotFound = newByMessage(404, 7022, "init rainbond task not found")
+	ErrRKEClusterExists         = newByMessage(409, 7023, "rke cluster already exists")
+	ErrLastTaskNotFound         = newByMessage(404, 7024, "update kubernetes task not found")
 )

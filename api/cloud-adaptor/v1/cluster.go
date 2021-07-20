@@ -94,9 +94,9 @@ type CreateKubernetesRes struct {
 //UpdateKubernetesRes create kubernetes res
 //swagger:model UpdateKubernetesRes
 type UpdateKubernetesRes struct {
-	Task      *model.UpdateKubernetesTask `json:"task"`
-	NodeList  v1alpha1.NodeList           `json:"nodeList"`
-	RKEConfig string                      `json:"rkeConfig"`
+	Task      interface{}       `json:"task"`
+	NodeList  v1alpha1.NodeList `json:"nodeList"`
+	RKEConfig string            `json:"rkeConfig"`
 }
 
 //GetLastCreateKubernetesClusterTaskReq get last create kubernetes task
