@@ -76,7 +76,6 @@ type Cluster struct {
 	RainbondInit      bool                   `json:"rainbond_init,omitempty"`
 	CreateLogPath     string                 `json:"create_log_path,omitempty"`
 	EIP               []string               `json:"eip,omitempty"`
-	CanInit           bool                   `json:"can_init"`
 }
 
 //RunningState running

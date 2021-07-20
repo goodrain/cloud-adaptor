@@ -66,9 +66,6 @@ func (c *customAdaptor) ClusterList(eid string) ([]*v1alpha1.Cluster, error) {
 				logrus.Warningf("query kubernetes cluster failure %s", err.Error())
 			}
 			if cluster != nil {
-				if versionutil.CheckVersion(cluster.KubernetesVersion) {
-					cluster.CanInit = true
-				}
 				re = append(re, cluster)
 			}
 		}(clu)
@@ -94,6 +91,7 @@ func (c *customAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluste
 			}
 			return nil
 		}(),
+		Parameters: make(map[string]interface{}),
 	}
 	kc := v1alpha1.KubeConfig{Config: cc.KubeConfig}
 	client, _, err := kc.GetKubeClient()
@@ -110,6 +108,10 @@ func (c *customAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluste
 	json.Unmarshal(versionByte, &vinfo)
 	cluster.KubernetesVersion = vinfo.String()
 	cluster.CurrentVersion = vinfo.String()
+	if !versionutil.CheckVersion(cluster.CurrentVersion){
+		cluster.Parameters["DisableRainbondInit"] = true
+		cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Rainbond支持的版本为1.16.x-1.19.x", cluster.CurrentVersion)
+	}
 	cluster.MasterURL.APIServerEndpoint, _ = kc.KubeServer()
 
 	ctx, cancel = context.WithTimeout(context.Background(), time.Second*5)
