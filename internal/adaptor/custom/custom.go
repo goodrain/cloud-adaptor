@@ -163,7 +163,7 @@ func (c *customAdaptor) GetRainbondInitConfig(eid string, cluster *v1alpha1.Clus
 				if n.ExternalIP != "" {
 					re = append(re, n.ExternalIP)
 				}
-				if kubeAPIHOST != "" && n.InternalIP == kubeAPIHOST {
+				if n.InternalIP != "" {
 					re = append(re, n.InternalIP)
 				}
 			}

@@ -127,6 +127,9 @@ func (r *rkeAdaptor) GetRainbondInitConfig(
 				if n.ExternalIP != "" {
 					re = append(re, n.ExternalIP)
 				}
+				if n.InternalIP != "" {
+					re = append(re, n.InternalIP)
+				}
 			}
 			return
 		}(),
