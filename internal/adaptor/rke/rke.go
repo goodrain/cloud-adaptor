@@ -320,6 +320,7 @@ func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 			json.Unmarshal(versionByte, &info)
 			if err == nil {
 				cluster.CurrentVersion = info.String()
+				cluster.State = v1alpha1.RunningState
 			} else {
 				cluster.State = v1alpha1.OfflineState
 				cluster.Parameters["DisableRainbondInit"] = true
