@@ -307,8 +307,6 @@ func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 		RainbondInit:      false,
 		Parameters:        make(map[string]interface{}),
 	}
-	cluster.Parameters["DisableRainbondInit"] = true
-	cluster.Parameters["Message"] = "无法找到 KubeConfig 文件"
 	if rkecluster.KubeConfig != "" {
 		kc := v1alpha1.KubeConfig{Config: rkecluster.KubeConfig}
 		coreclient, _, err := kc.GetKubeClient()
@@ -329,6 +327,7 @@ func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 					cluster.Parameters["DisableRainbondInit"] = true
 					cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Rainbond支持的版本为1.16.x-1.19.x", cluster.CurrentVersion)
 				}
+
 			} else {
 				cluster.State = v1alpha1.OfflineState
 				cluster.Parameters["DisableRainbondInit"] = true
