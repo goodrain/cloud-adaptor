@@ -126,12 +126,14 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 	if c.TaskProducer == nil {
 		return nil, errors.New("TaskProducer is nil")
 	}
+	clusterID := uuidutil.NewUUID()
 	if req.Provider == "custom" {
 		if err := custom.NewCustomClusterRepo(c.DB).Create(&model.CustomCluster{
 			Name:         req.Name,
 			EIP:          strings.Join(req.EIP, ","),
 			KubeConfig:   req.KubeConfig,
 			EnterpriseID: eid,
+			ClusterID:    clusterID,
 		}); err != nil {
 			return nil, errors.Wrap(err, "create custom cluster")
 		}
@@ -143,6 +145,7 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 			Name:         req.Name,
 			Stats:        v1alpha1.InitState,
 			EnterpriseID: eid,
+			ClusterID:    clusterID,
 		}
 		// Only the request to successfully create the rke cluster can send the task
 		if err := c.rkeClusterRepo.Create(rkeCluster); err != nil {
@@ -182,6 +185,7 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 		EnterpriseID:       eid,
 		Region:             req.Region,
 		TaskID:             uuidutil.NewUUID(),
+		ClusterID:          clusterID,
 	}
 	if err := c.CreateKubernetesTaskRepo.Create(newTask); err != nil {
 		return nil, errors.Wrap(err, "create kubernetes task")
@@ -782,6 +786,7 @@ func (c *ClusterUsecase) InstallCluster(eid, clusterID string) (*model.CreateKub
 		Provider:     "rke",
 		EnterpriseID: eid,
 		TaskID:       uuidutil.NewUUID(),
+		ClusterID:    clusterID,
 	}
 	if err := c.CreateKubernetesTaskRepo.Create(newTask); err != nil {
 		logrus.Errorf("create kubernetes task failure %s", err.Error())
