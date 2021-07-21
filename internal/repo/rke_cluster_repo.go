@@ -21,7 +21,9 @@ package repo
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	"goodrain.com/cloud-adaptor/internal/model"
+	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
 	"gorm.io/gorm"
 )
@@ -55,7 +57,7 @@ func (t *RKEClusterRepo) Create(te *model.RKECluster) error {
 		}
 		return err
 	}
-	return fmt.Errorf("rke cluster %s is exist", te.Name)
+	return errors.WithStack(bcode.ErrRKEClusterExists)
 }
 
 //Update -
