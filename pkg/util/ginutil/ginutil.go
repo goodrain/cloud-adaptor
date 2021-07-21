@@ -39,7 +39,7 @@ func JSON(c *gin.Context, data interface{}, errs ...error) {
 	}
 	bc := bcode.Err2Coder(err)
 	if bc == bcode.ServerErr {
-		logrus.Errorf("server error: %v", err)
+		logrus.Errorf("server error: %+v", err)
 	}
 	result := &Result{
 		Code: bc.Code(),
@@ -60,7 +60,7 @@ func JSONv2(c *gin.Context, data interface{}, errs ...error) {
 	}
 	bc := bcode.Err2Coder(err)
 	if bc == bcode.ServerErr {
-		logrus.Errorf("server error: %v", err)
+		logrus.Errorf("server error: %+v", err)
 	}
 	if bc.Status() >= 200 && bc.Status() < 300 {
 		c.AbortWithStatusJSON(bc.Status(), data)

@@ -20,11 +20,8 @@ package task
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"runtime/debug"
 	"time"
 
@@ -183,7 +180,7 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 			continue
 		}
 
-		if status.RainbondCluster.Spec.ImageHub != nil && status.RainbondCluster.Spec.ImageHub.Domain != "" && !imageHubMessage {
+		if idx, condition := status.RainbondCluster.Status.GetCondition(rainbondv1alpha1.RainbondClusterConditionTypeImageRepository); !imageHubMessage && idx != -1 && condition.Status == v1.ConditionTrue {
 			c.rollback("InitRainbondRegionImageHub", "", "success")
 			c.rollback("InitRainbondRegionPackage", "", "start")
 			imageHubMessage = true
@@ -208,12 +205,10 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 			continue
 		}
 
-		if status.RegionConfig != nil && packageMessage {
-			if checkAPIHealthy(status.RegionConfig) && !apiReadyMessage {
-				c.rollback("InitRainbondRegionRegionConfig", "", "success")
-				apiReadyMessage = true
-				break
-			}
+		idx, condition := status.RainbondCluster.Status.GetCondition(rainbondv1alpha1.RainbondClusterConditionTypeRunning)
+		if idx != -1 && condition.Status == v1.ConditionTrue && packageMessage && !apiReadyMessage {
+			apiReadyMessage = true
+			break
 		}
 	}
 	c.rollback("InitRainbondRegion", cluster.ClusterID, "success")
@@ -284,44 +279,6 @@ func getK8sNode(node v1.Node) *rainbondv1alpha1.K8sNode {
 		Knode.ExternalIP = externamAddress
 	}
 	return &Knode
-}
-
-func checkAPIHealthy(configmap *v1.ConfigMap) bool {
-	if configmap.BinaryData["ca.pem"] == nil {
-		return false
-	}
-	pool := x509.NewCertPool()
-	pool.AppendCertsFromPEM(configmap.BinaryData["ca.pem"])
-	cliCrt, err := tls.X509KeyPair(configmap.BinaryData["client.pem"], configmap.BinaryData["client.key.pem"])
-	if err != nil {
-		logrus.Errorf("Loadx509keypair err: %s", err)
-		return false
-	}
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			RootCAs:      pool,
-			Certificates: []tls.Certificate{cliCrt},
-		},
-	}
-	client := &http.Client{
-		Transport: tr,
-		Timeout:   5 * time.Second,
-	}
-	url := fmt.Sprintf("%s/v2/health", configmap.Data["apiAddress"])
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		logrus.Errorf("create request failure: %s", err)
-		return false
-	}
-	res, err := client.Do(req)
-	if err != nil {
-		logrus.Errorf("ping region api failure: %s", err)
-		return false
-	}
-	if res.StatusCode == 200 {
-		return true
-	}
-	return false
 }
 
 //cloudInitTaskHandler cloud init task handler

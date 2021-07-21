@@ -46,7 +46,6 @@ import (
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 	yaml "gopkg.in/yaml.v2"
-	"gorm.io/gorm"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/version"
 )
@@ -129,6 +128,13 @@ func (r *rkeAdaptor) GetRainbondInitConfig(
 					re = append(re, n.ExternalIP)
 				}
 			}
+			if len(re) == 0 {
+				for _, n := range gateway {
+					if n.InternalIP != "" {
+						re = append(re, n.InternalIP)
+					}
+				}
+			}
 			return
 		}(),
 	}
@@ -138,18 +144,9 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, c
 	rollback("InitClusterConfig", "", "start")
 	rkecluster, err := r.Repo.GetCluster(eid, config.ClusterName)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			rkecluster = &model.RKECluster{
-				Name:         config.ClusterName,
-				Stats:        v1alpha1.InitState,
-				EnterpriseID: eid,
-			}
-			r.Repo.Create(rkecluster)
-		} else {
-			logrus.Errorf("get cluster meta info failure %s", err.Error())
-			rollback("InitClusterConfig", "Get cluster meta info failure", "failure")
-			return nil
-		}
+		logrus.Errorf("get cluster meta info failure %s", err.Error())
+		rollback("InitClusterConfig", "Get cluster meta info failure", "failure")
+		return nil
 	}
 
 	rkeConfig := config.RKEConfig
@@ -327,7 +324,7 @@ func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 					cluster.Parameters["DisableRainbondInit"] = true
 					cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Rainbond支持的版本为1.16.x-1.19.x", cluster.CurrentVersion)
 				}
-
+				cluster.State = v1alpha1.RunningState
 			} else {
 				cluster.State = v1alpha1.OfflineState
 				cluster.Parameters["DisableRainbondInit"] = true

@@ -34,7 +34,6 @@ import (
 	"goodrain.com/cloud-adaptor/internal/datastore"
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
-	"goodrain.com/cloud-adaptor/pkg/util"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/version"
 )
@@ -167,18 +166,17 @@ func (c *customAdaptor) GetRainbondInitConfig(eid string, cluster *v1alpha1.Clus
 			if len(cluster.EIP) > 0 {
 				return cluster.EIP
 			}
-			// Preferably use the IP address of KubeAPI as the EIP
-			kubeAPIHOST := util.GetIPByURL(cluster.MasterURL.APIServerEndpoint)
 			for _, n := range gateway {
 				if n.ExternalIP != "" {
 					re = append(re, n.ExternalIP)
 				}
-				if kubeAPIHOST != "" && n.InternalIP == kubeAPIHOST {
-					re = append(re, n.InternalIP)
-				}
 			}
-			if len(re) == 0 && kubeAPIHOST != "" {
-				re = append(re, kubeAPIHOST)
+			if len(re) == 0 {
+				for _, n := range gateway {
+					if n.InternalIP != "" {
+						re = append(re, n.InternalIP)
+					}
+				}
 			}
 			return
 		}(),
