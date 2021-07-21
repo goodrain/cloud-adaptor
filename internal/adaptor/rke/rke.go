@@ -22,6 +22,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"goodrain.com/cloud-adaptor/pkg/util/versionutil"
 	"io/ioutil"
 	"os"
 	"strings"
@@ -307,6 +308,8 @@ func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 		kc := v1alpha1.KubeConfig{Config: rkecluster.KubeConfig}
 		coreclient, _, err := kc.GetKubeClient()
 		if err != nil {
+			cluster.Parameters["DisableRainbondInit"] = true
+			cluster.Parameters["Message"] = "无法创建集群通信客户端"
 			logrus.Errorf("create kube client failure %s", err.Error())
 		}
 		if coreclient != nil {
@@ -317,10 +320,15 @@ func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 			json.Unmarshal(versionByte, &info)
 			if err == nil {
 				cluster.CurrentVersion = info.String()
+				if !versionutil.CheckVersion(cluster.CurrentVersion){
+					cluster.Parameters["DisableRainbondInit"] = true
+					cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Rainbond支持的版本为1.16.x-1.19.x", cluster.CurrentVersion)
+				}
 				cluster.State = v1alpha1.RunningState
 			} else {
 				cluster.State = v1alpha1.OfflineState
 				cluster.Parameters["DisableRainbondInit"] = true
+				cluster.Parameters["Message"] = "无法直接与集群 KubeAPI 通信"
 			}
 			_, err = coreclient.CoreV1().ConfigMaps("rbd-system").Get(ctx, "region-config", metav1.GetOptions{})
 			if err == nil {
