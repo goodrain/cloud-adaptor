@@ -307,10 +307,14 @@ func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 		RainbondInit:      false,
 		Parameters:        make(map[string]interface{}),
 	}
+	cluster.Parameters["DisableRainbondInit"] = true
+	cluster.Parameters["Message"] = "无法找到 KubeConfig 文件"
 	if rkecluster.KubeConfig != "" {
 		kc := v1alpha1.KubeConfig{Config: rkecluster.KubeConfig}
 		coreclient, _, err := kc.GetKubeClient()
 		if err != nil {
+			cluster.Parameters["DisableRainbondInit"] = true
+			cluster.Parameters["Message"] = "无法创建集群通信客户端"
 			logrus.Errorf("create kube client failure %s", err.Error())
 		}
 		if coreclient != nil {
@@ -328,6 +332,7 @@ func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 			} else {
 				cluster.State = v1alpha1.OfflineState
 				cluster.Parameters["DisableRainbondInit"] = true
+				cluster.Parameters["Message"] = "无法直接与集群 KubeAPI 通信"
 			}
 			_, err = coreclient.CoreV1().ConfigMaps("rbd-system").Get(ctx, "region-config", metav1.GetOptions{})
 			if err == nil {

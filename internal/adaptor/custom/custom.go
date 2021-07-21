@@ -96,12 +96,16 @@ func (c *customAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluste
 	kc := v1alpha1.KubeConfig{Config: cc.KubeConfig}
 	client, _, err := kc.GetKubeClient()
 	if err != nil {
+		cluster.Parameters["DisableRainbondInit"] = true
+		cluster.Parameters["Message"] = "无法创建集群通信客户端"
 		return cluster, fmt.Errorf("create kube client failure %s", err.Error())
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 	versionByte, err := client.RESTClient().Get().AbsPath("/version").DoRaw(ctx)
 	if err != nil {
+		cluster.Parameters["DisableRainbondInit"] = true
+		cluster.Parameters["Message"] = "无法直接与集群 KubeAPI 通信"
 		return cluster, fmt.Errorf("get cluster version failure %s", err.Error())
 	}
 	var vinfo version.Info
