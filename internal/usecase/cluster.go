@@ -145,6 +145,7 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 			Name:         req.Name,
 			Stats:        v1alpha1.InitState,
 			EnterpriseID: eid,
+			ClusterID:    clusterID,
 		}
 		// Only the request to successfully create the rke cluster can send the task
 		if err := c.rkeClusterRepo.Create(rkeCluster); err != nil {
@@ -201,7 +202,6 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 			Region:             newTask.Region,
 			RKEConfig:          &rkeConfig,
 			EnterpriseID:       eid,
-			ClusterID:          clusterID,
 		}}
 	if accessKey != nil {
 		taskReq.KubernetesConfig.AccessKey = accessKey.AccessKey

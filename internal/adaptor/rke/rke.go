@@ -45,7 +45,6 @@ import (
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 	yaml "gopkg.in/yaml.v2"
-	"gorm.io/gorm"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/version"
 )
@@ -137,19 +136,9 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, c
 	rollback("InitClusterConfig", "", "start")
 	rkecluster, err := r.Repo.GetCluster(eid, config.ClusterName)
 	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			rkecluster = &model.RKECluster{
-				Name:         config.ClusterName,
-				Stats:        v1alpha1.InitState,
-				EnterpriseID: eid,
-				ClusterID:    config.ClusterID,
-			}
-			r.Repo.Create(rkecluster)
-		} else {
-			logrus.Errorf("get cluster meta info failure %s", err.Error())
-			rollback("InitClusterConfig", "Get cluster meta info failure", "failure")
-			return nil
-		}
+		logrus.Errorf("get cluster meta info failure %s", err.Error())
+		rollback("InitClusterConfig", "Get cluster meta info failure", "failure")
+		return nil
 	}
 
 	rkeConfig := config.RKEConfig
