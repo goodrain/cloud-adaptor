@@ -128,6 +128,13 @@ func (r *rkeAdaptor) GetRainbondInitConfig(
 					re = append(re, n.ExternalIP)
 				}
 			}
+			if len(re) == 0 {
+				for _, n := range gateway {
+					if n.InternalIP != "" {
+						re = append(re, n.InternalIP)
+					}
+				}
+			}
 			return
 		}(),
 	}
