@@ -39,8 +39,9 @@ import (
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
 	"goodrain.com/cloud-adaptor/version"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
 )
 
 //InitRainbondCluster init rainbond cluster
@@ -136,6 +137,13 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 		c.rollback("InitRainbondRegionOperator", "can not select eip", "failure")
 		return
 	}
+
+	// make sure ClusterRoleBinding rainbond-operator not exists.
+	if err := c.ensureClusterRoleBinding(ctx, coreClient); err != nil {
+		c.rollback("InitRainbondRegionOperator", err.Error(), "failure")
+		return
+	}
+
 	rri := operator.NewRainbondRegionInit(*kubeConfig, repo.NewRainbondClusterConfigRepo(datastore.GetGDB()))
 	if err := rri.InitRainbondRegion(initConfig); err != nil {
 		c.rollback("InitRainbondRegionOperator", err.Error(), "failure")
@@ -158,7 +166,7 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 		}
 		status, err := rri.GetRainbondRegionStatus(initConfig.ClusterID)
 		if err != nil {
-			if errors.IsNotFound(err) {
+			if k8sErrors.IsNotFound(err) {
 				c.rollback("InitRainbondRegion", err.Error(), "failure")
 				return
 			}
@@ -253,6 +261,27 @@ func (c *InitRainbondCluster) Stop() error {
 //GetChan get message chan
 func (c *InitRainbondCluster) GetChan() chan apiv1.Message {
 	return c.result
+}
+
+func (c *InitRainbondCluster) ensureClusterRoleBinding(ctx context.Context, kubeClient kubernetes.Interface) error {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	crb, err := kubeClient.RbacV1().ClusterRoleBindings().Get(ctx, "rainbond-operator", metav1.GetOptions{})
+	if err != nil {
+		if k8sErrors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	if err := kubeClient.RbacV1().ClusterRoleBindings().Delete(ctx, crb.Name, metav1.DeleteOptions{}); err != nil {
+		if k8sErrors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+	return nil
 }
 
 func getK8sNode(node v1.Node) *rainbondv1alpha1.K8sNode {

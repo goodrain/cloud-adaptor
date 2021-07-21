@@ -90,6 +90,7 @@ func (c *customAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluste
 			}
 			return nil
 		}(),
+		Parameters: make(map[string]interface{}),
 	}
 	kc := v1alpha1.KubeConfig{Config: cc.KubeConfig}
 	client, _, err := kc.GetKubeClient()
