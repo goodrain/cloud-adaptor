@@ -39,7 +39,7 @@ import (
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
 	"goodrain.com/cloud-adaptor/version"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"goodrain.com/cloud-adaptor/pkg/util/versionutil"
 )
@@ -142,6 +142,7 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 		c.rollback("InitRainbondRegionOperator", "can not select eip", "failure")
 		return
 	}
+
 	rri := operator.NewRainbondRegionInit(*kubeConfig, repo.NewRainbondClusterConfigRepo(datastore.GetGDB()))
 	if err := rri.InitRainbondRegion(initConfig); err != nil {
 		c.rollback("InitRainbondRegionOperator", err.Error(), "failure")
@@ -164,7 +165,7 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 		}
 		status, err := rri.GetRainbondRegionStatus(initConfig.ClusterID)
 		if err != nil {
-			if errors.IsNotFound(err) {
+			if k8sErrors.IsNotFound(err) {
 				c.rollback("InitRainbondRegion", err.Error(), "failure")
 				return
 			}
