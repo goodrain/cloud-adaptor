@@ -44,7 +44,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
 )
 
 //InitRainbondCluster init rainbond cluster
@@ -138,12 +137,6 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 	c.rollback("InitRainbondRegionOperator", "", "start")
 	if len(initConfig.EIPs) == 0 {
 		c.rollback("InitRainbondRegionOperator", "can not select eip", "failure")
-		return
-	}
-
-	// make sure ClusterRoleBinding rainbond-operator not exists.
-	if err := c.ensureClusterRoleBinding(ctx, coreClient); err != nil {
-		c.rollback("InitRainbondRegionOperator", err.Error(), "failure")
 		return
 	}
 
@@ -266,27 +259,6 @@ func (c *InitRainbondCluster) Stop() error {
 //GetChan get message chan
 func (c *InitRainbondCluster) GetChan() chan apiv1.Message {
 	return c.result
-}
-
-func (c *InitRainbondCluster) ensureClusterRoleBinding(ctx context.Context, kubeClient kubernetes.Interface) error {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-
-	crb, err := kubeClient.RbacV1().ClusterRoleBindings().Get(ctx, "rainbond-operator", metav1.GetOptions{})
-	if err != nil {
-		if k8sErrors.IsNotFound(err) {
-			return nil
-		}
-		return err
-	}
-
-	if err := kubeClient.RbacV1().ClusterRoleBindings().Delete(ctx, crb.Name, metav1.DeleteOptions{}); err != nil {
-		if k8sErrors.IsNotFound(err) {
-			return nil
-		}
-		return err
-	}
-	return nil
 }
 
 func getK8sNode(node v1.Node) *rainbondv1alpha1.K8sNode {
