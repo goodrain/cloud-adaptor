@@ -65,6 +65,7 @@ func (s SystemHandler) Backup(ctx *gin.Context) {
 	s.db.Model(&model.CustomCluster{}).Scan(&result.CustomClusters)
 	s.db.Model(&model.RKECluster{}).Scan(&result.RKEClusters)
 	s.db.Model(&model.RainbondClusterConfig{}).Scan(&result.RainbondClusterConfigs)
+	s.db.Model(&model.AppStore{}).Scan(&result.AppStores)
 	data, err := json.Marshal(result)
 	if err != nil {
 		ginutil.JSON(ctx, nil, err)
@@ -208,33 +209,40 @@ func (s SystemHandler) Recover(c *gin.Context) {
 					tx.Rollback()
 				}
 			}()
-			if func() error {
+			if err := func() error {
 				var data model.BackupListModelData
 				err = json.Unmarshal(bytes, &data)
 				if err != nil {
 					logrus.Errorf("unmarshal db backup file failure ", err.Error())
 				}
-				if err := tx.Delete(&model.CloudAccessKey{}).Error; err != nil {
+				if err := tx.Where("1 = 1").Delete(&model.CloudAccessKey{}).Error; err != nil {
 					return err
 				}
-				if err := tx.Delete(&model.CreateKubernetesTask{}).Error; err != nil {
+				if err := tx.Where("1 = 1").Delete(&model.CreateKubernetesTask{}).Error; err != nil {
 					return err
 				}
-				if err := tx.Delete(&model.InitRainbondTask{}).Error; err != nil {
+				if err := tx.Where("1 = 1").Delete(&model.InitRainbondTask{}).Error; err != nil {
 					return err
 				}
-				if err := tx.Delete(&model.UpdateKubernetesTask{}).Error; err != nil {
+				if err := tx.Where("1 = 1").Delete(&model.UpdateKubernetesTask{}).Error; err != nil {
 					return err
 				}
-				if err := tx.Delete(&model.TaskEvent{}).Error; err != nil {
+				if err := tx.Where("1 = 1").Delete(&model.TaskEvent{}).Error; err != nil {
 					return err
 				}
-				if err := tx.Delete(&model.CustomCluster{}).Error; err != nil {
+				if err := tx.Where("1 = 1").Delete(&model.CustomCluster{}).Error; err != nil {
 					return err
 				}
-				if err := tx.Delete(&model.RKECluster{}).Error; err != nil {
+				if err := tx.Where("1 = 1").Delete(&model.RKECluster{}).Error; err != nil {
 					return err
 				}
+				if err := tx.Where("1 = 1").Delete(&model.RainbondClusterConfig{}).Error; err != nil {
+					return err
+				}
+				if err := tx.Where("1 = 1").Delete(&model.AppStore{}).Error; err != nil {
+					return err
+				}
+
 				for _, accessKey := range data.CloudAccessKeys {
 					if err := tx.Create(&accessKey).Error; err != nil {
 						return fmt.Errorf("recover accessKey failure %s", err.Error())
@@ -274,6 +282,11 @@ func (s SystemHandler) Recover(c *gin.Context) {
 				for _, rcc := range data.RainbondClusterConfigs {
 					if err := tx.Create(&rcc).Error; err != nil {
 						return fmt.Errorf("recover rainbondClusterConfigs failure %s", err.Error())
+					}
+				}
+				for _, appStore := range data.AppStores {
+					if err := tx.Create(&appStore).Error; err != nil {
+						return fmt.Errorf("recover appStores failure %s", err.Error())
 					}
 				}
 				logrus.Infof("recover db backup data success")
