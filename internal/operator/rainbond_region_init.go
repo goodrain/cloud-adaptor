@@ -531,7 +531,7 @@ func (r *RainbondRegionInit) UninstallRegion(clusterID string) error {
 	}
 }
 
-func (c *RainbondRegionInit) ensureClusterRoleBinding(kubeClient kubernetes.Interface) error {
+func (r *RainbondRegionInit) ensureClusterRoleBinding(kubeClient kubernetes.Interface) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
