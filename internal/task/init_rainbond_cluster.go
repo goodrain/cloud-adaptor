@@ -20,11 +20,8 @@ package task
 
 import (
 	"context"
-	"crypto/tls"
-	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"runtime/debug"
 	"time"
 
@@ -34,16 +31,17 @@ import (
 	"github.com/sirupsen/logrus"
 	apiv1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
-	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/internal/datastore"
 	"goodrain.com/cloud-adaptor/internal/operator"
 	"goodrain.com/cloud-adaptor/internal/repo"
 	"goodrain.com/cloud-adaptor/internal/types"
+	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
 	"goodrain.com/cloud-adaptor/version"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"goodrain.com/cloud-adaptor/pkg/util/versionutil"
 )
 
 //InitRainbondCluster init rainbond cluster
@@ -84,6 +82,11 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 	// check cluster status
 	if cluster.State != "running" {
 		c.rollback("CheckCluster", fmt.Sprintf("cluster status is %s,not support init rainbond", cluster.State), "failure")
+		return
+	}
+	// check cluster version
+	if !versionutil.CheckVersion(cluster.KubernetesVersion) {
+		c.rollback("CheckCluster", fmt.Sprintf("current cluster version is %s, init rainbond support kubernetes version is 1.16-1.19", cluster.KubernetesVersion), "failure")
 		return
 	}
 	// check cluster connection status
@@ -139,6 +142,7 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 		c.rollback("InitRainbondRegionOperator", "can not select eip", "failure")
 		return
 	}
+
 	rri := operator.NewRainbondRegionInit(*kubeConfig, repo.NewRainbondClusterConfigRepo(datastore.GetGDB()))
 	if err := rri.InitRainbondRegion(initConfig); err != nil {
 		c.rollback("InitRainbondRegionOperator", err.Error(), "failure")
@@ -161,7 +165,7 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 		}
 		status, err := rri.GetRainbondRegionStatus(initConfig.ClusterID)
 		if err != nil {
-			if errors.IsNotFound(err) {
+			if k8sErrors.IsNotFound(err) {
 				c.rollback("InitRainbondRegion", err.Error(), "failure")
 				return
 			}
@@ -177,7 +181,7 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 			continue
 		}
 
-		if status.RainbondCluster.Spec.ImageHub != nil && status.RainbondCluster.Spec.ImageHub.Domain != "" && !imageHubMessage {
+		if idx, condition := status.RainbondCluster.Status.GetCondition(rainbondv1alpha1.RainbondClusterConditionTypeImageRepository); !imageHubMessage && idx != -1 && condition.Status == v1.ConditionTrue {
 			c.rollback("InitRainbondRegionImageHub", "", "success")
 			c.rollback("InitRainbondRegionPackage", "", "start")
 			imageHubMessage = true
@@ -202,12 +206,10 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 			continue
 		}
 
-		if status.RegionConfig != nil && packageMessage {
-			if checkAPIHealthy(status.RegionConfig) && !apiReadyMessage {
-				c.rollback("InitRainbondRegionRegionConfig", "", "success")
-				apiReadyMessage = true
-				break
-			}
+		idx, condition := status.RainbondCluster.Status.GetCondition(rainbondv1alpha1.RainbondClusterConditionTypeRunning)
+		if idx != -1 && condition.Status == v1.ConditionTrue && packageMessage && !apiReadyMessage {
+			apiReadyMessage = true
+			break
 		}
 	}
 	c.rollback("InitRainbondRegion", cluster.ClusterID, "success")
@@ -278,44 +280,6 @@ func getK8sNode(node v1.Node) *rainbondv1alpha1.K8sNode {
 		Knode.ExternalIP = externamAddress
 	}
 	return &Knode
-}
-
-func checkAPIHealthy(configmap *v1.ConfigMap) bool {
-	if configmap.BinaryData["ca.pem"] == nil {
-		return false
-	}
-	pool := x509.NewCertPool()
-	pool.AppendCertsFromPEM(configmap.BinaryData["ca.pem"])
-	cliCrt, err := tls.X509KeyPair(configmap.BinaryData["client.pem"], configmap.BinaryData["client.key.pem"])
-	if err != nil {
-		logrus.Errorf("Loadx509keypair err: %s", err)
-		return false
-	}
-	tr := &http.Transport{
-		TLSClientConfig: &tls.Config{
-			RootCAs:      pool,
-			Certificates: []tls.Certificate{cliCrt},
-		},
-	}
-	client := &http.Client{
-		Transport: tr,
-		Timeout:   5 * time.Second,
-	}
-	url := fmt.Sprintf("%s/v2/health", configmap.Data["apiAddress"])
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		logrus.Errorf("create request failure: %s", err)
-		return false
-	}
-	res, err := client.Do(req)
-	if err != nil {
-		logrus.Errorf("ping region api failure: %s", err)
-		return false
-	}
-	if res.StatusCode == 200 {
-		return true
-	}
-	return false
 }
 
 //cloudInitTaskHandler cloud init task handler

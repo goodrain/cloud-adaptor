@@ -34,6 +34,7 @@ import (
 	"github.com/goodrain/rainbond-operator/util/rbdutil"
 	"github.com/goodrain/rainbond-operator/util/retryutil"
 	"github.com/goodrain/rainbond-operator/util/suffixdomain"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
 	"goodrain.com/cloud-adaptor/internal/repo"
@@ -105,6 +106,11 @@ func (r *RainbondRegionInit) InitRainbondRegion(initConfig *v1alpha1.RainbondIni
 		return nil
 	}(); err != nil {
 		return err
+	}
+
+	// make sure ClusterRoleBinding rainbond-operator not exists.
+	if err := r.ensureClusterRoleBinding(client); err != nil {
+		return errors.WithMessage(err, "ensure clusterrolebinding rainbond-operator")
 	}
 
 	// helm create rainbond operator chart
@@ -523,4 +529,25 @@ func (r *RainbondRegionInit) UninstallRegion(clusterID string) error {
 			logrus.Debugf("waiting namespace rbd-system deleted")
 		}
 	}
+}
+
+func (r *RainbondRegionInit) ensureClusterRoleBinding(kubeClient kubernetes.Interface) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	crb, err := kubeClient.RbacV1().ClusterRoleBindings().Get(ctx, "rainbond-operator", metav1.GetOptions{})
+	if err != nil {
+		if k8sErrors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+
+	if err := kubeClient.RbacV1().ClusterRoleBindings().Delete(ctx, crb.Name, metav1.DeleteOptions{}); err != nil {
+		if k8sErrors.IsNotFound(err) {
+			return nil
+		}
+		return err
+	}
+	return nil
 }
