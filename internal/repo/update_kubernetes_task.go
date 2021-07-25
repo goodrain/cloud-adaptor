@@ -21,7 +21,9 @@ package repo
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	"goodrain.com/cloud-adaptor/internal/model"
+	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
 	"gorm.io/gorm"
 )
@@ -51,6 +53,9 @@ func (c *UpdateKubernetesTaskRepo) Create(ck *model.UpdateKubernetesTask) error 
 		if err == gorm.ErrRecordNotFound {
 			// not found error, create new
 			if err := c.DB.Save(ck).Error; err != nil {
+				if isDuplicateEntry(err) {
+					return errors.WithStack(bcode.ErrDuplicateKubernetesUpdateTask)
+				}
 				return err
 			}
 			return nil

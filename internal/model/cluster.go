@@ -33,9 +33,9 @@ type RKECluster struct {
 	RainbondInit      bool   `gorm:"column:rainbondInit" json:"rainbondInit,omitempty"`
 	CreateLogPath     string `gorm:"column:createLogPath" json:"createLogPath,omitempty"`
 	// Deprecated
-	NodeList          string `gorm:"column:nodeList;type:text" json:"nodeList,omitempty"`
-	Stats             string `gorm:"column:stats" json:"stats,omitempty"`
-	RKEConfig         string `gorm:"column:rkeConfig"`
+	NodeList  string `gorm:"column:nodeList;type:text" json:"nodeList,omitempty"`
+	Stats     string `gorm:"column:stats" json:"stats,omitempty"`
+	RKEConfig string `gorm:"column:rkeConfig"`
 }
 
 //CustomCluster custom cluster
