@@ -396,6 +396,10 @@ func (r *RainbondRegionInit) GetRainbondRegionStatus(clusterID string) (*v1alpha
 			return nil, err
 		}
 		logrus.Warningf("get cluster failure %s", err.Error())
+		_, rainbondClient, err = r.kubeconfig.GetKubeClient()
+		if err != nil {
+			return nil, err
+		}
 	}
 	status.RainbondCluster = &cluster
 	var pkgStatus rainbondv1alpha1.RainbondPackage
@@ -405,6 +409,10 @@ func (r *RainbondRegionInit) GetRainbondRegionStatus(clusterID string) (*v1alpha
 			return nil, err
 		}
 		logrus.Warningf("get pkgStatus failure %s", err.Error())
+		_, rainbondClient, err = r.kubeconfig.GetKubeClient()
+		if err != nil {
+			return nil, err
+		}
 	}
 	status.RainbondPackage = &pkgStatus
 	var volume rainbondv1alpha1.RainbondVolume
@@ -414,6 +422,10 @@ func (r *RainbondRegionInit) GetRainbondRegionStatus(clusterID string) (*v1alpha
 			return nil, err
 		}
 		logrus.Warningf("get rainbond volume failure %s", err.Error())
+		coreClient, _, err = r.kubeconfig.GetKubeClient()
+		if err != nil {
+			return nil, err
+		}
 	}
 	status.RainbondVolume = &volume
 	config, err := coreClient.CoreV1().ConfigMaps("rbd-system").Get(ctx, "region-config", metav1.GetOptions{})
