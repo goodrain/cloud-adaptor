@@ -24,10 +24,10 @@ import (
 )
 
 //RainbondRegionVersion rainbond region install version
-var RainbondRegionVersion = "v5.3.1-release"
+var RainbondRegionVersion = "v5.3.2-release"
 
 //OperatorVersion operator image tag
-var OperatorVersion = "v2.0.1"
+var OperatorVersion = "v2.0.2"
 
 //InstallImageRepo install image repo
 var InstallImageRepo = "registry.cn-hangzhou.aliyuncs.com/goodrain"
