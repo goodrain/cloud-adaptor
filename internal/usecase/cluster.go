@@ -19,6 +19,7 @@
 package usecase
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -26,6 +27,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
 	"github.com/pkg/errors"
@@ -127,6 +129,7 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 		return nil, errors.New("TaskProducer is nil")
 	}
 	clusterID := uuidutil.NewUUID()
+	clusterStatus := v1alpha1.OfflineState
 	if req.Provider == "custom" {
 		if err := custom.NewCustomClusterRepo(c.DB).Create(&model.CustomCluster{
 			Name:         req.Name,
@@ -136,6 +139,16 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 			ClusterID:    clusterID,
 		}); err != nil {
 			return nil, errors.Wrap(err, "create custom cluster")
+		}
+		kc := v1alpha1.KubeConfig{Config: req.KubeConfig}
+		client, _, err := kc.GetKubeClient()
+		if err == nil {
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+			defer cancel()
+			_, err := client.RESTClient().Get().AbsPath("/version").DoRaw(ctx)
+			if err == nil {
+				clusterStatus = v1alpha1.RunningState
+			}
 		}
 	}
 
@@ -215,6 +228,7 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 		}
 	}
 	logrus.Infof("send create kubernetes task %s to queue", newTask.TaskID)
+	newTask.Status = clusterStatus
 	return newTask, nil
 }
 
