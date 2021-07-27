@@ -374,7 +374,7 @@ func (c *KubeConfig) GetKubeClient() (*kubernetes.Clientset, client.Client, erro
 	if err != nil {
 		return nil, nil, fmt.Errorf("NewForConfig failure %+v", err)
 	}
-	mapper, err := apiutil.NewDynamicRESTMapper(config, apiutil.WithLazyDiscovery)
+	mapper, err := apiutil.NewDynamicRESTMapper(config)
 	if err != nil {
 		return nil, nil, fmt.Errorf("NewDynamicRESTMapper failure %+v", err)
 	}
