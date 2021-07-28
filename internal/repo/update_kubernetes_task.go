@@ -66,9 +66,9 @@ func (c *UpdateKubernetesTaskRepo) Create(ck *model.UpdateKubernetesTask) error 
 }
 
 //GetTaskByClusterID get cluster task
-func (c *UpdateKubernetesTaskRepo) GetTaskByClusterID(eid string, providerName, clusterID string) (*model.UpdateKubernetesTask, error) {
+func (c *UpdateKubernetesTaskRepo) GetTaskByClusterID(eid, clusterID string) (*model.UpdateKubernetesTask, error) {
 	var old model.UpdateKubernetesTask
-	if err := c.DB.Where("eid = ? and provider_name=? and cluster_id=?", eid, providerName, clusterID).Last(&old).Error; err != nil {
+	if err := c.DB.Where("eid = ? and cluster_id=?", eid, clusterID).Last(&old).Error; err != nil {
 		return nil, err
 	}
 	return &old, nil

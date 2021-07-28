@@ -85,4 +85,5 @@ type BackupListModelData struct {
 	CustomClusters         []CustomCluster         `json:"custom_clusters"`
 	RKEClusters            []RKECluster            `json:"rke_clusters"`
 	RainbondClusterConfigs []RainbondClusterConfig `json:"rainbond_cluster_configs"`
+	AppStores              []AppStore              `json:"app_stores"`
 }
