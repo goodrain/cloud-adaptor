@@ -22,6 +22,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"goodrain.com/cloud-adaptor/pkg/util/versionutil"
 	"strings"
 	"sync"
 	"time"
@@ -33,7 +34,6 @@ import (
 	"goodrain.com/cloud-adaptor/internal/datastore"
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
-	"goodrain.com/cloud-adaptor/pkg/util"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/version"
 )
@@ -90,22 +90,31 @@ func (c *customAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluste
 			}
 			return nil
 		}(),
+		Parameters: make(map[string]interface{}),
 	}
 	kc := v1alpha1.KubeConfig{Config: cc.KubeConfig}
 	client, _, err := kc.GetKubeClient()
 	if err != nil {
+		cluster.Parameters["DisableRainbondInit"] = true
+		cluster.Parameters["Message"] = "无法创建集群通信客户端"
 		return cluster, fmt.Errorf("create kube client failure %s", err.Error())
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 	versionByte, err := client.RESTClient().Get().AbsPath("/version").DoRaw(ctx)
 	if err != nil {
+		cluster.Parameters["DisableRainbondInit"] = true
+		cluster.Parameters["Message"] = "无法直接与集群 KubeAPI 通信"
 		return cluster, fmt.Errorf("get cluster version failure %s", err.Error())
 	}
 	var vinfo version.Info
 	json.Unmarshal(versionByte, &vinfo)
 	cluster.KubernetesVersion = vinfo.String()
 	cluster.CurrentVersion = vinfo.String()
+	if !versionutil.CheckVersion(cluster.CurrentVersion){
+		cluster.Parameters["DisableRainbondInit"] = true
+		cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Rainbond支持的版本为1.16.x-1.19.x", cluster.CurrentVersion)
+	}
 	cluster.MasterURL.APIServerEndpoint, _ = kc.KubeServer()
 
 	ctx, cancel = context.WithTimeout(context.Background(), time.Second*5)
@@ -157,18 +166,17 @@ func (c *customAdaptor) GetRainbondInitConfig(eid string, cluster *v1alpha1.Clus
 			if len(cluster.EIP) > 0 {
 				return cluster.EIP
 			}
-			// Preferably use the IP address of KubeAPI as the EIP
-			kubeAPIHOST := util.GetIPByURL(cluster.MasterURL.APIServerEndpoint)
 			for _, n := range gateway {
 				if n.ExternalIP != "" {
 					re = append(re, n.ExternalIP)
 				}
-				if kubeAPIHOST != "" && n.InternalIP == kubeAPIHOST {
-					re = append(re, n.InternalIP)
-				}
 			}
-			if len(re) == 0 && kubeAPIHOST != "" {
-				re = append(re, kubeAPIHOST)
+			if len(re) == 0 {
+				for _, n := range gateway {
+					if n.InternalIP != "" {
+						re = append(re, n.InternalIP)
+					}
+				}
 			}
 			return
 		}(),

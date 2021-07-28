@@ -38,6 +38,7 @@ type CreateKubernetesTask struct {
 	EnterpriseID       string `gorm:"column:eid" json:"eid"`
 	TaskID             string `gorm:"column:task_id" json:"taskID"`
 	Status             string `gorm:"column:status" json:"status"`
+	ClusterID          string `gorm:"column:cluster_id" json:"clusterID"`
 }
 
 //InitRainbondTask init rainbond task
@@ -53,8 +54,10 @@ type InitRainbondTask struct {
 //UpdateKubernetesTask -
 type UpdateKubernetesTask struct {
 	Model
-	TaskID       string `gorm:"column:task_id" json:"taskID"`
-	ClusterID    string `gorm:"column:cluster_id" json:"clusterID"`
+	TaskID    string `gorm:"column:task_id" json:"taskID"`
+	ClusterID string `gorm:"column:cluster_id;uniqueIndex:version;type:varchar(64)" json:"clusterID"`
+	// Version for optimistic lock
+	Version      int    `gorm:"column:version;uniqueIndex:version;" json:"version"`
 	Provider     string `gorm:"column:provider_name" json:"providerName"`
 	NodeNumber   int    `gorm:"column:node_number" json:"nodeNumber"`
 	EnterpriseID string `gorm:"column:eid" json:"eid"`
@@ -82,4 +85,5 @@ type BackupListModelData struct {
 	CustomClusters         []CustomCluster         `json:"custom_clusters"`
 	RKEClusters            []RKECluster            `json:"rke_clusters"`
 	RainbondClusterConfigs []RainbondClusterConfig `json:"rainbond_cluster_configs"`
+	AppStores              []AppStore              `json:"app_stores"`
 }

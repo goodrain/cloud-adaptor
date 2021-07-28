@@ -1,5 +1,5 @@
 // RAINBOND, Application Management Platform
-// Copyright (C) 2020-2021 Goodrain Co., Ltd.
+// Copyright (C) 2021-2021 Goodrain Co., Ltd.
 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,33 +16,21 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package version
+package versionutil
 
 import (
-	"os"
-	"strings"
+	"github.com/sirupsen/logrus"
+	"k8s.io/apimachinery/pkg/util/version"
 )
 
-//RainbondRegionVersion rainbond region install version
-var RainbondRegionVersion = "v5.3.2-release"
-
-//OperatorVersion operator image tag
-var OperatorVersion = "v2.0.2"
-
-//InstallImageRepo install image repo
-var InstallImageRepo = "registry.cn-hangzhou.aliyuncs.com/goodrain"
-
-func init() {
-	if os.Getenv("INSTALL_IMAGE_REPO") != "" {
-		InstallImageRepo = os.Getenv("INSTALL_IMAGE_REPO")
+// CheckVersion Check whether the k8s version is between 1.16 and 1.19
+func CheckVersion(kubernetesVersion string) bool {
+	clusterVersion, err := version.ParseGeneric(kubernetesVersion)
+	if err != nil {
+		logrus.Errorf("parse kubernetes version %s failed", kubernetesVersion)
+		return false
 	}
-	if os.Getenv("RAINBOND_VERSION") != "" {
-		RainbondRegionVersion = os.Getenv("RAINBOND_VERSION")
-	}
-	if os.Getenv("OPERATOR_VERSION") != "" {
-		OperatorVersion = os.Getenv("OPERATOR_VERSION")
-	}
-	if strings.HasSuffix(InstallImageRepo, "/") {
-		InstallImageRepo = InstallImageRepo[:len(InstallImageRepo)-1]
-	}
+	minK8sVersion, _ := version.ParseGeneric("v1.16.0")
+	maxK8sVersion, _ := version.ParseGeneric("v1.20.0")
+	return clusterVersion.AtLeast(minK8sVersion) && clusterVersion.LessThan(maxK8sVersion)
 }

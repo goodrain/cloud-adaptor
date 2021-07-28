@@ -63,9 +63,11 @@ var (
 	//ErrorGetRegionStatus -
 	ErrorGetRegionStatus = newByMessage(400, 7019, "can not get region status")
 
-	ErrIncorrectRKEConfig       = newByMessage(400, 7020, "the rke configuration format is incorrect")
-	ErrRKEConfigLost            = newByMessage(404, 7021, "rancher kubernetes engine configuration lost")
-	ErrInitRainbondTaskNotFound = newByMessage(404, 7022, "init rainbond task not found")
-	ErrRKEClusterExists         = newByMessage(409, 7023, "rke cluster already exists")
-	ErrLastTaskNotFound         = newByMessage(404, 7024, "update kubernetes task not found")
+	ErrIncorrectRKEConfig                  = newByMessage(400, 7020, "the rke configuration format is incorrect")
+	ErrRKEConfigLost                       = newByMessage(404, 7021, "rancher kubernetes engine configuration lost")
+	ErrInitRainbondTaskNotFound            = newByMessage(404, 7022, "init rainbond task not found")
+	ErrRKEClusterExists                    = newByMessage(409, 7023, "rke cluster already exists")
+	ErrLastUpdateKuberentesTaskNotComplete = newByMessage(409, 7024, "the last kubernetes update task not complete")
+	ErrDuplicateKubernetesUpdateTask       = newByMessage(409, 7025, "kubernetes update task conflict")
+	ErrLastTaskNotFound                    = newByMessage(404, 7026, "update kubernetes task not found")
 )
