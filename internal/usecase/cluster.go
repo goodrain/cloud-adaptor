@@ -44,6 +44,7 @@ import (
 	"goodrain.com/cloud-adaptor/internal/repo"
 	"goodrain.com/cloud-adaptor/internal/types"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
+	"goodrain.com/cloud-adaptor/pkg/util/constants"
 	"goodrain.com/cloud-adaptor/pkg/util/md5util"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
 	"gopkg.in/yaml.v2"
@@ -522,6 +523,7 @@ func (c *ClusterUsecase) CreateTaskEvent(em *v1.EventMessage) (*model.TaskEvent,
 		StepType:     em.Message.StepType,
 		Message:      em.Message.Message,
 	}
+	ent.Reason = c.reasonFromMessage(ent.Message)
 
 	if err := c.TaskEventRepo.Transaction(ctx).Create(ent); err != nil {
 		ctx.Rollback()
@@ -569,6 +571,13 @@ func (c *ClusterUsecase) CreateTaskEvent(em *v1.EventMessage) (*model.TaskEvent,
 	}
 	logrus.Infof("save task %s event %s status %s to db", em.TaskID, em.Message.StepType, em.Message.Status)
 	return ent, nil
+}
+
+func (c *ClusterUsecase) reasonFromMessage(message string) string {
+	if strings.Contains(message, fmt.Sprintf("namespace %s because it is being terminated", constants.Namespace)) {
+		return "NamespaceBeingTerminated"
+	}
+	return ""
 }
 
 //ListTaskEvent list task event list
