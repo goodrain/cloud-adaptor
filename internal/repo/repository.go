@@ -37,6 +37,7 @@ type CreateKubernetesTaskRepository interface {
 	UpdateStatus(eid string, taskID string, status string) error
 	GetTask(eid string, taskID string) (*model.CreateKubernetesTask, error)
 	GetLatestOneByName(name string) (*model.CreateKubernetesTask, error)
+	GetLatestOneByClusterID(clusterID string) (*model.CreateKubernetesTask, error)
 }
 
 //InitRainbondTaskRepository init rainbond region task
@@ -54,7 +55,7 @@ type InitRainbondTaskRepository interface {
 type UpdateKubernetesTaskRepository interface {
 	Transaction(tx *gorm.DB) UpdateKubernetesTaskRepository
 	Create(ent *model.UpdateKubernetesTask) error
-	GetTaskByClusterID(eid string, providerName, clusterID string) (*model.UpdateKubernetesTask, error)
+	GetTaskByClusterID(eid, clusterID string) (*model.UpdateKubernetesTask, error)
 	UpdateStatus(eid string, taskID string, status string) error
 	GetTask(eid string, taskID string) (*model.UpdateKubernetesTask, error)
 }

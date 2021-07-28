@@ -327,12 +327,9 @@ func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubern
 	}
 
 	// check if the last task is complete
-	lastTask, err := c.UpdateKubernetesTaskRepo.GetTaskByClusterID(eid, req.Provider, req.ClusterID)
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+	version, err := c.isLastTaskComplete(eid, req.ClusterID)
+	if err != nil {
 		return nil, err
-	}
-	if lastTask != nil && lastTask.Status != "complete" {
-		return nil, errors.WithStack(bcode.ErrLastUpdateKuberentesTaskNotComplete)
 	}
 
 	newTask := &model.UpdateKubernetesTask{
@@ -341,10 +338,7 @@ func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubern
 		EnterpriseID: eid,
 		ClusterID:    req.ClusterID,
 		NodeNumber:   len(rkeConfig.Nodes),
-	}
-	if lastTask != nil {
-		// optimistic lock
-		newTask.Version = lastTask.Version + 1
+		Version:      version + 1, // optimistic lock
 	}
 	if err := c.UpdateKubernetesTaskRepo.Create(newTask); err != nil {
 		return nil, errors.Wrap(err, "save update kubernetes task failure")
@@ -377,6 +371,32 @@ func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubern
 	}, nil
 }
 
+func (c *ClusterUsecase) isLastTaskComplete(eid, clusterID string) (int, error) {
+	// check if update task complete
+	updateTask, err := c.UpdateKubernetesTaskRepo.GetTaskByClusterID(eid, clusterID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return 0, err
+	}
+	if updateTask != nil && updateTask.Status != "complete" {
+		return 0, errors.WithStack(bcode.ErrLastKubernetesTaskNotComplete)
+	}
+
+	// check if create task complete
+	createTask, err := c.CreateKubernetesTaskRepo.GetLatestOneByClusterID(clusterID)
+	if err != nil && !errors.Is(err, bcode.ErrLastTaskNotFound) {
+		return 0, err
+	}
+	if createTask != nil && createTask.Status != "complete" {
+		return 0, errors.WithStack(bcode.ErrLastKubernetesTaskNotComplete)
+	}
+
+	if updateTask != nil {
+		return updateTask.Version, nil
+	}
+
+	return 0, nil
+}
+
 //GetInitRainbondTaskByClusterID get init rainbond task
 func (c *ClusterUsecase) GetInitRainbondTaskByClusterID(eid, clusterID, providerName string) (*model.InitRainbondTask, error) {
 	task, err := c.InitRainbondTaskRepo.GetTaskByClusterID(eid, providerName, clusterID)
@@ -397,7 +417,7 @@ func (c *ClusterUsecase) GetUpdateKubernetesTask(eid, clusterID, providerName st
 		clusterName = cluster.Name
 	}
 
-	task, err := c.getUpdateKubernetesTask(eid, clusterName, clusterID, providerName)
+	task, err := c.getUpdateKubernetesTask(eid, clusterName, clusterID)
 	if err != nil {
 		return nil, err
 	}
@@ -430,8 +450,8 @@ func (c *ClusterUsecase) GetUpdateKubernetesTask(eid, clusterID, providerName st
 	return &re, nil
 }
 
-func (c *ClusterUsecase) getUpdateKubernetesTask(eid, name, clusterID, providerName string) (interface{}, error) {
-	update, err := c.UpdateKubernetesTaskRepo.GetTaskByClusterID(eid, providerName, clusterID)
+func (c *ClusterUsecase) getUpdateKubernetesTask(eid, name, clusterID string) (interface{}, error) {
+	update, err := c.UpdateKubernetesTaskRepo.GetTaskByClusterID(eid, clusterID)
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, err
 	}
@@ -810,6 +830,12 @@ func (c *ClusterUsecase) InstallCluster(eid, clusterID string) (*model.CreateKub
 	if err != nil {
 		return nil, err
 	}
+
+	// check if the last task is complete
+	if _, err := c.isLastTaskComplete(eid, clusterID); err != nil {
+		return nil, err
+	}
+
 	newTask := &model.CreateKubernetesTask{
 		Name:         cluster.Name,
 		Provider:     "rke",

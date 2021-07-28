@@ -83,6 +83,18 @@ func (c *CreateKubernetesTaskRepo) GetLatestOneByName(name string) (*model.Creat
 	return &old, nil
 }
 
+// GetLatestOneByClusterID return the last create task by cluster id.
+func (c *CreateKubernetesTaskRepo) GetLatestOneByClusterID(clusterID string) (*model.CreateKubernetesTask, error) {
+	var old model.CreateKubernetesTask
+	if err := c.DB.Where("cluster_id=?", clusterID).Last(&old).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.Wrapf(bcode.ErrLastTaskNotFound, "get last create task: %v", err)
+		}
+		return nil, err
+	}
+	return &old, nil
+}
+
 //UpdateStatus update status
 func (c *CreateKubernetesTaskRepo) UpdateStatus(eid string, taskID string, status string) error {
 	var old model.CreateKubernetesTask
