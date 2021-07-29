@@ -149,7 +149,7 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 		return
 	}
 	ticker := time.NewTicker(time.Second * 5)
-	timer := time.NewTimer(time.Minute * 30)
+	timer := time.NewTimer(time.Minute * 60)
 	defer timer.Stop()
 	defer ticker.Stop()
 	var operatorMessage, imageHubMessage, packageMessage, apiReadyMessage bool
