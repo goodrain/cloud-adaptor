@@ -182,7 +182,7 @@ func (r *RainbondRegionInit) createRainbondCR(kubeClient *kubernetes.Clientset, 
 	//TODO: define etcd config by RainbondInitConfig
 	rcc, err := r.rainbondClusterConfigRepo.Get(initConfig.ClusterID)
 	if err != nil && err != gorm.ErrRecordNotFound {
-		logrus.Errorf("get rainbond cluster config failure", err.Error())
+		logrus.Errorf("get rainbond cluster config failure %s", err.Error())
 	}
 	cluster := &rainbondv1alpha1.RainbondCluster{
 		Spec: rainbondv1alpha1.RainbondClusterSpec{
@@ -380,7 +380,7 @@ func (r *RainbondRegionInit) GetRainbondRegionStatus(clusterID string) (*v1alpha
 		return nil, err
 	}
 	status := &v1alpha1.RainbondRegionStatus{}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 	deployment, err := coreClient.AppsV1().Deployments("rbd-system").Get(ctx, "rainbond-operator", metav1.GetOptions{})
 	if err != nil {
@@ -390,7 +390,9 @@ func (r *RainbondRegionInit) GetRainbondRegionStatus(clusterID string) (*v1alpha
 		status.OperatorReady = true
 	}
 	var cluster rainbondv1alpha1.RainbondCluster
-	err = rainbondClient.Get(ctx, types.NamespacedName{Name: "rainbondcluster", Namespace: "rbd-system"}, &cluster)
+	ctx2, cancel2 := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel2()
+	err = rainbondClient.Get(ctx2, types.NamespacedName{Name: "rainbondcluster", Namespace: "rbd-system"}, &cluster)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
 			return nil, err
@@ -399,7 +401,9 @@ func (r *RainbondRegionInit) GetRainbondRegionStatus(clusterID string) (*v1alpha
 	}
 	status.RainbondCluster = &cluster
 	var pkgStatus rainbondv1alpha1.RainbondPackage
-	err = rainbondClient.Get(ctx, types.NamespacedName{Name: "rainbondpackage", Namespace: "rbd-system"}, &pkgStatus)
+	ctx3, cancel3 := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel3()
+	err = rainbondClient.Get(ctx3, types.NamespacedName{Name: "rainbondpackage", Namespace: "rbd-system"}, &pkgStatus)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
 			return nil, err
@@ -408,7 +412,9 @@ func (r *RainbondRegionInit) GetRainbondRegionStatus(clusterID string) (*v1alpha
 	}
 	status.RainbondPackage = &pkgStatus
 	var volume rainbondv1alpha1.RainbondVolume
-	err = rainbondClient.Get(ctx, types.NamespacedName{Name: "rainbondvolumerwx", Namespace: "rbd-system"}, &volume)
+	ctx4, cancel4 := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel4()
+	err = rainbondClient.Get(ctx4, types.NamespacedName{Name: "rainbondvolumerwx", Namespace: "rbd-system"}, &volume)
 	if err != nil {
 		if k8sErrors.IsNotFound(err) {
 			return nil, err
@@ -416,7 +422,9 @@ func (r *RainbondRegionInit) GetRainbondRegionStatus(clusterID string) (*v1alpha
 		logrus.Warningf("get rainbond volume failure %s", err.Error())
 	}
 	status.RainbondVolume = &volume
-	config, err := coreClient.CoreV1().ConfigMaps("rbd-system").Get(ctx, "region-config", metav1.GetOptions{})
+	ctx5, cancel5 := context.WithTimeout(context.Background(), time.Second*5)
+	defer cancel5()
+	config, err := coreClient.CoreV1().ConfigMaps("rbd-system").Get(ctx5, "region-config", metav1.GetOptions{})
 	if err != nil && !k8sErrors.IsNotFound(err) {
 		logrus.Warningf("get region config failure %s", err.Error())
 	}
