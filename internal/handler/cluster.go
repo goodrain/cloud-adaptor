@@ -19,7 +19,6 @@
 package handler
 
 import (
-	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -33,7 +32,6 @@ import (
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/ginutil"
 	"goodrain.com/cloud-adaptor/pkg/util/md5util"
-	"goodrain.com/cloud-adaptor/pkg/util/ssh"
 )
 
 // ClusterHandler -
@@ -501,16 +499,10 @@ func (e *ClusterHandler) UpdateInitRainbondTaskStatus(ctx *gin.Context) {
 //
 // Responses:
 // 200: body:InitNodeCmdRes
-func (e *ClusterHandler) GetInitNodeCmd(ctx *gin.Context) {
-	pub, err := ssh.GetOrMakeSSHRSA()
-	if err != nil {
-		logrus.Errorf("get or create ssh rsa failure %s", err.Error())
-		ginutil.JSON(ctx, nil, bcode.ServerErr)
-		return
-	}
-	ginutil.JSON(ctx, v1.InitNodeCmdRes{
-		Cmd: fmt.Sprintf(`export SSH_RSA="%s"&&curl http://sh.rainbond.com/init_node | bash`, pub),
-	}, nil)
+func (e *ClusterHandler) GetInitNodeCmd(c *gin.Context) {
+	mode := c.Query("mode")
+	res, err := e.cluster.GetInitNodeCmd(c.Request.Context(), mode)
+	ginutil.JSONv2(c, res, err)
 }
 
 //GetLogContent get rke create kubernetes log
