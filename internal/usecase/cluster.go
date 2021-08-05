@@ -45,6 +45,7 @@ import (
 	"goodrain.com/cloud-adaptor/internal/types"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/md5util"
+	"goodrain.com/cloud-adaptor/pkg/util/ssh"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
 	"gopkg.in/yaml.v2"
 	"gorm.io/gorm"
@@ -1017,4 +1018,21 @@ func (c *ClusterUsecase) nodeListToRKEConfigNodes(nodeList v1alpha1.NodeList) []
 		})
 	}
 	return nodes
+}
+
+// GetInitNodeCmd -
+func (c *ClusterUsecase) GetInitNodeCmd(ctx context.Context, mode string) (*v1.InitNodeCmdRes, error) {
+	pub, err := ssh.GetOrMakeSSHRSA()
+	if err != nil {
+		return nil, errors.Wrap(err, "get or create ssh rsa")
+	}
+
+	if mode == "offline" {
+		return &v1.InitNodeCmdRes{
+			Cmd: fmt.Sprintf(`export SSH_RSA="%s" && ./init_node_offline.sh`, pub),
+		}, nil
+	}
+	return &v1.InitNodeCmdRes{
+		Cmd: fmt.Sprintf(`export SSH_RSA="%s"&&curl http://sh.rainbond.com/init_node | bash`, pub),
+	}, nil
 }
