@@ -74,7 +74,7 @@ type RainbondRegionInit struct {
 func NewRainbondRegionInit(kubeconfig v1alpha1.KubeConfig, rainbondClusterConfigRepo repo.RainbondClusterConfigRepository) *RainbondRegionInit {
 	return &RainbondRegionInit{
 		kubeconfig:                kubeconfig,
-		namespace:                 "rbd-system",
+		namespace:                 constants.Namespace,
 		rainbondClusterConfigRepo: rainbondClusterConfigRepo,
 	}
 }
