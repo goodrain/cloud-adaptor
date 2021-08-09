@@ -28,6 +28,7 @@ import (
 	"github.com/sirupsen/logrus"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
+	"goodrain.com/cloud-adaptor/internal/domain"
 	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/ginutil"
@@ -718,4 +719,21 @@ func (e *ClusterHandler) pruneUpdateRKEConfig(c *gin.Context) {
 
 	rkeConfig, err := e.cluster.PruneUpdateRKEConfig(&req)
 	ginutil.JSONv2(c, rkeConfig, err)
+}
+
+// ListRainbondComponents returns a list of rainbond components.
+// @Summary returns a list of rainbond components.
+// @Tags cluster
+// @ID listRainbondComponents
+// @Accept  json
+// @Produce  json
+// @Param eid path string true "the enterprise id"
+// @Param clusterID path string true "the identify of cluster"
+// @Success 200 {array} v1.RainbondComponent
+// @Router /api/v1/enterprises/{eid}/kclusters/{clusterID}/rainbond-components [get]
+func (e *ClusterHandler) listRainbondComponents(c *gin.Context) {
+	obj, _ := c.Get("cluster")
+	cluster := obj.(*domain.Cluster)
+	components, err := e.cluster.ListRainbondComponents(c.Request.Context(), cluster)
+	ginutil.JSONv2(c, components, err)
 }

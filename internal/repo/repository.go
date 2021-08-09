@@ -81,3 +81,12 @@ type RKEClusterRepository interface {
 	ListCluster(eid string) ([]*model.RKECluster, error)
 	DeleteCluster(eid, name string) error
 }
+
+// CustomClusterRepository -
+type CustomClusterRepository interface {
+	Create(cluster *model.CustomCluster) error
+	Update(cluster *model.CustomCluster) error
+	GetCluster(eid, name string) (*model.CustomCluster, error)
+	ListCluster(eid string) ([]*model.CustomCluster, error)
+	DeleteCluster(eid, name string) error
+}

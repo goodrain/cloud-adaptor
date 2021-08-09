@@ -23,6 +23,7 @@ import (
 
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
 	"goodrain.com/cloud-adaptor/internal/model"
+	corev1 "k8s.io/api/core/v1"
 )
 
 //ListKubernetesCluster list kubernetes cluster request body
@@ -242,4 +243,10 @@ type PruneUpdateRKEConfigReq struct {
 type PruneUpdateRKEConfigResp struct {
 	Nodes            v1alpha1.NodeList `json:"nodes"`
 	EncodedRKEConfig string            `json:"encodeRKEConfig"`
+}
+
+// RainbondComponent rainbond components
+type RainbondComponent struct {
+	App  string        `json:"app"`
+	Pods []*corev1.Pod `json:"pods"`
 }

@@ -19,10 +19,15 @@
 package middleware
 
 import (
+	"github.com/devfeel/mapper"
 	"github.com/gin-gonic/gin"
 	"github.com/google/wire"
+	"github.com/pkg/errors"
+	"goodrain.com/cloud-adaptor/internal/domain"
 	"goodrain.com/cloud-adaptor/internal/repo"
+	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/ginutil"
+	"gorm.io/gorm"
 )
 
 // ProviderSet is a middleware provider.
@@ -30,13 +35,19 @@ var ProviderSet = wire.NewSet(NewMiddleware)
 
 // Middleware -
 type Middleware struct {
-	appStoreRepo repo.AppStoreRepo
+	appStoreRepo      repo.AppStoreRepo
+	rkeClusterRepo    repo.RKEClusterRepository
+	customClusterRepo repo.CustomClusterRepository
 }
 
 // NewMiddleware creates a new middleware.
-func NewMiddleware(appStoreRepo repo.AppStoreRepo) *Middleware {
+func NewMiddleware(appStoreRepo repo.AppStoreRepo,
+	rkeClusterRepo repo.RKEClusterRepository,
+	customClusterRepo repo.CustomClusterRepository) *Middleware {
 	return &Middleware{
-		appStoreRepo: appStoreRepo,
+		appStoreRepo:      appStoreRepo,
+		rkeClusterRepo:    rkeClusterRepo,
+		customClusterRepo: customClusterRepo,
 	}
 }
 
@@ -50,4 +61,39 @@ func (a *Middleware) AppStore(c *gin.Context) {
 		return
 	}
 	c.Set("appStore", appStore)
+}
+
+func (a *Middleware) Cluster(c *gin.Context) {
+	eid := c.Param("eid")
+	clusterID := c.Param("clusterID")
+
+	// rke cluster
+	rkeCluster, err := a.rkeClusterRepo.GetCluster(eid, clusterID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		ginutil.Error(c, errors.WithStack(err))
+		return
+	}
+	if rkeCluster != nil {
+		cluster := &domain.Cluster{}
+		mapper.Mapper(rkeCluster, cluster)
+		cluster.Provider = "rke"
+		c.Set("cluster", cluster)
+		return
+	}
+
+	// custom cluster
+	customCluster, err := a.customClusterRepo.GetCluster(eid, clusterID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		ginutil.Error(c, errors.WithStack(err))
+		return
+	}
+	if customCluster != nil {
+		cluster := &domain.Cluster{}
+		mapper.Mapper(customCluster, cluster)
+		cluster.Provider = "custom"
+		c.Set("cluster", cluster)
+		return
+	}
+
+	ginutil.Error(c, errors.WithStack(bcode.ErrClusterNotFound))
 }

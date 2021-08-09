@@ -16,7 +16,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-package custom
+package repo
 
 import (
 	"fmt"
@@ -26,18 +26,23 @@ import (
 	"gorm.io/gorm"
 )
 
-// ClusterRepo -
-type ClusterRepo struct {
+// CustomClusterRepo -
+type CustomClusterRepo struct {
 	DB *gorm.DB `inject:""`
 }
 
 // NewCustomClusterRepo new Enterprise repoo
-func NewCustomClusterRepo(db *gorm.DB) *ClusterRepo {
-	return &ClusterRepo{DB: db}
+func NewCustomClusterRepo(db *gorm.DB) *CustomClusterRepo {
+	return &CustomClusterRepo{DB: db}
+}
+
+// NewCustomClusterRepo new Enterprise repoo
+func NewCustomClusterRepository(db *gorm.DB) CustomClusterRepository {
+	return &CustomClusterRepo{DB: db}
 }
 
 //Create create an event
-func (t *ClusterRepo) Create(te *model.CustomCluster) error {
+func (t *CustomClusterRepo) Create(te *model.CustomCluster) error {
 	if te.Name == "" || te.EnterpriseID == "" {
 		return fmt.Errorf("custom cluster name or eid can not be empty")
 	}
@@ -59,12 +64,12 @@ func (t *ClusterRepo) Create(te *model.CustomCluster) error {
 }
 
 //Update -
-func (t *ClusterRepo) Update(te *model.CustomCluster) error {
+func (t *CustomClusterRepo) Update(te *model.CustomCluster) error {
 	return t.DB.Save(te).Error
 }
 
 //GetCluster -
-func (t *ClusterRepo) GetCluster(eid, name string) (*model.CustomCluster, error) {
+func (t *CustomClusterRepo) GetCluster(eid, name string) (*model.CustomCluster, error) {
 	var rc model.CustomCluster
 	if err := t.DB.Where("eid=? and(name=? or clusterID=?)", eid, name, name).Take(&rc).Error; err != nil {
 		return nil, err
@@ -73,7 +78,7 @@ func (t *ClusterRepo) GetCluster(eid, name string) (*model.CustomCluster, error)
 }
 
 //ListCluster -
-func (t *ClusterRepo) ListCluster(eid string) ([]*model.CustomCluster, error) {
+func (t *CustomClusterRepo) ListCluster(eid string) ([]*model.CustomCluster, error) {
 	var list []*model.CustomCluster
 	if err := t.DB.Where("eid=?", eid).Find(&list).Error; err != nil {
 		return nil, err
@@ -82,7 +87,7 @@ func (t *ClusterRepo) ListCluster(eid string) ([]*model.CustomCluster, error) {
 }
 
 //DeleteCluster delete cluster
-func (t *ClusterRepo) DeleteCluster(eid, name string) error {
+func (t *CustomClusterRepo) DeleteCluster(eid, name string) error {
 	var rc model.CustomCluster
 	if err := t.DB.Where("eid=? and (name=? or clusterID=?)", eid, name, name).Delete(&rc).Error; err != nil {
 		return err

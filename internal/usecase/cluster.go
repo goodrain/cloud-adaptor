@@ -29,13 +29,19 @@ import (
 	"strings"
 	"time"
 
+	"github.com/goodrain/rainbond-operator/util/rbdutil"
+	"goodrain.com/cloud-adaptor/internal/domain"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/client-go/kubernetes"
+
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
 	"github.com/pkg/errors"
 	v3 "github.com/rancher/rke/types"
 	"github.com/sirupsen/logrus"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor"
-	"goodrain.com/cloud-adaptor/internal/adaptor/custom"
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
 	"goodrain.com/cloud-adaptor/internal/model"
@@ -63,6 +69,7 @@ type ClusterUsecase struct {
 	TaskEventRepo             repo.TaskEventRepository
 	RainbondClusterConfigRepo repo.RainbondClusterConfigRepository
 	rkeClusterRepo            repo.RKEClusterRepository
+	customClusterRepo         repo.CustomClusterRepository
 }
 
 // NewClusterUsecase new cluster usecase
@@ -75,6 +82,7 @@ func NewClusterUsecase(db *gorm.DB,
 	TaskEventRepo repo.TaskEventRepository,
 	RainbondClusterConfigRepo repo.RainbondClusterConfigRepository,
 	rkeClusterRepo repo.RKEClusterRepository,
+	customClusterRepo repo.CustomClusterRepository,
 ) *ClusterUsecase {
 	return &ClusterUsecase{
 		DB:                        db,
@@ -86,6 +94,7 @@ func NewClusterUsecase(db *gorm.DB,
 		TaskEventRepo:             TaskEventRepo,
 		RainbondClusterConfigRepo: RainbondClusterConfigRepo,
 		rkeClusterRepo:            rkeClusterRepo,
+		customClusterRepo:         customClusterRepo,
 	}
 }
 
@@ -133,7 +142,7 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 	clusterID := uuidutil.NewUUID()
 	clusterStatus := v1alpha1.OfflineState
 	if req.Provider == "custom" {
-		if err := custom.NewCustomClusterRepo(c.DB).Create(&model.CustomCluster{
+		if err := c.customClusterRepo.Create(&model.CustomCluster{
 			Name:         req.Name,
 			EIP:          strings.Join(req.EIP, ","),
 			KubeConfig:   req.KubeConfig,
@@ -1044,4 +1053,55 @@ func (c *ClusterUsecase) GetInitNodeCmd(ctx context.Context, mode string) (*v1.I
 	return &v1.InitNodeCmdRes{
 		Cmd: fmt.Sprintf(`export SSH_RSA="%s"&&curl http://sh.rainbond.com/init_node | bash`, pub),
 	}, nil
+}
+
+func (c *ClusterUsecase) ListRainbondComponents(ctx context.Context, cluster *domain.Cluster) ([]*v1.RainbondComponent, error) {
+	if cluster.KubeConfig == "" {
+		logrus.Debugf("kube config not found for cluster(%s), skip listing rainbond components", cluster.Name)
+		return nil, nil
+	}
+
+	kc := v1alpha1.KubeConfig{Config: cluster.KubeConfig}
+	kubeClient, _, err := kc.GetKubeClient()
+	if err != nil {
+		return nil, errors.Wrap(bcode.ErrorKubeAPI, err.Error())
+	}
+
+	return c.listRainbondComponents(ctx, kubeClient)
+}
+
+func (c *ClusterUsecase) listRainbondComponents(ctx context.Context, kubeClient kubernetes.Interface) ([]*v1.RainbondComponent, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	podList, err := kubeClient.CoreV1().Pods(constants.Namespace).List(ctx, metav1.ListOptions{
+		LabelSelector: fields.SelectorFromSet(rbdutil.LabelsForRainbond(nil)).String(),
+	})
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	pods := make(map[string][]*corev1.Pod)
+	for _, pod := range podList.Items {
+		pod := pod
+
+		labels := pod.Labels
+		if len(labels) == 0 || labels["name"] == "" {
+			logrus.Warningf("list rainbond components. label 'name' not found for pod(%s/%s)", pod.Namespace, pod.Name)
+			continue
+		}
+
+		cptPods := pods[labels["name"]]
+		pods[labels["name"]] = append(cptPods, &pod)
+	}
+
+	var components []*v1.RainbondComponent
+	for app, cptPods := range pods {
+		components = append(components, &v1.RainbondComponent{
+			App:  app,
+			Pods: cptPods,
+		})
+	}
+
+	return components, nil
 }

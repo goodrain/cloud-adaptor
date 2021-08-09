@@ -95,6 +95,11 @@ func (r *Router) NewRouter() *gin.Engine {
 	entv1.POST("/kclusters/:clusterID/uninstall", r.cluster.UninstallRegion)
 	entv1.POST("/kclusters/prune-update-rkeconfig", r.cluster.pruneUpdateRKEConfig)
 
+	clusterv1 := entv1.Group("/kclusters/:clusterID", r.middleware.Cluster)
+	{
+		clusterv1.GET("/rainbond-components", r.cluster.listRainbondComponents)
+	}
+
 	entv1.POST("/accesskey", r.cluster.AddAccessKey)
 	entv1.GET("/accesskey", r.cluster.GetAccessKey)
 	entv1.GET("/last-ck-task", r.cluster.GetLastAddKubernetesClusterTask)

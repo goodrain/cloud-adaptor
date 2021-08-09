@@ -39,6 +39,11 @@ import (
 	_ "github.com/helm/helm/pkg/repo"
 	_ "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	_ "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
+	_ "k8s.io/api/core/v1"
+	_ "k8s.io/apimachinery/pkg/api/resource"
+	_ "k8s.io/apimachinery/pkg/apis/meta/v1"
+	_ "k8s.io/apimachinery/pkg/types"
+	_ "k8s.io/apimachinery/pkg/util/intstr"
 	_ "k8s.io/helm/pkg/proto/hapi/chart"
 )
 
