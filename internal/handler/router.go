@@ -95,7 +95,7 @@ func (r *Router) NewRouter() *gin.Engine {
 	entv1.POST("/kclusters/:clusterID/uninstall", r.cluster.UninstallRegion)
 	entv1.POST("/kclusters/prune-update-rkeconfig", r.cluster.pruneUpdateRKEConfig)
 
-	clusterv1 := entv1.Group("/kclusters/:clusterID", r.middleware.Cluster)
+	clusterv1 := entv1.Group("/kclusters/:clusterID")
 	{
 		clusterv1.GET("/rainbond-components", r.cluster.listRainbondComponents)
 		clusterv1.GET("/rainbond-components/:podName/events", r.cluster.listPodEvents)

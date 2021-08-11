@@ -29,14 +29,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goodrain/rainbond-operator/util/rbdutil"
-	"goodrain.com/cloud-adaptor/internal/domain"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/client-go/kubernetes"
-
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
+	"github.com/goodrain/rainbond-operator/util/rbdutil"
 	"github.com/pkg/errors"
 	v3 "github.com/rancher/rke/types"
 	"github.com/sirupsen/logrus"
@@ -56,6 +50,10 @@ import (
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
 	"gopkg.in/yaml.v2"
 	"gorm.io/gorm"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/client-go/kubernetes"
 )
 
 // ClusterUsecase cluster manage usecase
@@ -1056,13 +1054,13 @@ func (c *ClusterUsecase) GetInitNodeCmd(ctx context.Context, mode string) (*v1.I
 }
 
 // ListRainbondComponents -
-func (c *ClusterUsecase) ListRainbondComponents(ctx context.Context, cluster *domain.Cluster) ([]*v1.RainbondComponent, error) {
-	if cluster.KubeConfig == "" {
-		logrus.Debugf("kube config not found for cluster(%s), skip listing rainbond components", cluster.Name)
-		return nil, nil
+func (c *ClusterUsecase) ListRainbondComponents(ctx context.Context, eid, clusterID, providerName string) ([]*v1.RainbondComponent, error) {
+	kubeConfig, err := c.GetKubeConfig(eid, clusterID, providerName)
+	if err != nil {
+		return nil, err
 	}
 
-	kc := v1alpha1.KubeConfig{Config: cluster.KubeConfig}
+	kc := v1alpha1.KubeConfig{Config: kubeConfig}
 	kubeClient, _, err := kc.GetKubeClient()
 	if err != nil {
 		return nil, errors.Wrap(bcode.ErrorKubeAPI, err.Error())
@@ -1108,13 +1106,13 @@ func (c *ClusterUsecase) listRainbondComponents(ctx context.Context, kubeClient 
 }
 
 // ListPodEvents -
-func (c *ClusterUsecase) ListPodEvents(ctx context.Context, cluster *domain.Cluster, podName string) ([]corev1.Event, error) {
-	if cluster.KubeConfig == "" {
-		logrus.Debugf("kube config not found for cluster(%s), skip listing rainbond components", cluster.Name)
-		return nil, nil
+func (c *ClusterUsecase) ListPodEvents(ctx context.Context, eid, clusterID, providerName, podName string) ([]corev1.Event, error) {
+	kubeConfig, err := c.GetKubeConfig(eid, clusterID, providerName)
+	if err != nil {
+		return nil, err
 	}
 
-	kc := v1alpha1.KubeConfig{Config: cluster.KubeConfig}
+	kc := v1alpha1.KubeConfig{Config: kubeConfig}
 	kubeClient, _, err := kc.GetKubeClient()
 	if err != nil {
 		return nil, errors.Wrap(bcode.ErrorKubeAPI, err.Error())

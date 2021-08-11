@@ -28,7 +28,6 @@ import (
 	"github.com/sirupsen/logrus"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
-	"goodrain.com/cloud-adaptor/internal/domain"
 	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/ginutil"
@@ -729,12 +728,14 @@ func (e *ClusterHandler) pruneUpdateRKEConfig(c *gin.Context) {
 // @Produce  json
 // @Param eid path string true "the enterprise id"
 // @Param clusterID path string true "the identify of cluster"
+// @Param providerName query string true "the provider of the cluster"
 // @Success 200 {array} v1.RainbondComponent
 // @Router /api/v1/enterprises/{eid}/kclusters/{clusterID}/rainbond-components [get]
 func (e *ClusterHandler) listRainbondComponents(c *gin.Context) {
-	obj, _ := c.Get("cluster")
-	cluster := obj.(*domain.Cluster)
-	components, err := e.cluster.ListRainbondComponents(c.Request.Context(), cluster)
+	eid := c.Param("eid")
+	clusterID := c.Param("clusterID")
+	providerName := c.Query("providerName")
+	components, err := e.cluster.ListRainbondComponents(c.Request.Context(), eid, clusterID, providerName)
 	ginutil.JSONv2(c, components, err)
 }
 
@@ -747,11 +748,13 @@ func (e *ClusterHandler) listRainbondComponents(c *gin.Context) {
 // @Param eid path string true "the enterprise id"
 // @Param clusterID path string true "the identify of cluster"
 // @Param podName path string true "the name of pod"
+// @Param providerName query string true "the provider of the cluster"
 // @Success 200 {array} v1.RainbondComponentEvent
 // @Router /api/v1/enterprises/{eid}/kclusters/{clusterID}/rainbond-components/{podName}/events [get]
 func (e *ClusterHandler) listPodEvents(c *gin.Context) {
-	obj, _ := c.Get("cluster")
-	cluster := obj.(*domain.Cluster)
-	components, err := e.cluster.ListPodEvents(c.Request.Context(), cluster, c.Param("podName"))
+	eid := c.Param("eid")
+	clusterID := c.Param("clusterID")
+	providerName := c.Query("providerName")
+	components, err := e.cluster.ListPodEvents(c.Request.Context(), eid, clusterID, providerName, c.Param("podName"))
 	ginutil.JSONv2(c, components, err)
 }
