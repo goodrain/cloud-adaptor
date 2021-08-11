@@ -69,6 +69,9 @@ func (t *RKEClusterRepo) Update(te *model.RKECluster) error {
 func (t *RKEClusterRepo) GetCluster(eid, name string) (*model.RKECluster, error) {
 	var rc model.RKECluster
 	if err := t.DB.Where("eid=? and (name=? or clusterID=?)", eid, name, name).Take(&rc).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.WithStack(bcode.ErrClusterNotFound)
+		}
 		return nil, err
 	}
 	return &rc, nil

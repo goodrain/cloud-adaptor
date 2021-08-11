@@ -21,7 +21,9 @@ package repo
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	"goodrain.com/cloud-adaptor/internal/model"
+	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
 	"gorm.io/gorm"
 )
@@ -72,6 +74,9 @@ func (t *CustomClusterRepo) Update(te *model.CustomCluster) error {
 func (t *CustomClusterRepo) GetCluster(eid, name string) (*model.CustomCluster, error) {
 	var rc model.CustomCluster
 	if err := t.DB.Where("eid=? and(name=? or clusterID=?)", eid, name, name).Take(&rc).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.WithStack(bcode.ErrClusterNotFound)
+		}
 		return nil, err
 	}
 	return &rc, nil

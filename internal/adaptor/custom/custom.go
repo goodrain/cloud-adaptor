@@ -27,6 +27,7 @@ import (
 	"time"
 
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"goodrain.com/cloud-adaptor/internal/adaptor"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
@@ -138,7 +139,7 @@ func (c *customAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluste
 func (c *customAdaptor) GetKubeConfig(eid, clusterID string) (*v1alpha1.KubeConfig, error) {
 	cc, err := c.Repo.GetCluster(eid, clusterID)
 	if err != nil {
-		return nil, fmt.Errorf("query cluster meta info failure %s", err.Error())
+		return nil, errors.WithMessage(err, "query cluster meta info failure")
 	}
 	return &v1alpha1.KubeConfig{Config: cc.KubeConfig}, nil
 }

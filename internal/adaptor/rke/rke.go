@@ -22,16 +22,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"goodrain.com/cloud-adaptor/pkg/util/versionutil"
 	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
 	"time"
 
-	"goodrain.com/cloud-adaptor/internal/repo"
-
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
+	"github.com/pkg/errors"
 	"github.com/rancher/rke/cluster"
 	"github.com/rancher/rke/cmd"
 	"github.com/rancher/rke/hosts"
@@ -44,7 +42,9 @@ import (
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
 	"goodrain.com/cloud-adaptor/internal/datastore"
 	"goodrain.com/cloud-adaptor/internal/model"
+	"goodrain.com/cloud-adaptor/internal/repo"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
+	"goodrain.com/cloud-adaptor/pkg/util/versionutil"
 	yaml "gopkg.in/yaml.v2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/version"
@@ -320,7 +320,7 @@ func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 			json.Unmarshal(versionByte, &info)
 			if err == nil {
 				cluster.CurrentVersion = info.String()
-				if !versionutil.CheckVersion(cluster.CurrentVersion){
+				if !versionutil.CheckVersion(cluster.CurrentVersion) {
 					cluster.Parameters["DisableRainbondInit"] = true
 					cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Rainbond支持的版本为1.16.x-1.19.x", cluster.CurrentVersion)
 				}
@@ -559,7 +559,7 @@ func checkAllIncluded(cluster *cluster.Cluster) error {
 func (r *rkeAdaptor) GetKubeConfig(eid, clusterID string) (*v1alpha1.KubeConfig, error) {
 	rkecluster, err := r.Repo.GetCluster(eid, clusterID)
 	if err != nil {
-		return nil, fmt.Errorf("get cluster meta info failure %s", err.Error())
+		return nil, errors.WithMessage(err, "get cluster meta info failure")
 	}
 	if rkecluster.KubeConfig == "" {
 		return nil, fmt.Errorf("not found kube config")
