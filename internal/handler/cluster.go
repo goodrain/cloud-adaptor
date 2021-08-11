@@ -737,3 +737,21 @@ func (e *ClusterHandler) listRainbondComponents(c *gin.Context) {
 	components, err := e.cluster.ListRainbondComponents(c.Request.Context(), cluster)
 	ginutil.JSONv2(c, components, err)
 }
+
+// listPodEvents returns a list of rainbond component pod events.
+// @Summary returns a list of rainbond component pod events.
+// @Tags cluster
+// @ID listPodEvents
+// @Accept  json
+// @Produce  json
+// @Param eid path string true "the enterprise id"
+// @Param clusterID path string true "the identify of cluster"
+// @Param podName path string true "the name of pod"
+// @Success 200 {array} v1.RainbondComponentEvent
+// @Router /api/v1/enterprises/{eid}/kclusters/{clusterID}/rainbond-components/{podName}/events [get]
+func (e *ClusterHandler) listPodEvents(c *gin.Context) {
+	obj, _ := c.Get("cluster")
+	cluster := obj.(*domain.Cluster)
+	components, err := e.cluster.ListPodEvents(c.Request.Context(), cluster, c.Param("podName"))
+	ginutil.JSONv2(c, components, err)
+}

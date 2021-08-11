@@ -98,6 +98,7 @@ func (r *Router) NewRouter() *gin.Engine {
 	clusterv1 := entv1.Group("/kclusters/:clusterID", r.middleware.Cluster)
 	{
 		clusterv1.GET("/rainbond-components", r.cluster.listRainbondComponents)
+		clusterv1.GET("/rainbond-components/:podName/events", r.cluster.listPodEvents)
 	}
 
 	entv1.POST("/accesskey", r.cluster.AddAccessKey)

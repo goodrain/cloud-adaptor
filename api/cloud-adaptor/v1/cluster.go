@@ -250,3 +250,8 @@ type RainbondComponent struct {
 	App  string        `json:"app"`
 	Pods []*corev1.Pod `json:"pods"`
 }
+
+// RainbondComponentEvent -
+type RainbondComponentEvent struct {
+	corev1.Event
+}

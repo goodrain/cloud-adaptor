@@ -1105,3 +1105,31 @@ func (c *ClusterUsecase) listRainbondComponents(ctx context.Context, kubeClient 
 
 	return components, nil
 }
+
+func (c *ClusterUsecase) ListPodEvents(ctx context.Context, cluster *domain.Cluster, podName string) ([]corev1.Event, error) {
+	if cluster.KubeConfig == "" {
+		logrus.Debugf("kube config not found for cluster(%s), skip listing rainbond components", cluster.Name)
+		return nil, nil
+	}
+
+	kc := v1alpha1.KubeConfig{Config: cluster.KubeConfig}
+	kubeClient, _, err := kc.GetKubeClient()
+	if err != nil {
+		return nil, errors.Wrap(bcode.ErrorKubeAPI, err.Error())
+	}
+
+	return c.listPodEvents(ctx, kubeClient, podName)
+}
+
+func (c *ClusterUsecase) listPodEvents(ctx context.Context, kubeClient kubernetes.Interface, podName string) ([]corev1.Event, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	eventList, err := kubeClient.CoreV1().Events(constants.Namespace).List(ctx, metav1.ListOptions{
+		FieldSelector: fmt.Sprintf("involvedObject.name=%s", podName),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return eventList.Items, nil
+}
