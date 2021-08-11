@@ -69,4 +69,5 @@ var (
 	ErrLastKubernetesTaskNotComplete = newByMessage(409, 7024, "the last kubernetes task not complete")
 	ErrDuplicateKubernetesUpdateTask = newByMessage(409, 7025, "kubernetes update task conflict")
 	ErrLastTaskNotFound              = newByMessage(404, 7026, "update kubernetes task not found")
+	ErrClusterNotFound               = newByMessage(404, 7027, "cluster not found")
 )
