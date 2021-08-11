@@ -63,6 +63,7 @@ func (a *Middleware) AppStore(c *gin.Context) {
 	c.Set("appStore", appStore)
 }
 
+// Cluster -
 func (a *Middleware) Cluster(c *gin.Context) {
 	eid := c.Param("eid")
 	clusterID := c.Param("clusterID")

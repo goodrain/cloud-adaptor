@@ -1055,6 +1055,7 @@ func (c *ClusterUsecase) GetInitNodeCmd(ctx context.Context, mode string) (*v1.I
 	}, nil
 }
 
+// ListRainbondComponents -
 func (c *ClusterUsecase) ListRainbondComponents(ctx context.Context, cluster *domain.Cluster) ([]*v1.RainbondComponent, error) {
 	if cluster.KubeConfig == "" {
 		logrus.Debugf("kube config not found for cluster(%s), skip listing rainbond components", cluster.Name)
@@ -1106,6 +1107,7 @@ func (c *ClusterUsecase) listRainbondComponents(ctx context.Context, kubeClient 
 	return components, nil
 }
 
+// ListPodEvents -
 func (c *ClusterUsecase) ListPodEvents(ctx context.Context, cluster *domain.Cluster, podName string) ([]corev1.Event, error) {
 	if cluster.KubeConfig == "" {
 		logrus.Debugf("kube config not found for cluster(%s), skip listing rainbond components", cluster.Name)

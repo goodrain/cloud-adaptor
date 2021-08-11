@@ -36,7 +36,7 @@ func NewCustomClusterRepo(db *gorm.DB) *CustomClusterRepo {
 	return &CustomClusterRepo{DB: db}
 }
 
-// NewCustomClusterRepo new Enterprise repoo
+// NewCustomClusterRepository new Enterprise repoo
 func NewCustomClusterRepository(db *gorm.DB) CustomClusterRepository {
 	return &CustomClusterRepo{DB: db}
 }
