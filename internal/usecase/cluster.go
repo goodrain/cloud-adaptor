@@ -34,6 +34,7 @@ import (
 	v3 "github.com/rancher/rke/types"
 	"github.com/sirupsen/logrus"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
+	"goodrain.com/cloud-adaptor/cmd/cloud-adaptor/config"
 	"goodrain.com/cloud-adaptor/internal/adaptor"
 	"goodrain.com/cloud-adaptor/internal/adaptor/custom"
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
@@ -1030,13 +1031,13 @@ func (c *ClusterUsecase) nodeListToRKEConfigNodes(nodeList v1alpha1.NodeList) []
 }
 
 // GetInitNodeCmd -
-func (c *ClusterUsecase) GetInitNodeCmd(ctx context.Context, mode string) (*v1.InitNodeCmdRes, error) {
+func (c *ClusterUsecase) GetInitNodeCmd(ctx context.Context) (*v1.InitNodeCmdRes, error) {
 	pub, err := ssh.GetOrMakeSSHRSA()
 	if err != nil {
 		return nil, errors.Wrap(err, "get or create ssh rsa")
 	}
 
-	if mode == "offline" {
+	if config.C.IsOffline {
 		return &v1.InitNodeCmdRes{
 			Cmd: fmt.Sprintf(`export SSH_RSA="%s" && ./init_node_offline.sh`, pub),
 		}, nil
