@@ -576,6 +576,10 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1
 		rollback("InitClusterConfig", "Get cluster meta info failure", "failure")
 		return nil
 	}
+	rkecluster.Stats = v1alpha1.InitState
+	if err := r.Repo.Update(rkecluster); err != nil {
+		logrus.Errorf("update rke cluster %s state failure %s", rkecluster.Name, err.Error())
+	}
 	configDir := "/tmp"
 	if os.Getenv("CONFIG_DIR") != "" {
 		configDir = os.Getenv("CONFIG_DIR")
@@ -634,12 +638,17 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1
 
 	// cluster install and up
 	rollback("UpdateKubernetes", filePath, "start")
-	_, _, _, _, _, err = r.ClusterUp(ctx, hosts.DialersOptions{}, flags, map[string]interface{}{})
+	APIURL, _, _, _, configs, err := r.ClusterUp(ctx, hosts.DialersOptions{}, flags, map[string]interface{}{})
 	if err != nil {
 		rollback("UpdateKubernetes", err.Error(), "failure")
 		return nil
 	}
-
+	rkecluster.KubeConfig = configs[pki.KubeAdminCertName].Config
+	rkecluster.APIURL = APIURL
+	rkecluster.Stats = v1alpha1.RunningState
+	if err := r.Repo.Update(rkecluster); err != nil {
+		logrus.Errorf("update rke cluster %s state failure %s", rkecluster.Name, err.Error())
+	}
 	rollback("UpdateKubernetes", "", "success")
 	clu, _ := r.DescribeCluster(eid, rkecluster.ClusterID)
 	return clu
