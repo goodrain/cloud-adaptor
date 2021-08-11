@@ -177,7 +177,8 @@ type UpdateInitRainbondTaskStatusReq struct {
 //InitNodeCmdRes init node cmd
 //swagger:model InitNodeCmdRes
 type InitNodeCmdRes struct {
-	Cmd string `json:"cmd"`
+	Cmd       string `json:"cmd"`
+	IsOffline bool   `json:"isOffline"`
 }
 
 //GetLogContentRes create kubernetes cluster log

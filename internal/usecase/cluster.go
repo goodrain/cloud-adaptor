@@ -1039,7 +1039,8 @@ func (c *ClusterUsecase) GetInitNodeCmd(ctx context.Context) (*v1.InitNodeCmdRes
 
 	if config.C.IsOffline {
 		return &v1.InitNodeCmdRes{
-			Cmd: fmt.Sprintf(`export SSH_RSA="%s" && ./init_node_offline.sh`, pub),
+			Cmd:       fmt.Sprintf(`export SSH_RSA="%s" && ./init_node_offline.sh`, pub),
+			IsOffline: true,
 		}, nil
 	}
 	return &v1.InitNodeCmdRes{
