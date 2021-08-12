@@ -5166,6 +5166,11 @@ paths:
         name: clusterID
         required: true
         type: string
+      - description: the provider of the cluster
+        in: query
+        name: providerName
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -5197,6 +5202,11 @@ paths:
       - description: the name of pod
         in: path
         name: podName
+        required: true
+        type: string
+      - description: the provider of the cluster
+        in: query
+        name: providerName
         required: true
         type: string
       produces:

@@ -61,7 +61,7 @@ func initApp(contextContext context.Context, db *gorm.DB, configConfig *config.C
 	systemHandler := handler.NewSystemHandler(db)
 	router := handler.NewRouter(middlewareMiddleware, clusterHandler, appStoreHandler, systemHandler)
 	createKubernetesTaskHandler := task.NewCreateKubernetesTaskHandler(clusterUsecase)
-	cloudInitTaskHandler := task.NewCloudInitTaskHandler(clusterUsecase)
+	cloudInitTaskHandler := task.NewCloudInitTaskHandler(clusterUsecase, initRainbondTaskRepository)
 	updateKubernetesTaskHandler := task.NewCloudUpdateTaskHandler(clusterUsecase)
 	engine := newApp(contextContext, router, arg, arg2, arg3, createKubernetesTaskHandler, cloudInitTaskHandler, updateKubernetesTaskHandler)
 	return engine, nil

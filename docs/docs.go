@@ -665,6 +665,13 @@ var doc = `{
                         "name": "clusterID",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the provider of the cluster",
+                        "name": "providerName",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -713,6 +720,13 @@ var doc = `{
                         "description": "the name of pod",
                         "name": "podName",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the provider of the cluster",
+                        "name": "providerName",
+                        "in": "query",
                         "required": true
                     }
                 ],

@@ -30,6 +30,7 @@ type InitRainbondConfig struct {
 	AccessKey    string `json:"access_key"`
 	SecretKey    string `json:"secret_key"`
 	Provider     string `json:"provider"`
+	TaskID       string `json:"task_id"`
 }
 
 //KubernetesConfigMessage nsq message

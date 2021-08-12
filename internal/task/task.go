@@ -25,6 +25,7 @@ import (
 	"github.com/google/wire"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
+	"goodrain.com/cloud-adaptor/internal/repo"
 	"goodrain.com/cloud-adaptor/internal/types"
 )
 
@@ -50,7 +51,7 @@ var UpdateKubernetesTask Type = "update_kubernetes"
 var InitRainbondClusterTask Type = "init_rainbond_cluster"
 
 //CreateTask create task
-func CreateTask(taskType Type, config interface{}) (Task, error) {
+func CreateTask(taskType Type, config interface{}, initRainbondTaskRepo repo.InitRainbondTaskRepository) (Task, error) {
 	switch taskType {
 	case CreateKubernetesTask:
 		cconfig, ok := config.(*v1alpha1.KubernetesClusterConfig)
@@ -63,7 +64,7 @@ func CreateTask(taskType Type, config interface{}) (Task, error) {
 		if !ok {
 			return nil, fmt.Errorf("config must be *InitRainbondConfig")
 		}
-		return &InitRainbondCluster{result: make(chan v1.Message, 10), config: cconfig}, nil
+		return &InitRainbondCluster{result: make(chan v1.Message, 10), config: cconfig, initRainbondTaskRepo: initRainbondTaskRepo}, nil
 	case UpdateKubernetesTask:
 		cconfig, ok := config.(*v1alpha1.ExpansionNode)
 		if !ok {

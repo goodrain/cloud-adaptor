@@ -46,8 +46,9 @@ import (
 
 //InitRainbondCluster init rainbond cluster
 type InitRainbondCluster struct {
-	config *types.InitRainbondConfig
-	result chan apiv1.Message
+	config               *types.InitRainbondConfig
+	result               chan apiv1.Message
+	initRainbondTaskRepo repo.InitRainbondTaskRepository
 }
 
 func (c *InitRainbondCluster) rollback(step, message, status string) {
@@ -148,8 +149,13 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 		c.rollback("InitRainbondRegionOperator", err.Error(), "failure")
 		return
 	}
+	if err := c.initRainbondTaskRepo.UpdateStatus(c.config.EnterpriseID, c.config.TaskID, "installing"); err != nil {
+		c.rollback("InitRainbondRegionOperator", err.Error(), "failure")
+		return
+	}
+
 	ticker := time.NewTicker(time.Second * 5)
-	timer := time.NewTimer(time.Minute * 30)
+	timer := time.NewTimer(time.Minute * 1)
 	defer timer.Stop()
 	defer ticker.Stop()
 	var operatorMessage, imageHubMessage, packageMessage, apiReadyMessage bool
@@ -284,15 +290,17 @@ func getK8sNode(node v1.Node) *rainbondv1alpha1.K8sNode {
 
 //cloudInitTaskHandler cloud init task handler
 type cloudInitTaskHandler struct {
-	eventHandler *CallBackEvent
-	handledTask  map[string]string
+	eventHandler         *CallBackEvent
+	handledTask          map[string]string
+	initRainbondTaskRepo repo.InitRainbondTaskRepository
 }
 
 // NewCloudInitTaskHandler -
-func NewCloudInitTaskHandler(clusterUsecase *usecase.ClusterUsecase) CloudInitTaskHandler {
+func NewCloudInitTaskHandler(clusterUsecase *usecase.ClusterUsecase, initRainbondTaskRepo repo.InitRainbondTaskRepository) CloudInitTaskHandler {
 	return &cloudInitTaskHandler{
-		eventHandler: &CallBackEvent{TopicName: constants.CloudInit, ClusterUsecase: clusterUsecase},
-		handledTask:  make(map[string]string),
+		eventHandler:         &CallBackEvent{TopicName: constants.CloudInit, ClusterUsecase: clusterUsecase},
+		handledTask:          make(map[string]string),
+		initRainbondTaskRepo: initRainbondTaskRepo,
 	}
 }
 
@@ -302,7 +310,7 @@ func (h *cloudInitTaskHandler) HandleMsg(ctx context.Context, initConfig types.I
 		logrus.Infof("task %s is running or complete,ignore", initConfig.TaskID)
 		return nil
 	}
-	initTask, err := CreateTask(InitRainbondClusterTask, initConfig.InitRainbondConfig)
+	initTask, err := CreateTask(InitRainbondClusterTask, initConfig.InitRainbondConfig, h.initRainbondTaskRepo)
 	if err != nil {
 		logrus.Errorf("create task failure %s", err.Error())
 		h.eventHandler.HandleEvent(initConfig.GetEvent(&apiv1.Message{

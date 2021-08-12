@@ -298,6 +298,7 @@ func (c *ClusterUsecase) InitRainbondRegion(eid string, req v1.InitRainbondRegio
 			EnterpriseID: eid,
 			ClusterID:    newTask.ClusterID,
 			Provider:     newTask.Provider,
+			TaskID:       newTask.TaskID,
 		}}
 	if accessKey != nil {
 		initTask.InitRainbondConfig.AccessKey = accessKey.AccessKey
@@ -558,6 +559,12 @@ func (c *ClusterUsecase) CreateTaskEvent(em *v1.EventMessage) (*model.TaskEvent,
 	if em.Message == nil {
 		return nil, fmt.Errorf("message is nil")
 	}
+
+	task, err := c.InitRainbondTaskRepo.GetTask(em.EnterpriseID, em.TaskID)
+	if err != nil {
+		return nil, err
+	}
+
 	ctx := c.DB.Begin()
 	ent := &model.TaskEvent{
 		TaskID:       em.TaskID,
@@ -597,9 +604,11 @@ func (c *ClusterUsecase) CreateTaskEvent(em *v1.EventMessage) (*model.TaskEvent,
 		logrus.Infof("set init task %s status is inited", em.TaskID)
 	}
 	if em.Message.Status == "failure" {
-		if initErr := initRainbondTaskRepo.UpdateStatus(em.EnterpriseID, em.TaskID, "complete"); initErr != nil && initErr != gorm.ErrRecordNotFound {
-			ctx.Rollback()
-			return nil, initErr
+		if task.Status != "installing" {
+			if initErr := initRainbondTaskRepo.UpdateStatus(em.EnterpriseID, em.TaskID, "complete"); initErr != nil && initErr != gorm.ErrRecordNotFound {
+				ctx.Rollback()
+				return nil, initErr
+			}
 		}
 
 		if ckErr := createKubernetesTaskRepo.UpdateStatus(em.EnterpriseID, em.TaskID, "complete"); ckErr != nil && ckErr != gorm.ErrRecordNotFound {
@@ -625,10 +634,19 @@ func (c *ClusterUsecase) reasonFromMessage(message string) string {
 
 //ListTaskEvent list task event list
 func (c *ClusterUsecase) ListTaskEvent(eid, taskID string) ([]*model.TaskEvent, error) {
+	task, err := c.InitRainbondTaskRepo.GetTask(eid, taskID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
 	events, err := c.TaskEventRepo.ListEvent(eid, taskID)
 	if err != nil {
 		return nil, err
 	}
+	needSync := false
 	for i := range events {
 		event := events[i]
 		if (event.StepType == "CreateCluster" || event.StepType == "InstallKubernetes") && event.Status == "success" {
@@ -650,8 +668,12 @@ func (c *ClusterUsecase) ListTaskEvent(eid, taskID string) ([]*model.TaskEvent, 
 			logrus.Infof("set init task %s status is inited", event.TaskID)
 		}
 		if event.Status == "failure" {
-			if initErr := c.InitRainbondTaskRepo.UpdateStatus(eid, event.TaskID, "complete"); initErr != nil && initErr != gorm.ErrRecordNotFound {
-				logrus.Errorf("set init rainbond task %s status failure %s", event.TaskID, err.Error())
+			if task.Status == "installing" {
+				needSync = true
+			} else {
+				if initErr := c.InitRainbondTaskRepo.UpdateStatus(eid, event.TaskID, "complete"); initErr != nil && initErr != gorm.ErrRecordNotFound {
+					logrus.Errorf("set init rainbond task %s status failure %s", event.TaskID, err.Error())
+				}
 			}
 
 			if ckErr := c.CreateKubernetesTaskRepo.UpdateStatus(eid, event.TaskID, "complete"); ckErr != nil && ckErr != gorm.ErrRecordNotFound {
@@ -663,7 +685,76 @@ func (c *ClusterUsecase) ListTaskEvent(eid, taskID string) ([]*model.TaskEvent, 
 			}
 		}
 	}
+
+	// If the task is being installed, the status of the event will be synchronized to the event
+	if needSync {
+		if err := c.syncTaskEvents(task, events); err != nil {
+			logrus.Errorf("sync task events: %v", err)
+		}
+	}
+
 	return events, nil
+}
+
+func (c *ClusterUsecase) syncTaskEvents(task *model.InitRainbondTask, events []*model.TaskEvent) error {
+	if task.Status != "installing" || (task.Provider != "rke" && task.Provider != "custom") {
+		return nil
+	}
+
+	kubeConfig, err := c.GetKubeConfig(task.EnterpriseID, task.ClusterID, task.Provider)
+	if err != nil {
+		return err
+	}
+
+	rri := operator.NewRainbondRegionInit(v1alpha1.KubeConfig{Config: kubeConfig}, c.RainbondClusterConfigRepo)
+	status, err := rri.GetRainbondRegionStatus(task.ClusterID)
+	if err != nil {
+		return err
+	}
+
+	var updates []string
+	// update InitRainbondRegionOperator event
+	if status.OperatorReady {
+		event := c.getEvent("InitRainbondRegionOperator", events)
+		if event != nil {
+			updates = append(updates, event.EventID)
+		}
+	}
+	// update InitRainbondRegionImageHub event
+	if idx, condition := status.RainbondCluster.Status.GetCondition(rainbondv1alpha1.RainbondClusterConditionTypeImageRepository); idx != -1 && condition.Status == corev1.ConditionTrue {
+		event := c.getEvent("InitRainbondRegionImageHub", events)
+		if event != nil {
+			updates = append(updates, event.EventID)
+		}
+	}
+	// update InitRainbondRegionPackage event
+	for _, con := range status.RainbondPackage.Status.Conditions {
+		if con.Type == rainbondv1alpha1.Ready && con.Status == rainbondv1alpha1.Completed {
+			event := c.getEvent("InitRainbondRegionPackage", events)
+			if event != nil {
+				updates = append(updates, event.EventID)
+			}
+		}
+	}
+	// update InitRainbondRegion event
+	idx, condition := status.RainbondCluster.Status.GetCondition(rainbondv1alpha1.RainbondClusterConditionTypeRunning)
+	if idx != -1 && condition.Status == corev1.ConditionTrue {
+		event := c.getEvent("InitRainbondRegion", events)
+		if event != nil {
+			updates = append(updates, event.EventID)
+		}
+	}
+
+	return c.TaskEventRepo.UpdateStatusInBatch(updates, "success")
+}
+
+func (c *ClusterUsecase) getEvent(stepType string, events []*model.TaskEvent) *model.TaskEvent {
+	for _, event := range events {
+		if event.StepType == stepType {
+			return event
+		}
+	}
+	return nil
 }
 
 //GetLastCreateKubernetesTask get last create kubernetes task

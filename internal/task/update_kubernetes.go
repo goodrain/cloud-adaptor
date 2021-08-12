@@ -29,8 +29,8 @@ import (
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
-	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/internal/types"
+	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
 )
 
@@ -86,7 +86,7 @@ func (h *cloudUpdateTaskHandler) HandleMsg(ctx context.Context, config types.Upd
 		logrus.Infof("task %s is running or complete,ignore", config.TaskID)
 		return nil
 	}
-	initTask, err := CreateTask(UpdateKubernetesTask, config.Config)
+	initTask, err := CreateTask(UpdateKubernetesTask, config.Config, nil)
 	if err != nil {
 		logrus.Errorf("create task failure %s", err.Error())
 		h.eventHandler.HandleEvent(config.GetEvent(&v1.Message{

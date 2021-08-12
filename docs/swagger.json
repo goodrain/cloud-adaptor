@@ -653,6 +653,13 @@
                         "name": "clusterID",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the provider of the cluster",
+                        "name": "providerName",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -701,6 +708,13 @@
                         "description": "the name of pod",
                         "name": "podName",
                         "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "the provider of the cluster",
+                        "name": "providerName",
+                        "in": "query",
                         "required": true
                     }
                 ],

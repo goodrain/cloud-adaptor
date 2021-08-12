@@ -84,7 +84,7 @@ func NewCreateKubernetesTaskHandler(clusterUsecase *usecase.ClusterUsecase) Crea
 
 // HandleMsg -
 func (h *createKubernetesTaskHandler) HandleMsg(ctx context.Context, createConfig types.KubernetesConfigMessage) error {
-	initTask, err := CreateTask(CreateKubernetesTask, createConfig.KubernetesConfig)
+	initTask, err := CreateTask(CreateKubernetesTask, createConfig.KubernetesConfig, nil)
 	if err != nil {
 		logrus.Errorf("create task failure %s", err.Error())
 		h.eventHandler.HandleEvent(createConfig.GetEvent(&v1.Message{
