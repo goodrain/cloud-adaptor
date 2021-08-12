@@ -78,6 +78,7 @@ func (t *TaskEventRepo) ListEvent(eid, taskID string) ([]*model.TaskEvent, error
 	return list, nil
 }
 
+// UpdateStatusInBatch -
 func (t *TaskEventRepo) UpdateStatusInBatch(eventIDs []string, status string) error {
 	if err := t.DB.Where("event_id in (?)", eventIDs).Updates(&model.TaskEvent{Status: status}).Error; err != nil {
 		return errors.WithStack(err)
