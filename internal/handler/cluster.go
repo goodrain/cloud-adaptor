@@ -500,8 +500,7 @@ func (e *ClusterHandler) UpdateInitRainbondTaskStatus(ctx *gin.Context) {
 // Responses:
 // 200: body:InitNodeCmdRes
 func (e *ClusterHandler) GetInitNodeCmd(c *gin.Context) {
-	mode := c.Query("mode")
-	res, err := e.cluster.GetInitNodeCmd(c.Request.Context(), mode)
+	res, err := e.cluster.GetInitNodeCmd(c.Request.Context())
 	ginutil.JSONv2(c, res, err)
 }
 
