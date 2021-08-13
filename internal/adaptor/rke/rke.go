@@ -631,6 +631,10 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1
 	//up cluster
 	flags := cluster.GetExternalFlags(false, false, false, false, "", filePath)
 	if err := cmd.ClusterInit(ctx, en.RKEConfig, hosts.DialersOptions{}, flags); err != nil {
+		rkecluster.Stats = v1alpha1.InstallFailed
+		if err := r.Repo.Update(rkecluster); err != nil {
+			logrus.Errorf("update rke cluster %s state failure %s", rkecluster.Name, err.Error())
+		}
 		rollback("InitClusterConfig", err.Error(), "failure")
 		return nil
 	}
@@ -640,6 +644,10 @@ func (r *rkeAdaptor) ExpansionNode(ctx context.Context, eid string, en *v1alpha1
 	rollback("UpdateKubernetes", filePath, "start")
 	APIURL, _, _, _, configs, err := r.ClusterUp(ctx, hosts.DialersOptions{}, flags, map[string]interface{}{})
 	if err != nil {
+		rkecluster.Stats = v1alpha1.InstallFailed
+		if err := r.Repo.Update(rkecluster); err != nil {
+			logrus.Errorf("update rke cluster %s state failure %s", rkecluster.Name, err.Error())
+		}
 		rollback("UpdateKubernetes", err.Error(), "failure")
 		return nil
 	}
