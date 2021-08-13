@@ -242,6 +242,38 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 	return newTask, nil
 }
 
+func (c *ClusterUsecase) isAlreadyInstalled(ctx context.Context, eid, clusterID, providerName string) error {
+	kubeConfig, err := c.GetKubeConfig(eid, clusterID, providerName)
+	if err != nil {
+		if err.Error() == "not found kube config" {
+			return nil
+		}
+		return err
+	}
+	if kubeConfig == "" {
+		return nil
+	}
+
+	kc := v1alpha1.KubeConfig{Config: kubeConfig}
+	kubeClient, _, err := kc.GetKubeClient()
+	if err != nil {
+		logrus.Errorf("get kube client: %v", err)
+		return nil
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+	deployment, err := kubeClient.AppsV1().Deployments(constants.Namespace).Get(ctx, "rainbond-operator", metav1.GetOptions{})
+	if err != nil {
+		logrus.Warningf("get operator failure %s", err.Error())
+	}
+	if deployment != nil {
+		return errors.WithStack(bcode.ErrRainbondClusterInstalled)
+	}
+
+	return nil
+}
+
 func (c *ClusterUsecase) rkeConfigToNodeList(rkeConfig *v3.RancherKubernetesEngineConfig) (v1alpha1.NodeList, error) {
 	if rkeConfig == nil {
 		return nil, nil
@@ -266,7 +298,7 @@ func (c *ClusterUsecase) rkeConfigToNodeList(rkeConfig *v3.RancherKubernetesEngi
 }
 
 //InitRainbondRegion init rainbond region
-func (c *ClusterUsecase) InitRainbondRegion(eid string, req v1.InitRainbondRegionReq) (*model.InitRainbondTask, error) {
+func (c *ClusterUsecase) InitRainbondRegion(ctx context.Context, eid string, req v1.InitRainbondRegionReq) (*model.InitRainbondTask, error) {
 	oldTask, err := c.InitRainbondTaskRepo.GetTaskByClusterID(eid, req.Provider, req.ClusterID)
 	if err != nil && !errors.Is(err, bcode.ErrInitRainbondTaskNotFound) {
 		return nil, err
@@ -274,6 +306,11 @@ func (c *ClusterUsecase) InitRainbondRegion(eid string, req v1.InitRainbondRegio
 	if oldTask != nil && !req.Retry {
 		return oldTask, bcode.ErrorLastTaskNotComplete
 	}
+
+	if err := c.isAlreadyInstalled(ctx, eid, req.ClusterID, req.Provider); err != nil {
+		return nil, err
+	}
+
 	var accessKey *model.CloudAccessKey
 	if req.Provider != "rke" && req.Provider != "custom" {
 		accessKey, err = c.CloudAccessKeyRepo.GetByProviderAndEnterprise(req.Provider, eid)
@@ -410,9 +447,25 @@ func (c *ClusterUsecase) isLastTaskComplete(eid, clusterID string) (int, error) 
 //GetInitRainbondTaskByClusterID get init rainbond task
 func (c *ClusterUsecase) GetInitRainbondTaskByClusterID(eid, clusterID, providerName string) (*model.InitRainbondTask, error) {
 	task, err := c.InitRainbondTaskRepo.GetTaskByClusterID(eid, providerName, clusterID)
-	if err != nil && !errors.Is(err, bcode.ErrInitRainbondTaskNotFound) {
+	if err != nil {
+		if errors.Is(err, bcode.ErrInitRainbondTaskNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
+
+	// sync the status of events and the task
+	c.ListTaskEvent(eid, task.TaskID)
+
+	// get the real status from the cluster
+	status, err := c.getTaskClusterStatus(task)
+	if err != nil {
+		logrus.Warningf("get task cluster status: %v", err)
+	}
+	if status == "installing" {
+		task.Status = status
+	}
+
 	return task, nil
 }
 
@@ -626,10 +679,20 @@ func (c *ClusterUsecase) reasonFromMessage(message string) string {
 
 //ListTaskEvent list task event list
 func (c *ClusterUsecase) ListTaskEvent(eid, taskID string) ([]*model.TaskEvent, error) {
+	task, err := c.InitRainbondTaskRepo.GetTask(eid, taskID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
 	events, err := c.TaskEventRepo.ListEvent(eid, taskID)
 	if err != nil {
 		return nil, err
 	}
+
+	needSync := false
 	for i := range events {
 		event := events[i]
 		if (event.StepType == "CreateCluster" || event.StepType == "InstallKubernetes") && event.Status == "success" {
@@ -651,6 +714,7 @@ func (c *ClusterUsecase) ListTaskEvent(eid, taskID string) ([]*model.TaskEvent, 
 			logrus.Infof("set init task %s status is inited", event.TaskID)
 		}
 		if event.Status == "failure" {
+			needSync = true
 			if initErr := c.InitRainbondTaskRepo.UpdateStatus(eid, event.TaskID, "complete"); initErr != nil && initErr != gorm.ErrRecordNotFound {
 				logrus.Errorf("set init rainbond task %s status failure %s", event.TaskID, err.Error())
 			}
@@ -664,6 +728,13 @@ func (c *ClusterUsecase) ListTaskEvent(eid, taskID string) ([]*model.TaskEvent, 
 			}
 		}
 	}
+
+	if needSync {
+		if err := c.syncTaskEvents(task, events); err != nil {
+			logrus.Errorf("sync task events: %v", err)
+		}
+	}
+
 	return events, nil
 }
 
@@ -1134,4 +1205,94 @@ func (c *ClusterUsecase) listPodEvents(ctx context.Context, kubeClient kubernete
 		return nil, err
 	}
 	return eventList.Items, nil
+}
+
+func (c *ClusterUsecase) syncTaskEvents(task *model.InitRainbondTask, events []*model.TaskEvent) error {
+	if task.Provider != "rke" && task.Provider != "custom" {
+		return nil
+	}
+
+	kubeConfig, err := c.GetKubeConfig(task.EnterpriseID, task.ClusterID, task.Provider)
+	if err != nil {
+		return err
+	}
+
+	rri := operator.NewRainbondRegionInit(v1alpha1.KubeConfig{Config: kubeConfig}, c.RainbondClusterConfigRepo)
+	status, err := rri.GetRainbondRegionStatus(task.ClusterID)
+	if err != nil {
+		return err
+	}
+
+	var updates []string
+	// update InitRainbondRegionOperator event
+	if status.OperatorReady {
+		event := c.getEvent("InitRainbondRegionOperator", events)
+		if event != nil {
+			updates = append(updates, event.EventID)
+		}
+	}
+	// update InitRainbondRegionImageHub event
+	if idx, condition := status.RainbondCluster.Status.GetCondition(rainbondv1alpha1.RainbondClusterConditionTypeImageRepository); idx != -1 && condition.Status == corev1.ConditionTrue {
+		event := c.getEvent("InitRainbondRegionImageHub", events)
+		if event != nil {
+			updates = append(updates, event.EventID)
+		}
+	}
+	// update InitRainbondRegionPackage event
+	for _, con := range status.RainbondPackage.Status.Conditions {
+		if con.Type == rainbondv1alpha1.Ready && con.Status == rainbondv1alpha1.Completed {
+			event := c.getEvent("InitRainbondRegionPackage", events)
+			if event != nil {
+				updates = append(updates, event.EventID)
+			}
+		}
+	}
+	// update InitRainbondRegion event
+	idx, condition := status.RainbondCluster.Status.GetCondition(rainbondv1alpha1.RainbondClusterConditionTypeRunning)
+	if idx != -1 && condition.Status == corev1.ConditionTrue {
+		event := c.getEvent("InitRainbondRegion", events)
+		if event != nil {
+			updates = append(updates, event.EventID)
+		}
+	}
+
+	return c.TaskEventRepo.UpdateStatusInBatch(updates, "success")
+}
+
+func (c *ClusterUsecase) getEvent(stepType string, events []*model.TaskEvent) *model.TaskEvent {
+	for _, event := range events {
+		if event.StepType == stepType {
+			return event
+		}
+	}
+	return nil
+}
+
+func (c *ClusterUsecase) getTaskClusterStatus(task *model.InitRainbondTask) (string, error) {
+	if task.Provider != "rke" && task.Provider != "custom" {
+		return "", nil
+	}
+
+	kubeConfig, err := c.GetKubeConfig(task.EnterpriseID, task.ClusterID, task.Provider)
+	if err != nil {
+		return "", err
+	}
+
+	rri := operator.NewRainbondRegionInit(v1alpha1.KubeConfig{Config: kubeConfig}, c.RainbondClusterConfigRepo)
+	status, err := rri.GetRainbondRegionStatus(task.ClusterID)
+	if err != nil {
+		return "", err
+	}
+
+	// update InitRainbondRegion event
+	idx, condition := status.RainbondCluster.Status.GetCondition(rainbondv1alpha1.RainbondClusterConditionTypeRunning)
+	if idx != -1 && condition.Status == corev1.ConditionTrue {
+		return "complete", nil
+	}
+
+	if status.OperatorInstalled {
+		return "installing", nil
+	}
+
+	return "", nil
 }
