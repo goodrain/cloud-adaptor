@@ -26,6 +26,14 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
+var rbdComponentPodPhaseScore = map[string]int{
+	"Succeeded": 0,
+	"Running":   1,
+	"Unknown":   2,
+	"Pending":   3,
+	"Failed":    4,
+}
+
 //ListKubernetesCluster list kubernetes cluster request body
 //swagger:model ListKubernetesCluster
 type ListKubernetesCluster struct {
@@ -248,8 +256,27 @@ type PruneUpdateRKEConfigResp struct {
 
 // RainbondComponent rainbond components
 type RainbondComponent struct {
-	App  string        `json:"app"`
-	Pods []*corev1.Pod `json:"pods"`
+	App  string       `json:"app"`
+	Pods []corev1.Pod `json:"pods"`
+}
+
+// ByRainbondComponentPodPhase implements sort.Interface for []*RainbondComponent based on
+// the Pod Phase field.
+type ByRainbondComponentPodPhase []*RainbondComponent
+
+func (a ByRainbondComponentPodPhase) Len() int      { return len(a) }
+func (a ByRainbondComponentPodPhase) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByRainbondComponentPodPhase) Less(i, j int) bool {
+	return a.phaseScore(i) < a.phaseScore(j)
+}
+
+func (a ByRainbondComponentPodPhase) phaseScore(i int) int {
+	pods := a[i].Pods
+	var score int
+	for _, pod := range pods {
+		score += rbdComponentPodPhaseScore[string(pod.Status.Phase)]
+	}
+	return score
 }
 
 // RainbondComponentEvent -
