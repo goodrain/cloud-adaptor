@@ -195,7 +195,7 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, c
 		// if the configuration such as the SSL certificate has been passed to the node.
 
 		// clear local state data
-		// os.RemoveAll(clusterStatPath)
+		os.RemoveAll(clusterStatPath)
 		rkecluster.Stats = v1alpha1.InitState
 		if err := r.Repo.Update(rkecluster); err != nil {
 			logrus.Errorf("update rke cluster %s state failure %s", rkecluster.Name, err.Error())
@@ -203,7 +203,7 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, c
 	}
 	if rkecluster.Stats == v1alpha1.InitState {
 		// clear local state data
-		//os.RemoveAll(clusterStatPath)
+		os.RemoveAll(clusterStatPath)
 	}
 
 	os.MkdirAll(clusterStatPath, 0755)
