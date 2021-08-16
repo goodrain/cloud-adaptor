@@ -91,3 +91,12 @@ func (c *UpdateKubernetesTaskRepo) GetTask(eid string, taskID string) (*model.Up
 	}
 	return &old, nil
 }
+
+//GetLastTask get last task
+func (c *UpdateKubernetesTaskRepo) GetLastTask(eid string, providerName string) (*model.UpdateKubernetesTask, error) {
+	var old model.UpdateKubernetesTask
+	if err := c.DB.Where("eid = ? and provider_name=?", eid, providerName).Order("created_at desc").Limit(1).Take(&old).Error; err != nil {
+		return nil, err
+	}
+	return &old, nil
+}
