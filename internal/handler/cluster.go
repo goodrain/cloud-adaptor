@@ -386,7 +386,7 @@ func (e *ClusterHandler) CreateInitRainbondTask(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	task, err := e.cluster.InitRainbondRegion(eid, req)
+	task, err := e.cluster.InitRainbondRegion(ctx.Request.Context(), eid, req)
 	if err != nil {
 		ginutil.JSON(ctx, task, err)
 		return
