@@ -25,6 +25,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -55,6 +56,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // ClusterUsecase cluster manage usecase
@@ -1063,48 +1065,95 @@ func (c *ClusterUsecase) ListRainbondComponents(ctx context.Context, eid, cluste
 	}
 
 	kc := v1alpha1.KubeConfig{Config: kubeConfig}
-	kubeClient, _, err := kc.GetKubeClient()
+	kubeClient, runtimeClient, err := kc.GetKubeClient()
 	if err != nil {
 		return nil, errors.Wrap(bcode.ErrorKubeAPI, err.Error())
 	}
 
-	return c.listRainbondComponents(ctx, kubeClient)
+	return c.listRainbondComponents(ctx, kubeClient, runtimeClient)
 }
 
-func (c *ClusterUsecase) listRainbondComponents(ctx context.Context, kubeClient kubernetes.Interface) ([]*v1.RainbondComponent, error) {
+func (c *ClusterUsecase) listRainbondComponents(ctx context.Context, kubeClient kubernetes.Interface, runtimeClient client.Client) ([]*v1.RainbondComponent, error) {
+	pods, err := c.listRainbondPods(ctx, kubeClient)
+	if err != nil {
+		return nil, err
+	}
+
+	components, err := c.listRbdComponent(ctx, runtimeClient)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []*v1.RainbondComponent
+	for _, name := range components {
+		res = append(res, &v1.RainbondComponent{
+			App:  name,
+			Pods: pods[name],
+		})
+	}
+
+	sort.Sort(v1.ByRainbondComponentPodPhase(res))
+	return res, nil
+}
+
+func (c *ClusterUsecase) listRbdComponent(ctx context.Context, runtimeClient client.Client) ([]string, error) {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
+	components := &rainbondv1alpha1.RbdComponentList{}
+	err := runtimeClient.List(ctx, components, &client.ListOptions{
+		Namespace: constants.Namespace,
+	})
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	var appNames []string
+	for _, cpt := range components.Items {
+		appNames = append(appNames, cpt.Name)
+	}
+	appNames = append(appNames, "rainbond-operator")
+	return appNames, nil
+}
+
+func (c *ClusterUsecase) listRainbondPods(ctx context.Context, kubeClient kubernetes.Interface) (map[string][]corev1.Pod, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	// rainbond components
 	podList, err := kubeClient.CoreV1().Pods(constants.Namespace).List(ctx, metav1.ListOptions{
 		LabelSelector: fields.SelectorFromSet(rbdutil.LabelsForRainbond(nil)).String(),
 	})
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-
-	pods := make(map[string][]*corev1.Pod)
+	pods := make(map[string][]corev1.Pod)
 	for _, pod := range podList.Items {
 		pod := pod
 
 		labels := pod.Labels
-		if len(labels) == 0 || labels["name"] == "" {
+		appName := labels["name"]
+		if len(appName) == 0 {
 			logrus.Warningf("list rainbond components. label 'name' not found for pod(%s/%s)", pod.Namespace, pod.Name)
 			continue
 		}
 
-		cptPods := pods[labels["name"]]
-		pods[labels["name"]] = append(cptPods, &pod)
+		cptPods := pods[appName]
+		pods[appName] = append(cptPods, pod)
 	}
 
-	var components []*v1.RainbondComponent
-	for app, cptPods := range pods {
-		components = append(components, &v1.RainbondComponent{
-			App:  app,
-			Pods: cptPods,
-		})
+	// rainbond operator
+	roPods, err := kubeClient.CoreV1().Pods(constants.Namespace).List(ctx, metav1.ListOptions{
+		LabelSelector: fields.SelectorFromSet(map[string]string{
+			"release": "rainbond-operator",
+		}).String(),
+	})
+	if err != nil {
+		return nil, errors.WithStack(err)
 	}
+	pods["rainbond-operator"] = roPods.Items
 
-	return components, nil
+	return pods, nil
 }
 
 // ListPodEvents -
