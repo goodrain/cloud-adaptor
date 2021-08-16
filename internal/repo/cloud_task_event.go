@@ -62,6 +62,7 @@ func (t *TaskEventRepo) Create(te *model.TaskEvent) error {
 	if old.Status != "success" {
 		old.Message = te.Message
 		old.Status = te.Status
+		old.Reason = te.Reason
 		return t.DB.Save(&old).Error
 	}
 	return nil

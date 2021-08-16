@@ -19,7 +19,6 @@
 package handler
 
 import (
-	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -33,7 +32,6 @@ import (
 	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/ginutil"
 	"goodrain.com/cloud-adaptor/pkg/util/md5util"
-	"goodrain.com/cloud-adaptor/pkg/util/ssh"
 )
 
 // ClusterHandler -
@@ -501,16 +499,9 @@ func (e *ClusterHandler) UpdateInitRainbondTaskStatus(ctx *gin.Context) {
 //
 // Responses:
 // 200: body:InitNodeCmdRes
-func (e *ClusterHandler) GetInitNodeCmd(ctx *gin.Context) {
-	pub, err := ssh.GetOrMakeSSHRSA()
-	if err != nil {
-		logrus.Errorf("get or create ssh rsa failure %s", err.Error())
-		ginutil.JSON(ctx, nil, bcode.ServerErr)
-		return
-	}
-	ginutil.JSON(ctx, v1.InitNodeCmdRes{
-		Cmd: fmt.Sprintf(`export SSH_RSA="%s"&&curl http://sh.rainbond.com/init_node | bash`, pub),
-	}, nil)
+func (e *ClusterHandler) GetInitNodeCmd(c *gin.Context) {
+	res, err := e.cluster.GetInitNodeCmd(c.Request.Context())
+	ginutil.JSONv2(c, res, err)
 }
 
 //GetLogContent get rke create kubernetes log
@@ -726,4 +717,43 @@ func (e *ClusterHandler) pruneUpdateRKEConfig(c *gin.Context) {
 
 	rkeConfig, err := e.cluster.PruneUpdateRKEConfig(&req)
 	ginutil.JSONv2(c, rkeConfig, err)
+}
+
+// ListRainbondComponents returns a list of rainbond components.
+// @Summary returns a list of rainbond components.
+// @Tags cluster
+// @ID listRainbondComponents
+// @Accept  json
+// @Produce  json
+// @Param eid path string true "the enterprise id"
+// @Param clusterID path string true "the identify of cluster"
+// @Param providerName query string true "the provider of the cluster"
+// @Success 200 {array} v1.RainbondComponent
+// @Router /api/v1/enterprises/{eid}/kclusters/{clusterID}/rainbond-components [get]
+func (e *ClusterHandler) listRainbondComponents(c *gin.Context) {
+	eid := c.Param("eid")
+	clusterID := c.Param("clusterID")
+	providerName := c.Query("providerName")
+	components, err := e.cluster.ListRainbondComponents(c.Request.Context(), eid, clusterID, providerName)
+	ginutil.JSONv2(c, components, err)
+}
+
+// listPodEvents returns a list of rainbond component pod events.
+// @Summary returns a list of rainbond component pod events.
+// @Tags cluster
+// @ID listPodEvents
+// @Accept  json
+// @Produce  json
+// @Param eid path string true "the enterprise id"
+// @Param clusterID path string true "the identify of cluster"
+// @Param podName path string true "the name of pod"
+// @Param providerName query string true "the provider of the cluster"
+// @Success 200 {array} v1.RainbondComponentEvent
+// @Router /api/v1/enterprises/{eid}/kclusters/{clusterID}/rainbond-components/{podName}/events [get]
+func (e *ClusterHandler) listPodEvents(c *gin.Context) {
+	eid := c.Param("eid")
+	clusterID := c.Param("clusterID")
+	providerName := c.Query("providerName")
+	components, err := e.cluster.ListPodEvents(c.Request.Context(), eid, clusterID, providerName, c.Param("podName"))
+	ginutil.JSONv2(c, components, err)
 }

@@ -33,6 +33,7 @@ var ProviderSet = wire.NewSet(
 	NewRainbondClusterConfigRepo,
 	NewAppStoreRepo,
 	NewRKEClusterRepo,
+	NewCustomClusterRepository,
 	NewTemplateVersionRepo,
 	appstore.NewStorer,
 	appstore.NewAppTemplater,

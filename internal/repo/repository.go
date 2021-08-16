@@ -36,6 +36,8 @@ type CreateKubernetesTaskRepository interface {
 	GetLastTask(eid string, providerName string) (*model.CreateKubernetesTask, error)
 	UpdateStatus(eid string, taskID string, status string) error
 	GetTask(eid string, taskID string) (*model.CreateKubernetesTask, error)
+	GetLatestOneByName(name string) (*model.CreateKubernetesTask, error)
+	GetLatestOneByClusterID(clusterID string) (*model.CreateKubernetesTask, error)
 }
 
 //InitRainbondTaskRepository init rainbond region task
@@ -53,7 +55,7 @@ type InitRainbondTaskRepository interface {
 type UpdateKubernetesTaskRepository interface {
 	Transaction(tx *gorm.DB) UpdateKubernetesTaskRepository
 	Create(ent *model.UpdateKubernetesTask) error
-	GetTaskByClusterID(eid string, providerName, clusterID string) (*model.UpdateKubernetesTask, error)
+	GetTaskByClusterID(eid, clusterID string) (*model.UpdateKubernetesTask, error)
 	UpdateStatus(eid string, taskID string, status string) error
 	GetTask(eid string, taskID string) (*model.UpdateKubernetesTask, error)
 }
@@ -77,5 +79,14 @@ type RKEClusterRepository interface {
 	Update(te *model.RKECluster) error
 	GetCluster(eid, name string) (*model.RKECluster, error)
 	ListCluster(eid string) ([]*model.RKECluster, error)
+	DeleteCluster(eid, name string) error
+}
+
+// CustomClusterRepository -
+type CustomClusterRepository interface {
+	Create(cluster *model.CustomCluster) error
+	Update(cluster *model.CustomCluster) error
+	GetCluster(eid, name string) (*model.CustomCluster, error)
+	ListCluster(eid string) ([]*model.CustomCluster, error)
 	DeleteCluster(eid, name string) error
 }
