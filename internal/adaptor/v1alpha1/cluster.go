@@ -513,11 +513,12 @@ type LoadBalancer struct {
 
 //RainbondRegionStatus rainbond region status
 type RainbondRegionStatus struct {
-	OperatorReady   bool
-	RainbondCluster *rainbondv1alpha1.RainbondCluster
-	RainbondPackage *rainbondv1alpha1.RainbondPackage
-	RainbondVolume  *rainbondv1alpha1.RainbondVolume
-	RegionConfig    *v1.ConfigMap
+	OperatorReady     bool
+	OperatorInstalled bool
+	RainbondCluster   *rainbondv1alpha1.RainbondCluster
+	RainbondPackage   *rainbondv1alpha1.RainbondPackage
+	RainbondVolume    *rainbondv1alpha1.RainbondVolume
+	RegionConfig      *v1.ConfigMap
 }
 
 //AvailableResourceZone available resource

@@ -383,6 +383,9 @@ func (r *RainbondRegionInit) GetRainbondRegionStatus(clusterID string) (*v1alpha
 	if deployment != nil && deployment.Status.ReadyReplicas >= 1 {
 		status.OperatorReady = true
 	}
+	if deployment != nil {
+		status.OperatorInstalled = true
+	}
 	var cluster rainbondv1alpha1.RainbondCluster
 	ctx2, cancel2 := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel2()
