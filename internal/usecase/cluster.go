@@ -794,7 +794,25 @@ func (c *ClusterUsecase) GetLastCreateKubernetesTask(eid, providerName string) (
 		}
 		return nil, err
 	}
-	return task, nil
+	updateTask, err := c.UpdateKubernetesTaskRepo.GetLastTask(eid, providerName)
+	if err != nil {
+		return task, nil
+	}
+	if task.CreatedAt.After(updateTask.CreatedAt) {
+		return task, nil
+	}
+	cluster, err := c.rkeClusterRepo.GetCluster(eid, updateTask.ClusterID)
+	if err != nil {
+		return task, nil
+	}
+	return &model.CreateKubernetesTask{
+		Name:         cluster.Name,
+		Provider:     providerName,
+		EnterpriseID: eid,
+		TaskID:       updateTask.TaskID,
+		Status:       updateTask.Status,
+		ClusterID:    updateTask.ClusterID,
+	}, nil
 }
 
 //GetCreateKubernetesTask get task

@@ -58,6 +58,7 @@ type UpdateKubernetesTaskRepository interface {
 	GetTaskByClusterID(eid, clusterID string) (*model.UpdateKubernetesTask, error)
 	UpdateStatus(eid string, taskID string, status string) error
 	GetTask(eid string, taskID string) (*model.UpdateKubernetesTask, error)
+	GetLastTask(eid string, providerName string) (*model.UpdateKubernetesTask, error)
 }
 
 //TaskEventRepository task event
