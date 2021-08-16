@@ -18,6 +18,16 @@
 
 package domain
 
+// ClusterTaskType -
+type ClusterTaskType string
+
+// ClusterTaskType -
+var (
+	ClusterTaskTypeInitRainbond     ClusterTaskType = "init-rainbond"
+	ClusterTaskTypeCreateKubernetes ClusterTaskType = "create-kubernetes"
+	ClusterTaskTypeUpdateKubernetes ClusterTaskType = "update-kubernetes"
+)
+
 // Cluster -
 type Cluster struct {
 	EnterpriseID string `json:"eid"`
@@ -25,4 +35,13 @@ type Cluster struct {
 	ClusterID    string `json:"clusterID"`
 	KubeConfig   string `json:"kubeConfig"`
 	Provider     string `json:"provider"`
+}
+
+// ClusterTask -
+type ClusterTask struct {
+	EnterpriseID string          `json:"eid"`
+	ClusterID    string          `json:"clusterID"`
+	ProviderName string          `json:"providerName"`
+	TaskID       string          `json:"taskID"`
+	TaskType     ClusterTaskType `json:"taskType"`
 }

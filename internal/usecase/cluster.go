@@ -30,6 +30,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/devfeel/mapper"
 	rainbondv1alpha1 "github.com/goodrain/rainbond-operator/api/v1alpha1"
 	"github.com/goodrain/rainbond-operator/util/rbdutil"
 	"github.com/pkg/errors"
@@ -40,6 +41,7 @@ import (
 	"goodrain.com/cloud-adaptor/internal/adaptor"
 	"goodrain.com/cloud-adaptor/internal/adaptor/factory"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
+	"goodrain.com/cloud-adaptor/internal/domain"
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/internal/nsqc/producer"
 	"goodrain.com/cloud-adaptor/internal/operator"
@@ -681,9 +683,9 @@ func (c *ClusterUsecase) reasonFromMessage(message string) string {
 
 //ListTaskEvent list task event list
 func (c *ClusterUsecase) ListTaskEvent(eid, taskID string) ([]*model.TaskEvent, error) {
-	task, err := c.InitRainbondTaskRepo.GetTask(eid, taskID)
+	task, err := c.getTask(eid, taskID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if errors.Is(err, bcode.ErrClusterTaskNotFound) {
 			return nil, nil
 		}
 		return nil, err
@@ -738,6 +740,49 @@ func (c *ClusterUsecase) ListTaskEvent(eid, taskID string) ([]*model.TaskEvent, 
 	}
 
 	return events, nil
+}
+
+func (c *ClusterUsecase) getTask(eid, taskID string) (*domain.ClusterTask, error) {
+	var source interface{}
+	var taskType domain.ClusterTaskType
+	task := &domain.ClusterTask{}
+
+	// init rainbond task
+	initRainbondTask, err := c.InitRainbondTaskRepo.GetTask(eid, taskID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	if initRainbondTask != nil {
+		source = initRainbondTask
+		taskType = domain.ClusterTaskTypeInitRainbond
+	}
+
+	// create kubernetes task
+	createKubernetesTask, err := c.CreateKubernetesTaskRepo.GetTask(eid, taskID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	if createKubernetesTask != nil {
+		source = createKubernetesTask
+		taskType = domain.ClusterTaskTypeCreateKubernetes
+	}
+
+	// update kubernetes cluster
+	updateKubernetesCluster, err := c.UpdateKubernetesTaskRepo.GetTask(eid, taskID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+	if updateKubernetesCluster != nil {
+		source = updateKubernetesCluster
+		taskType = domain.ClusterTaskTypeUpdateKubernetes
+	}
+
+	if source == nil {
+		return nil, bcode.ErrClusterTaskNotFound
+	}
+	mapper.Mapper(source, task)
+	task.TaskType = taskType
+	return task, nil
 }
 
 //GetLastCreateKubernetesTask get last create kubernetes task
@@ -1256,12 +1301,12 @@ func (c *ClusterUsecase) listPodEvents(ctx context.Context, kubeClient kubernete
 	return eventList.Items, nil
 }
 
-func (c *ClusterUsecase) syncTaskEvents(task *model.InitRainbondTask, events []*model.TaskEvent) error {
-	if task.Provider != "rke" && task.Provider != "custom" {
+func (c *ClusterUsecase) syncTaskEvents(task *domain.ClusterTask, events []*model.TaskEvent) error {
+	if task.TaskType != domain.ClusterTaskTypeInitRainbond || (task.ProviderName != "rke" && task.ProviderName != "custom") {
 		return nil
 	}
 
-	kubeConfig, err := c.GetKubeConfig(task.EnterpriseID, task.ClusterID, task.Provider)
+	kubeConfig, err := c.GetKubeConfig(task.EnterpriseID, task.ClusterID, task.ProviderName)
 	if err != nil {
 		return err
 	}
