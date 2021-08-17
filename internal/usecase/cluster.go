@@ -55,6 +55,7 @@ import (
 	"gopkg.in/yaml.v2"
 	"gorm.io/gorm"
 	corev1 "k8s.io/api/core/v1"
+	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/client-go/kubernetes"
@@ -267,15 +268,15 @@ func (c *ClusterUsecase) isAlreadyInstalled(ctx context.Context, eid, clusterID,
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	deployment, err := kubeClient.AppsV1().Deployments(constants.Namespace).Get(ctx, "rainbond-operator", metav1.GetOptions{})
-	if err != nil {
+	if _, err := kubeClient.AppsV1().Deployments(constants.Namespace).Get(ctx, "rainbond-operator", metav1.GetOptions{}); err != nil {
+		if k8sErrors.IsNotFound(err) {
+			return nil
+		}
 		logrus.Warningf("get operator failure %s", err.Error())
-	}
-	if deployment != nil {
-		return errors.WithStack(bcode.ErrRainbondClusterInstalled)
+		return nil
 	}
 
-	return nil
+	return errors.WithStack(bcode.ErrRainbondClusterInstalled)
 }
 
 func (c *ClusterUsecase) rkeConfigToNodeList(rkeConfig *v3.RancherKubernetesEngineConfig) (v1alpha1.NodeList, error) {

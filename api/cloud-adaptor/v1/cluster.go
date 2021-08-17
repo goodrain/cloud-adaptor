@@ -267,7 +267,7 @@ type ByRainbondComponentPodPhase []*RainbondComponent
 func (a ByRainbondComponentPodPhase) Len() int      { return len(a) }
 func (a ByRainbondComponentPodPhase) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
 func (a ByRainbondComponentPodPhase) Less(i, j int) bool {
-	return a.phaseScore(i) < a.phaseScore(j)
+	return a.phaseScore(i) > a.phaseScore(j)
 }
 
 func (a ByRainbondComponentPodPhase) phaseScore(i int) int {
