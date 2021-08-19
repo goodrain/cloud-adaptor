@@ -22,7 +22,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"goodrain.com/cloud-adaptor/pkg/util/versionutil"
 	"strings"
 	"sync"
 	"time"
@@ -33,19 +32,21 @@ import (
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
 	"goodrain.com/cloud-adaptor/internal/datastore"
 	"goodrain.com/cloud-adaptor/internal/model"
+	"goodrain.com/cloud-adaptor/internal/repo"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
+	"goodrain.com/cloud-adaptor/pkg/util/versionutil"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/version"
 )
 
 type customAdaptor struct {
-	Repo *ClusterRepo
+	Repo *repo.CustomClusterRepo
 }
 
 //Create create ack adaptor
 func Create() (adaptor.RainbondClusterAdaptor, error) {
 	return &customAdaptor{
-		Repo: NewCustomClusterRepo(datastore.GetGDB()),
+		Repo: repo.NewCustomClusterRepo(datastore.GetGDB()),
 	}, nil
 }
 
@@ -111,7 +112,7 @@ func (c *customAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluste
 	json.Unmarshal(versionByte, &vinfo)
 	cluster.KubernetesVersion = vinfo.String()
 	cluster.CurrentVersion = vinfo.String()
-	if !versionutil.CheckVersion(cluster.CurrentVersion){
+	if !versionutil.CheckVersion(cluster.CurrentVersion) {
 		cluster.Parameters["DisableRainbondInit"] = true
 		cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Rainbond支持的版本为1.16.x-1.19.x", cluster.CurrentVersion)
 	}

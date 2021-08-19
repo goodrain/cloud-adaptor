@@ -23,7 +23,16 @@ import (
 
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
 	"goodrain.com/cloud-adaptor/internal/model"
+	corev1 "k8s.io/api/core/v1"
 )
+
+var rbdComponentPodPhaseScore = map[string]int{
+	"Succeeded": 0,
+	"Running":   1,
+	"Unknown":   2,
+	"Pending":   3,
+	"Failed":    4,
+}
 
 //ListKubernetesCluster list kubernetes cluster request body
 //swagger:model ListKubernetesCluster
@@ -94,9 +103,9 @@ type CreateKubernetesRes struct {
 //UpdateKubernetesRes create kubernetes res
 //swagger:model UpdateKubernetesRes
 type UpdateKubernetesRes struct {
-	Task      *model.UpdateKubernetesTask `json:"task"`
-	NodeList  v1alpha1.NodeList           `json:"nodeList"`
-	RKEConfig string                      `json:"rkeConfig"`
+	Task      interface{}       `json:"task"`
+	NodeList  v1alpha1.NodeList `json:"nodeList"`
+	RKEConfig string            `json:"rkeConfig"`
 }
 
 //GetLastCreateKubernetesClusterTaskReq get last create kubernetes task
@@ -177,7 +186,8 @@ type UpdateInitRainbondTaskStatusReq struct {
 //InitNodeCmdRes init node cmd
 //swagger:model InitNodeCmdRes
 type InitNodeCmdRes struct {
-	Cmd string `json:"cmd"`
+	Cmd       string `json:"cmd"`
+	IsOffline bool   `json:"isOffline"`
 }
 
 //GetLogContentRes create kubernetes cluster log
@@ -242,4 +252,34 @@ type PruneUpdateRKEConfigReq struct {
 type PruneUpdateRKEConfigResp struct {
 	Nodes            v1alpha1.NodeList `json:"nodes"`
 	EncodedRKEConfig string            `json:"encodeRKEConfig"`
+}
+
+// RainbondComponent rainbond components
+type RainbondComponent struct {
+	App  string       `json:"app"`
+	Pods []corev1.Pod `json:"pods"`
+}
+
+// ByRainbondComponentPodPhase implements sort.Interface for []*RainbondComponent based on
+// the Pod Phase field.
+type ByRainbondComponentPodPhase []*RainbondComponent
+
+func (a ByRainbondComponentPodPhase) Len() int      { return len(a) }
+func (a ByRainbondComponentPodPhase) Swap(i, j int) { a[i], a[j] = a[j], a[i] }
+func (a ByRainbondComponentPodPhase) Less(i, j int) bool {
+	return a.phaseScore(i) > a.phaseScore(j)
+}
+
+func (a ByRainbondComponentPodPhase) phaseScore(i int) int {
+	pods := a[i].Pods
+	var score int
+	for _, pod := range pods {
+		score += rbdComponentPodPhaseScore[string(pod.Status.Phase)]
+	}
+	return score
+}
+
+// RainbondComponentEvent -
+type RainbondComponentEvent struct {
+	corev1.Event
 }

@@ -66,9 +66,9 @@ func (c *UpdateKubernetesTaskRepo) Create(ck *model.UpdateKubernetesTask) error 
 }
 
 //GetTaskByClusterID get cluster task
-func (c *UpdateKubernetesTaskRepo) GetTaskByClusterID(eid string, providerName, clusterID string) (*model.UpdateKubernetesTask, error) {
+func (c *UpdateKubernetesTaskRepo) GetTaskByClusterID(eid, clusterID string) (*model.UpdateKubernetesTask, error) {
 	var old model.UpdateKubernetesTask
-	if err := c.DB.Where("eid = ? and provider_name=? and cluster_id=?", eid, providerName, clusterID).Last(&old).Error; err != nil {
+	if err := c.DB.Where("eid = ? and cluster_id=?", eid, clusterID).Last(&old).Error; err != nil {
 		return nil, err
 	}
 	return &old, nil
@@ -87,6 +87,15 @@ func (c *UpdateKubernetesTaskRepo) UpdateStatus(eid string, taskID string, statu
 func (c *UpdateKubernetesTaskRepo) GetTask(eid string, taskID string) (*model.UpdateKubernetesTask, error) {
 	var old model.UpdateKubernetesTask
 	if err := c.DB.Where("eid = ? and task_id=?", eid, taskID).Take(&old).Error; err != nil {
+		return nil, err
+	}
+	return &old, nil
+}
+
+//GetLastTask get last task
+func (c *UpdateKubernetesTaskRepo) GetLastTask(eid string, providerName string) (*model.UpdateKubernetesTask, error) {
+	var old model.UpdateKubernetesTask
+	if err := c.DB.Where("eid = ? and provider_name=?", eid, providerName).Order("created_at desc").Limit(1).Take(&old).Error; err != nil {
 		return nil, err
 	}
 	return &old, nil

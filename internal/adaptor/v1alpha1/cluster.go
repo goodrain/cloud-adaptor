@@ -374,7 +374,7 @@ func (c *KubeConfig) GetKubeClient() (*kubernetes.Clientset, client.Client, erro
 	if err != nil {
 		return nil, nil, fmt.Errorf("NewForConfig failure %+v", err)
 	}
-	mapper, err := apiutil.NewDynamicRESTMapper(config, apiutil.WithLazyDiscovery)
+	mapper, err := apiutil.NewDynamicRESTMapper(config)
 	if err != nil {
 		return nil, nil, fmt.Errorf("NewDynamicRESTMapper failure %+v", err)
 	}
@@ -513,11 +513,12 @@ type LoadBalancer struct {
 
 //RainbondRegionStatus rainbond region status
 type RainbondRegionStatus struct {
-	OperatorReady   bool
-	RainbondCluster *rainbondv1alpha1.RainbondCluster
-	RainbondPackage *rainbondv1alpha1.RainbondPackage
-	RainbondVolume  *rainbondv1alpha1.RainbondVolume
-	RegionConfig    *v1.ConfigMap
+	OperatorReady     bool
+	OperatorInstalled bool
+	RainbondCluster   *rainbondv1alpha1.RainbondCluster
+	RainbondPackage   *rainbondv1alpha1.RainbondPackage
+	RainbondVolume    *rainbondv1alpha1.RainbondVolume
+	RegionConfig      *v1.ConfigMap
 }
 
 //AvailableResourceZone available resource

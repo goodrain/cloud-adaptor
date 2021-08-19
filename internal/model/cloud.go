@@ -73,6 +73,7 @@ type TaskEvent struct {
 	Message      string `gorm:"column:message;size:512" json:"message"`
 	Status       string `gorm:"column:status" json:"status"`
 	EventID      string `gorm:"column:event_id" json:"eventID"`
+	Reason       string `gorm:"column:reason" json:"reason"`
 }
 
 // BackupListModelData list all model data

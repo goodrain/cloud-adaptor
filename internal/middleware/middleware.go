@@ -30,13 +30,19 @@ var ProviderSet = wire.NewSet(NewMiddleware)
 
 // Middleware -
 type Middleware struct {
-	appStoreRepo repo.AppStoreRepo
+	appStoreRepo      repo.AppStoreRepo
+	rkeClusterRepo    repo.RKEClusterRepository
+	customClusterRepo repo.CustomClusterRepository
 }
 
 // NewMiddleware creates a new middleware.
-func NewMiddleware(appStoreRepo repo.AppStoreRepo) *Middleware {
+func NewMiddleware(appStoreRepo repo.AppStoreRepo,
+	rkeClusterRepo repo.RKEClusterRepository,
+	customClusterRepo repo.CustomClusterRepository) *Middleware {
 	return &Middleware{
-		appStoreRepo: appStoreRepo,
+		appStoreRepo:      appStoreRepo,
+		rkeClusterRepo:    rkeClusterRepo,
+		customClusterRepo: customClusterRepo,
 	}
 }
 

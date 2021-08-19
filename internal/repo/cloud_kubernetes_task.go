@@ -21,7 +21,9 @@ package repo
 import (
 	"fmt"
 
+	"github.com/pkg/errors"
 	"goodrain.com/cloud-adaptor/internal/model"
+	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"goodrain.com/cloud-adaptor/pkg/util/uuidutil"
 	"gorm.io/gorm"
 )
@@ -64,6 +66,30 @@ func (c *CreateKubernetesTaskRepo) Create(ck *model.CreateKubernetesTask) error 
 func (c *CreateKubernetesTaskRepo) GetLastTask(eid string, providerName string) (*model.CreateKubernetesTask, error) {
 	var old model.CreateKubernetesTask
 	if err := c.DB.Where("eid = ? and provider_name=?", eid, providerName).Order("created_at desc").Limit(1).Take(&old).Error; err != nil {
+		return nil, err
+	}
+	return &old, nil
+}
+
+// GetLatestOneByName return the last create task by name.
+func (c *CreateKubernetesTaskRepo) GetLatestOneByName(name string) (*model.CreateKubernetesTask, error) {
+	var old model.CreateKubernetesTask
+	if err := c.DB.Where(" name=?", name).Last(&old).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.Wrapf(bcode.ErrLastTaskNotFound, "get last create task: %v", err)
+		}
+		return nil, err
+	}
+	return &old, nil
+}
+
+// GetLatestOneByClusterID return the last create task by cluster id.
+func (c *CreateKubernetesTaskRepo) GetLatestOneByClusterID(clusterID string) (*model.CreateKubernetesTask, error) {
+	var old model.CreateKubernetesTask
+	if err := c.DB.Where("cluster_id=?", clusterID).Last(&old).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.Wrapf(bcode.ErrLastTaskNotFound, "get last create task: %v", err)
+		}
 		return nil, err
 	}
 	return &old, nil

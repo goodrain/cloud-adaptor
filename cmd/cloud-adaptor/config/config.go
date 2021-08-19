@@ -32,6 +32,7 @@ var C *Config
 //Config config
 type Config struct {
 	TestMode  bool
+	IsOffline bool
 	LogLevel  string
 	DB        *DB
 	NSQConfig *NSQConfig
@@ -89,8 +90,9 @@ func parseIntByEnvAndCtx(ctx *cli.Context, name, envName string) int {
 //GetDefaultConfig get default config
 func GetDefaultConfig(ctx *cli.Context) *Config {
 	return &Config{
-		TestMode: parseBoolByEnvAndCtx(ctx, "testMode", "TEST_MODE"),
-		LogLevel: parseByEnvAndCtx(ctx, "logLevel", "LOG_LEVEL"),
+		TestMode:  parseBoolByEnvAndCtx(ctx, "testMode", "TEST_MODE"),
+		IsOffline: parseBoolByEnvAndCtx(ctx, "isOffline", "IS_OFFLINE"),
+		LogLevel:  parseByEnvAndCtx(ctx, "logLevel", "LOG_LEVEL"),
 		NSQConfig: &NSQConfig{
 			NsqLookupdAddress: parseByEnvAndCtx(ctx, "nsq-lookupd-server", "NSQ_LOOKUPD_SERVER"),
 			NsqdAddress:       parseByEnvAndCtx(ctx, "nsqd-server", "NSQD_SERVER"),

@@ -37,11 +37,11 @@ import (
 	"goodrain.com/cloud-adaptor/internal/types"
 	"goodrain.com/cloud-adaptor/internal/usecase"
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
+	"goodrain.com/cloud-adaptor/pkg/util/versionutil"
 	"goodrain.com/cloud-adaptor/version"
 	v1 "k8s.io/api/core/v1"
 	k8sErrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"goodrain.com/cloud-adaptor/pkg/util/versionutil"
 )
 
 //InitRainbondCluster init rainbond cluster
@@ -149,7 +149,7 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 		return
 	}
 	ticker := time.NewTicker(time.Second * 5)
-	timer := time.NewTimer(time.Minute * 30)
+	timer := time.NewTimer(time.Minute * 60)
 	defer timer.Stop()
 	defer ticker.Stop()
 	var operatorMessage, imageHubMessage, packageMessage, apiReadyMessage bool

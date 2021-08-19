@@ -23,7 +23,13 @@ import (
 
 import (
 	_ "github.com/helm/helm/pkg/repo"
+	_ "github.com/rancher/rancher/pkg/apis/management.cattle.io/v3"
 	_ "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
+	_ "k8s.io/api/core/v1"
+	_ "k8s.io/apimachinery/pkg/api/resource"
+	_ "k8s.io/apimachinery/pkg/apis/meta/v1"
+	_ "k8s.io/apimachinery/pkg/types"
+	_ "k8s.io/apimachinery/pkg/util/intstr"
 	_ "k8s.io/helm/pkg/proto/hapi/chart"
 )
 
@@ -35,7 +41,9 @@ func initApp(contextContext context.Context, db *gorm.DB, configConfig *config.C
 	appTemplater := appstore.NewAppTemplater()
 	storer := appstore.NewStorer(appTemplater)
 	appStoreRepo := repo.NewAppStoreRepo(configConfig, appStoreDao, storer, appTemplater)
-	middlewareMiddleware := middleware.NewMiddleware(appStoreRepo)
+	rkeClusterRepository := repo.NewRKEClusterRepo(db)
+	customClusterRepository := repo.NewCustomClusterRepository(db)
+	middlewareMiddleware := middleware.NewMiddleware(appStoreRepo, rkeClusterRepository, customClusterRepository)
 	taskProducer := producer.NewTaskChannelProducer(arg, arg2, arg3)
 	cloudAccesskeyRepository := repo.NewCloudAccessKeyRepo(db)
 	createKubernetesTaskRepository := repo.NewCreateKubernetesTaskRepo(db)
@@ -43,8 +51,7 @@ func initApp(contextContext context.Context, db *gorm.DB, configConfig *config.C
 	updateKubernetesTaskRepository := repo.NewUpdateKubernetesTaskRepo(db)
 	taskEventRepository := repo.NewTaskEventRepo(db)
 	rainbondClusterConfigRepository := repo.NewRainbondClusterConfigRepo(db)
-	rkeClusterRepository := repo.NewRKEClusterRepo(db)
-	clusterUsecase := usecase.NewClusterUsecase(db, taskProducer, cloudAccesskeyRepository, createKubernetesTaskRepository, initRainbondTaskRepository, updateKubernetesTaskRepository, taskEventRepository, rainbondClusterConfigRepository, rkeClusterRepository)
+	clusterUsecase := usecase.NewClusterUsecase(db, taskProducer, cloudAccesskeyRepository, createKubernetesTaskRepository, initRainbondTaskRepository, updateKubernetesTaskRepository, taskEventRepository, rainbondClusterConfigRepository, rkeClusterRepository, customClusterRepository)
 	clusterHandler := handler.NewClusterHandler(clusterUsecase)
 	appStoreUsecase := usecase.NewAppStoreUsecase(appStoreRepo)
 	templateVersioner := appstore.NewTemplateVersioner(configConfig)
