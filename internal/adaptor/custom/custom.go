@@ -114,7 +114,7 @@ func (c *customAdaptor) DescribeCluster(eid, clusterID string) (*v1alpha1.Cluste
 	cluster.CurrentVersion = vinfo.String()
 	if !versionutil.CheckVersion(cluster.CurrentVersion) {
 		cluster.Parameters["DisableRainbondInit"] = true
-		cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Rainbond支持的版本为1.16.x-1.19.x", cluster.CurrentVersion)
+		cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Rainbond支持的版本为1.16.x-1.22.x", cluster.CurrentVersion)
 	}
 	cluster.MasterURL.APIServerEndpoint, _ = kc.KubeServer()
 

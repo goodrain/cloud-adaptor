@@ -31,6 +31,6 @@ func CheckVersion(kubernetesVersion string) bool {
 		return false
 	}
 	minK8sVersion, _ := version.ParseGeneric("v1.16.0")
-	maxK8sVersion, _ := version.ParseGeneric("v1.20.0")
+	maxK8sVersion, _ := version.ParseGeneric("v1.23.0")
 	return clusterVersion.AtLeast(minK8sVersion) && clusterVersion.LessThan(maxK8sVersion)
 }
