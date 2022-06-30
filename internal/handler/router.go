@@ -35,6 +35,7 @@ type Router struct {
 	cluster    *ClusterHandler
 	system     *SystemHandler
 	appStore   *AppStoreHandler
+	helm       *HelmHandler
 }
 
 // NewRouter creates a new router.
@@ -81,6 +82,7 @@ func (r *Router) NewRouter() *gin.Engine {
 	apiv1.GET("/backup", r.system.Backup)
 	apiv1.POST("/recover", r.system.Recover)
 	apiv1.GET("/init_node_cmd", r.cluster.GetInitNodeCmd)
+	apiv1.POST("/helm/chart", CORSMidle(r.helm.GetHelmCommand))
 	entv1 := apiv1.Group("/enterprises/:eid")
 	// cluster
 	entv1.GET("/kclusters", r.cluster.ListKubernetesClusters)
