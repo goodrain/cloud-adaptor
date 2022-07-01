@@ -219,7 +219,7 @@ func (a *ackAdaptor) ClusterList(eid string) ([]*v1alpha1.Cluster, error) {
 					cluster.CurrentVersion = info.String()
 					if !versionutil.CheckVersion(cluster.CurrentVersion){
 						cluster.Parameters["DisableRainbondInit"] = true
-						cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Rainbond支持的版本为1.16.x-1.19.x", cluster.CurrentVersion)
+						cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Rainbond支持的版本为1.16.x-1.22.x", cluster.CurrentVersion)
 					}
 				} else {
 					cluster.Parameters["Message"] = "无法直接与集群 KubeAPI 通信"
