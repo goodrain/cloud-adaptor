@@ -17,7 +17,7 @@ operator:
   name: rainbond-operator
   image:
     name: registry.cn-hangzhou.aliyuncs.com/goodrain/rainbond-operator
-    tag: v2.0.0
+    tag: V5.8-dev
     pullPolicy: IfNotPresent
   regionDBName: region
   logLevel: 4
