@@ -20,9 +20,9 @@ spec:
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
       volumes:
-        - name: dockersock
+        - name: containerdsock
           hostPath:
-            path: /var/run
+            path: /run
             type: Directory
       containers:
         - command:
@@ -52,7 +52,7 @@ spec:
               cpu: 100m
               memory: 64Mi
           volumeMounts:
-            - mountPath: /var/run
-              name: dockersock
+            - mountPath: /run
+              name: containerdsock
       terminationGracePeriodSeconds: 10
 {{- end }}
