@@ -22,7 +22,7 @@ spec:
       volumes:
         - name: containerdsock
           hostPath:
-            path: /run
+            path: /run/k3s
             type: Directory
       containers:
         - command:
