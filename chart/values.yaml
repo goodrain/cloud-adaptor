@@ -17,6 +17,8 @@ operator:
   name: rainbond-operator
   image:
     name: registry.cn-hangzhou.aliyuncs.com/goodrain/rainbond-operator
+##    env:
+##      variable_name: variable
     tag: v2.0.0
     pullPolicy: IfNotPresent
   regionDBName: region
