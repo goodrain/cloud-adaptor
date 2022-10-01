@@ -30,9 +30,9 @@ spec:
           args:
             - --leader-elect
             - --zap-log-level={{ .Values.operator.logLevel }}
-          {{- if .Values.operator.env }}
+          {{- if .Values.operator.image.env }}
           env:
-          {{- range .Values.operator.env }}
+          {{- range .Values.operator.image.env }}
           - name: {{ .name }}
             value: "{{ .value }}"
           {{- end }}
