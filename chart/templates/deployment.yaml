@@ -30,6 +30,13 @@ spec:
           args:
             - --leader-elect
             - --zap-log-level={{ .Values.operator.logLevel }}
+          {{- if .Values.operator.env }}
+          env:
+          {{- range .Values.operator.env }}
+          - name: {{ .name }}
+            value: "{{ .value }}"
+          {{- end }}
+          {{- end }}
           image: {{ .Values.operator.image.name }}:{{ .Values.operator.image.tag }}
           imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
           name: {{ .Values.operator.name }}
