@@ -20,9 +20,13 @@ spec:
     spec:
       serviceAccountName: {{ .Values.serviceAccount.name }}
       volumes:
-        - name: dockersock
+        - name: vardir
           hostPath:
-            path: /var/run
+            path: /var
+            type: Directory
+        - name: rundir
+          hostPath:
+            path: /run
             type: Directory
       containers:
         - command:
@@ -30,6 +34,13 @@ spec:
           args:
             - --leader-elect
             - --zap-log-level={{ .Values.operator.logLevel }}
+          {{- if .Values.operator.image.env }}
+          env:
+          {{- range .Values.operator.image.env }}
+          - name: {{ .name }}
+            value: "{{ .value }}"
+          {{- end }}
+          {{- end }}
           image: {{ .Values.operator.image.name }}:{{ .Values.operator.image.tag }}
           imagePullPolicy: {{ .Values.operator.image.pullPolicy }}
           name: {{ .Values.operator.name }}
@@ -52,7 +63,9 @@ spec:
               cpu: 100m
               memory: 64Mi
           volumeMounts:
-            - mountPath: /var/run
-              name: dockersock
+            - mountPath: /var
+              name: vardir
+            - mountPath: /run
+              name: rundir
       terminationGracePeriodSeconds: 10
 {{- end }}
