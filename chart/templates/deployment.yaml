@@ -31,8 +31,8 @@ spec:
         {{- if .Values.operator.isDind }}
         - name: containerdsock
           hostPath:
-            path: /run/k3s/containerd/containerd.sock
-            type: Socket
+            path: /run/k3s/containerd
+            type: Directory
         {{- end }}
       containers:
         - command:
@@ -74,7 +74,7 @@ spec:
             - mountPath: /run
               name: rundir
           {{- if .Values.operator.isDind }}
-            - mountPath: /run/containerd/containerd.sock
+            - mountPath: /run/containerd
               name: containerdsock
           {{- end }}
       terminationGracePeriodSeconds: 10
