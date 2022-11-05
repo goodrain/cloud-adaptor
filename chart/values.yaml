@@ -23,4 +23,3 @@ operator:
     pullPolicy: IfNotPresent
   regionDBName: region
   logLevel: 4
-  isDind: false
