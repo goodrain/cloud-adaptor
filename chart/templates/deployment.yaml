@@ -28,12 +28,6 @@ spec:
           hostPath:
             path: /run
             type: Directory
-        {{- if .Values.operator.isDind }}
-        - name: containerdsock
-          hostPath:
-            path: /run/k3s/containerd
-            type: Directory
-        {{- end }}
       containers:
         - command:
             - /manager
@@ -73,9 +67,5 @@ spec:
               name: vardir
             - mountPath: /run
               name: rundir
-          {{- if .Values.operator.isDind }}
-            - mountPath: /run/containerd
-              name: containerdsock
-          {{- end }}
       terminationGracePeriodSeconds: 10
 {{- end }}
