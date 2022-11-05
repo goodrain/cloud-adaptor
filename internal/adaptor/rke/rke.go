@@ -238,7 +238,7 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, c
 	rkecluster.CreateLogPath = logPath
 	rkecluster.PodCIDR = rkeConfig.Services.KubeController.ClusterCIDR
 	rkecluster.ServiceCIDR = rkeConfig.Services.KubeController.ServiceClusterIPRange
-	var kubernetesVersion = "v1.19.6-rke"
+	var kubernetesVersion = "v1.23.10-rancher1"
 	if config.KubernetesVersion != "" {
 		kubernetesVersion = config.KubernetesVersion
 	}
