@@ -229,7 +229,7 @@ func (o *Operator) genComponentClaims(cluster *v1alpha1.RainbondCluster) map[str
 
 	// kubernetes dashboard
 	k8sdashboard := newClaim("kubernetes-dashboard")
-	k8sdashboard.version = "v2.0.1-3"
+	k8sdashboard.version = "v2.6.1"
 	name2Claim["kubernetes-dashboard"] = k8sdashboard
 	dashboardscraper := newClaim("dashboard-metrics-scraper")
 	dashboardscraper.imageName = "metrics-scraper"
