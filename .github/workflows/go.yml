@@ -1,4 +1,4 @@
-name: Go
+name: pr-ci-build
 
 # Triggers the workflow on push or pull request events
 on: [push, pull_request]
@@ -8,17 +8,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
-      - name: Set up Go
-        uses: actions/setup-go@v2
+      - name: Setup Go environment
+        uses: actions/setup-go@v2.1.3
         with:
+          # The Go version to download (if necessary) and use. Supports semver spec and ranges.
           go-version: 1.17
 
-      - name: Install lint
-        run: go get -u golang.org/x/lint/golint
-
-      - name: Lint
-        run: go list ./... | grep -v /vendor/ | xargs -L1 golint -set_exit_status
-
-      - name: Build
-        run: go build -v ./...
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: false
+          tags: rainbond/cloud-adaptor:main-dev

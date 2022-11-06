@@ -63,7 +63,7 @@ func GetDefaultRKECreateClusterConfig(config KubernetesClusterConfig) CreateClus
 			podIPRange = config.ClusterCIDR
 		}
 	}
-	var kubernetesVersion = "v1.19.6-rke"
+	var kubernetesVersion = "v1.23.10-rancher1"
 	if config.KubernetesVersion != "" {
 		kubernetesVersion = config.KubernetesVersion
 	}
@@ -113,35 +113,35 @@ func GetDefaultRKECreateClusterConfig(config KubernetesClusterConfig) CreateClus
 		},
 		SystemImages: v3.RKESystemImages{
 			// etcd image
-			Etcd: version.InstallImageRepo + "/coreos-etcd:v3.4.13-rke",
+			Etcd: version.InstallImageRepo + "/mirrored-coreos-etcd:v3.5.3",
 			// Alpine image
-			Alpine: version.InstallImageRepo + "/rke-tools:v0.1.68",
+			Alpine: version.InstallImageRepo + "/rke-tools:v0.1.87",
 			// rke-nginx-proxy image
-			NginxProxy: version.InstallImageRepo + "/rke-tools:v0.1.68",
+			NginxProxy: version.InstallImageRepo + "/rke-tools:v0.1.87",
 			// rke-cert-deployer image
-			CertDownloader: version.InstallImageRepo + "/rke-tools:v0.1.68",
+			CertDownloader: version.InstallImageRepo + "/rke-tools:v0.1.87",
 			// rke-service-sidekick image
-			KubernetesServicesSidecar: version.InstallImageRepo + "/rke-tools:v0.1.68",
+			KubernetesServicesSidecar: version.InstallImageRepo + "/rke-tools:v0.1.87",
 			// KubeDNS image
-			KubeDNS: "rancher/k8s-dns-kube-dns:1.15.10",
+			KubeDNS: "rancher/mirrored-k8s-dns-kube-dns:1.21.1",
 			// DNSMasq image
-			DNSmasq: "rancher/k8s-dns-dnsmasq-nanny:1.15.10",
+			DNSmasq: "rancher/mirrored-k8s-dns-dnsmasq-nanny:1.21.1",
 			// KubeDNS side car image
-			KubeDNSSidecar: "rancher/k8s-dns-sidecar:1.15.10",
+			KubeDNSSidecar: "rancher/mirrored-k8s-dns-sidecar:1.21.1",
 			// KubeDNS autoscaler image
-			KubeDNSAutoscaler: version.InstallImageRepo + "/cluster-proportional-autoscaler:1.8.1",
+			KubeDNSAutoscaler: version.InstallImageRepo + "/mirrored-cluster-proportional-autoscaler:1.8.5",
 			// CoreDNS image
-			CoreDNS: version.InstallImageRepo + "/coredns-coredns:1.7.0",
+			CoreDNS: version.InstallImageRepo + "/mirrored-coredns-coredns:1.9.0",
 			// CoreDNS autoscaler image
-			CoreDNSAutoscaler: version.InstallImageRepo + "/cluster-proportional-autoscaler:1.8.1",
+			CoreDNSAutoscaler: version.InstallImageRepo + "/mirrored-cluster-proportional-autoscaler:1.8.5",
 			// Nodelocal image
-			Nodelocal: version.InstallImageRepo + "/k8s-dns-node-cache:1.15.13",
+			Nodelocal: version.InstallImageRepo + "/mirrored-k8s-dns-node-cache:1.21.1",
 			// Kubernetes image
 			Kubernetes: version.InstallImageRepo + "/hyperkube:" + kubernetesVersion,
 			// Flannel image
-			Flannel: version.InstallImageRepo + "/coreos-flannel:v0.13.0-rke",
+			Flannel: version.InstallImageRepo + "/mirrored-coreos-flannel:v0.15.1",
 			// Flannel CNI image
-			FlannelCNI: version.InstallImageRepo + "/flannel-cni:v0.3.0-rke",
+			FlannelCNI: version.InstallImageRepo + "/flannel-cni:v0.3.0-rancher6",
 			// Calico Node image
 			CalicoNode: "",
 			// Calico CNI image
@@ -153,7 +153,7 @@ func GetDefaultRKECreateClusterConfig(config KubernetesClusterConfig) CreateClus
 			//CalicoFlexVol image
 			CalicoFlexVol: "",
 			// Canal Node Image
-			CanalNode: "rancher/calico-node:v3.16.5",
+			CanalNode: "rancher/mirrored-calico-node:v3.22.0",
 			// Canal CNI image
 			CanalCNI: "",
 			// Canal Controllers Image needed for Calico/Canal v3.14.0+
@@ -167,13 +167,13 @@ func GetDefaultRKECreateClusterConfig(config KubernetesClusterConfig) CreateClus
 			// Weave CNI image
 			WeaveCNI: "",
 			// Pod infra container image
-			PodInfraContainer: version.InstallImageRepo + "/pause:3.2",
+			PodInfraContainer: version.InstallImageRepo + "/mirrored-pause:3.6",
 			// Ingress Controller image
 			Ingress: "",
 			// Ingress Controller Backend image
 			IngressBackend: "",
 			// Metrics Server image
-			MetricsServer: version.InstallImageRepo + "/metrics-server:v0.3.6",
+			MetricsServer: version.InstallImageRepo + "/mirrored-metrics-server:v0.6.1",
 			// Pod infra container image for Windows
 			WindowsPodInfraContainer: "",
 			// Cni deployer container image for Cisco ACI

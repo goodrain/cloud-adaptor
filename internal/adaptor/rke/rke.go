@@ -238,7 +238,7 @@ func (r *rkeAdaptor) CreateRainbondKubernetes(ctx context.Context, eid string, c
 	rkecluster.CreateLogPath = logPath
 	rkecluster.PodCIDR = rkeConfig.Services.KubeController.ClusterCIDR
 	rkecluster.ServiceCIDR = rkeConfig.Services.KubeController.ServiceClusterIPRange
-	var kubernetesVersion = "v1.19.6-rke"
+	var kubernetesVersion = "v1.23.10-rancher1"
 	if config.KubernetesVersion != "" {
 		kubernetesVersion = config.KubernetesVersion
 	}
@@ -322,7 +322,7 @@ func converClusterMeta(rkecluster *model.RKECluster) *v1alpha1.Cluster {
 				cluster.CurrentVersion = info.String()
 				if !versionutil.CheckVersion(cluster.CurrentVersion) {
 					cluster.Parameters["DisableRainbondInit"] = true
-					cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Rainbond支持的版本为1.16.x-1.22.x", cluster.CurrentVersion)
+					cluster.Parameters["Message"] = fmt.Sprintf("当前集群版本为 %s ，无法继续初始化，初始化Rainbond支持的版本为1.19.x-1.25.x", cluster.CurrentVersion)
 				}
 				cluster.State = v1alpha1.RunningState
 			} else {
