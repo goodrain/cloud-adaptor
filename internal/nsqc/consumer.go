@@ -19,12 +19,12 @@
 package nsqc
 
 import (
+	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/nsqio/go-nsq"
-	"github.com/prometheus/common/log"
 	"goodrain.com/cloud-adaptor/cmd/cloud-adaptor/config"
 	"goodrain.com/cloud-adaptor/internal/task"
 	"goodrain.com/cloud-adaptor/pkg/util/constants"
@@ -92,12 +92,12 @@ func (c *taskConsumer) Start() error {
 	signal.Notify(term, os.Interrupt, syscall.SIGTERM)
 	select {
 	case v := <-initConsumer.StopChan:
-		log.Errorf("Received initConsumer stop signal %d, exiting gracefully...", v)
+		logrus.Errorf("Received initConsumer stop signal %d, exiting gracefully...", v)
 	case v := <-createConsumer.StopChan:
-		log.Errorf("Received createConsumer stop signal %d, exiting gracefully...", v)
+		logrus.Errorf("Received createConsumer stop signal %d, exiting gracefully...", v)
 	case <-term:
-		log.Warn("Received SIGTERM, exiting gracefully...")
+		logrus.Warn("Received SIGTERM, exiting gracefully...")
 	}
-	log.Info("See you next time!")
+	logrus.Info("See you next time!")
 	return nil
 }

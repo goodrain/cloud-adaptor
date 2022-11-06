@@ -30,7 +30,7 @@ func CheckVersion(kubernetesVersion string) bool {
 		logrus.Errorf("parse kubernetes version %s failed", kubernetesVersion)
 		return false
 	}
-	minK8sVersion, _ := version.ParseGeneric("v1.16.0")
-	maxK8sVersion, _ := version.ParseGeneric("v1.23.0")
+	minK8sVersion, _ := version.ParseGeneric("v1.19.0")
+	maxK8sVersion, _ := version.ParseGeneric("v1.26.0")
 	return clusterVersion.AtLeast(minK8sVersion) && clusterVersion.LessThan(maxK8sVersion)
 }
