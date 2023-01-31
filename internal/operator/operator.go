@@ -194,7 +194,7 @@ func (o *Operator) genComponentClaims(cluster *v1alpha1.RainbondCluster) map[str
 		name2Claim["rbd-app-ui"] = newClaim("rbd-app-ui")
 	}
 	name2Claim["metrics-server"] = newClaim("metrics-server")
-	name2Claim["metrics-server"].version = "v0.3.6"
+	name2Claim["metrics-server"].version = "v0.4.1"
 
 	if cluster.Spec.RegionDatabase == nil || (cluster.Spec.UIDatabase == nil && !o.OnlyInstallRegion) {
 		claim := newClaim("rbd-db")
