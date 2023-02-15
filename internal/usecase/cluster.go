@@ -1203,7 +1203,7 @@ func (c *ClusterUsecase) GetInitNodeCmd(ctx context.Context) (*v1.InitNodeCmdRes
 		}, nil
 	}
 	return &v1.InitNodeCmdRes{
-		Cmd: fmt.Sprintf(`export SSH_RSA="%s" && curl -sfL https://get.rainbond.com/init_node | bash`, pub),
+		Cmd: fmt.Sprintf(`export SSH_RSA="%s" && curl -sfL https://get.rainbond.com/init_node | bash`, strings.Replace(pub, "\n", "", -1)),
 	}, nil
 }
 
