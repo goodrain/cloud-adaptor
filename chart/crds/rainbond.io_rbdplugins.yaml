@@ -16,45 +16,56 @@ spec:
     singular: rbdplugin
   scope: Cluster
   versions:
-  - name: v1alpha1
-    schema:
-      openAPIV3Schema:
-        description: RBDPlugin is the Schema for the rbdplugins API
-        properties:
-          apiVersion:
-            description: 'APIVersion defines the versioned schema of this representation
+    - name: v1alpha1
+      schema:
+        openAPIV3Schema:
+          description: RBDPlugin is the Schema for the rbdplugins API
+          properties:
+            apiVersion:
+              description: 'APIVersion defines the versioned schema of this representation
               of an object. Servers should convert recognized schemas to the latest
               internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-            type: string
-          kind:
-            description: 'Kind is a string value representing the REST resource this
+              type: string
+            kind:
+              description: 'Kind is a string value representing the REST resource this
               object represents. Servers may infer this from the endpoint the client
               submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-            type: string
-          metadata:
-            type: object
-          spec:
-            description: RBDPluginSpec defines the desired state of RBDPlugin
-            properties:
-              author:
-                description: Foo is an example field of RBDPlugin. Edit rbdplugin_types.go
-                  to remove/update
-                type: string
-              description:
-                type: string
-              icon:
-                type: string
-              version:
-                type: string
-            type: object
-          status:
-            description: RBDPluginStatus defines the observed state of RBDPlugin
-            type: object
-        type: object
-    served: true
-    storage: true
-    subresources:
-      status: {}
+              type: string
+            metadata:
+              type: object
+            spec:
+              description: RBDPluginSpec defines the desired state of RBDPlugin
+              properties:
+                access_urls:
+                  description: AccessUrls Access URL defines the accessible address
+                    of the plug-in. If this field is not set, all accessible addresses
+                    under the application will be listed in the platform.
+                  items:
+                    type: string
+                  type: array
+                alias:
+                  description: Alias The alias is the name used for display, and if
+                    this field is not set, the name in the metadata will be used
+                  type: string
+                author:
+                  description: Foo is an example field of RBDPlugin. Edit rbdplugin_types.go
+                    to remove/update
+                  type: string
+                description:
+                  type: string
+                icon:
+                  type: string
+                version:
+                  type: string
+              type: object
+            status:
+              description: RBDPluginStatus defines the observed state of RBDPlugin
+              type: object
+          type: object
+      served: true
+      storage: true
+      subresources:
+        status: {}
 status:
   acceptedNames:
     kind: ""
