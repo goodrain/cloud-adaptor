@@ -33,6 +33,9 @@ spec:
             items:
               description: InjectMethod is the method of injecting sidecar
               properties:
+                cover:
+                  description: Cover whether to overwrite if the field exists
+                  type: boolean
                 method:
                   description: Method is the method of injecting sidecar, label or
                     annotation
@@ -46,10 +49,25 @@ spec:
                 value:
                   description: Value is the value of the label or annotation
                   type: string
+                valueFrom:
+                  description: ValueFrom is the value form  label or annotation
+                  properties:
+                    name:
+                      description: label or annotation key
+                      type: string
+                    type:
+                      description: type
+                      enum:
+                      - label
+                      - annotation
+                      - name
+                      type: string
+                  required:
+                  - type
+                  type: object
               required:
               - method
               - name
-              - value
               type: object
             type: array
           kind:
