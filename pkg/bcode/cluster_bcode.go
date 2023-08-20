@@ -73,4 +73,9 @@ var (
 
 	ErrRainbondClusterInstalled = newByMessage(409, 7028, "rainbond cluster is already installed")
 	ErrClusterTaskNotFound      = newByMessage(404, 7029, "cluster task not found")
+
+	//check ssh error
+	ErrSSHFileNotFond = newByMessage(200, 9000, "file /root/.ssh/id_rsa not found")
+	ErrParseSSH       = newByMessage(200, 9001, "parse private key error")
+	ErrConnect        = newByMessage(200, 9002, "failed to connect remote host")
 )

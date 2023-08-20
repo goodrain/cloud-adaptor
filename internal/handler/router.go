@@ -53,7 +53,7 @@ func NewRouter(
 	}
 }
 
-//SetCORS Enables cross-site script calls.
+// SetCORS Enables cross-site script calls.
 func SetCORS(ctx *gin.Context) {
 	origin := ctx.GetHeader("Origin")
 	ctx.Writer.Header().Add("Access-Control-Allow-Origin", origin)
@@ -62,7 +62,7 @@ func SetCORS(ctx *gin.Context) {
 	ctx.Writer.Header().Add("Access-Control-Allow-Headers", "x-requested-with,content-type,Authorization,X-Token")
 }
 
-//CORSMidle -
+// CORSMidle -
 var CORSMidle = func(f gin.HandlerFunc) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		SetCORS(ctx)
@@ -82,6 +82,8 @@ func (r *Router) NewRouter() *gin.Engine {
 	apiv1.GET("/backup", r.system.Backup)
 	apiv1.POST("/recover", r.system.Recover)
 	apiv1.GET("/init_node_cmd", r.cluster.GetInitNodeCmd)
+	apiv1.POST("/check_ssh", r.cluster.CheckSSH)
+
 	apiv1.POST("/helm/chart", CORSMidle(r.helm.GetHelmCommand))
 	entv1 := apiv1.Group("/enterprises/:eid")
 	// cluster

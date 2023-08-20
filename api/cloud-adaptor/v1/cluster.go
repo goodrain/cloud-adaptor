@@ -34,13 +34,15 @@ var rbdComponentPodPhaseScore = map[string]int{
 	"Failed":    4,
 }
 
-//ListKubernetesCluster list kubernetes cluster request body
+// ListKubernetesCluster list kubernetes cluster request body
+//
 //swagger:model ListKubernetesCluster
 type ListKubernetesCluster struct {
 	ProviderName string `form:"provider_name" binding:"required"`
 }
 
-//AddAccessKey -
+// AddAccessKey -
+//
 //swagger:model AddAccessKey
 type AddAccessKey struct {
 	ProviderName string `json:"provider_name,omitempty" binding:"required"`
@@ -48,25 +50,37 @@ type AddAccessKey struct {
 	SecretKey    string `json:"secret_key,omitempty" binding:"required"`
 }
 
-//GetAccessKeyReq get enterprise access key
+// GetAccessKeyReq get enterprise access key
+//
 //swagger:model GetAccessKeyReq
 type GetAccessKeyReq struct {
 	ProviderName string `form:"provider_name" binding:"required"`
 }
 
-//KubernetesClustersResponse list kclusters response
+// KubernetesClustersResponse list kclusters response
+//
 //swagger:model KubernetesClustersResponse
 type KubernetesClustersResponse struct {
 	Clusters []*v1alpha1.Cluster `json:"clusters"`
 }
 
-//AccessKeyResponse access key
+// check ssh request json
+//
+//swagger:model CheckSSHReq
+type CheckSSHReq struct {
+	Host string `json:"host"`
+	Port uint   `json:"port"`
+}
+
+// AccessKeyResponse access key
+//
 //swagger:model AccessKeyResponse
 type AccessKeyResponse struct {
 	model.CloudAccessKey
 }
 
-//CreateKubernetesReq create kubernetes req
+// CreateKubernetesReq create kubernetes req
+//
 //swagger:model CreateKubernetesReq
 type CreateKubernetesReq struct {
 	Name               string   `json:"name" binding:"required"`
@@ -81,7 +95,8 @@ type CreateKubernetesReq struct {
 	KubeConfig string `json:"kubeconfig,omitempty"`
 }
 
-//UpdateKubernetesReq update kubernetes req
+// UpdateKubernetesReq update kubernetes req
+//
 //swagger:model UpdateKubernetesReq
 type UpdateKubernetesReq struct {
 	Provider           string `json:"provider"`
@@ -94,13 +109,15 @@ type UpdateKubernetesReq struct {
 	EncodedRKEConfig   string `json:"encodedRKEConfig"`
 }
 
-//CreateKubernetesRes create kubernetes res
+// CreateKubernetesRes create kubernetes res
+//
 //swagger:model CreateKubernetesRes
 type CreateKubernetesRes struct {
 	model.CreateKubernetesTask
 }
 
-//UpdateKubernetesRes create kubernetes res
+// UpdateKubernetesRes create kubernetes res
+//
 //swagger:model UpdateKubernetesRes
 type UpdateKubernetesRes struct {
 	Task      interface{}       `json:"task"`
@@ -108,37 +125,43 @@ type UpdateKubernetesRes struct {
 	RKEConfig string            `json:"rkeConfig"`
 }
 
-//GetLastCreateKubernetesClusterTaskReq get last create kubernetes task
+// GetLastCreateKubernetesClusterTaskReq get last create kubernetes task
+//
 //swagger:model GetLastCreateKubernetesClusterTaskReq
 type GetLastCreateKubernetesClusterTaskReq struct {
 	ProviderName string `form:"provider_name" binding:"required"`
 }
 
-//DeleteKubernetesClusterReq delete cluster
+// DeleteKubernetesClusterReq delete cluster
+//
 //swagger:model DeleteKubernetesClusterReq
 type DeleteKubernetesClusterReq struct {
 	ProviderName string `form:"provider_name" binding:"required"`
 }
 
-//GetCreateKubernetesClusterTaskRes create kubernetes res
+// GetCreateKubernetesClusterTaskRes create kubernetes res
+//
 //swagger:model GetCreateKubernetesClusterTaskRes
 type GetCreateKubernetesClusterTaskRes struct {
 	model.CreateKubernetesTask
 }
 
-//GetTaskEventListReq get event list of task
+// GetTaskEventListReq get event list of task
+//
 //swagger:model GetTaskEventListReq
 type GetTaskEventListReq struct {
 	TaskID string `form:"taskID" binding:"required"`
 }
 
-//TaskEventListRes get event list of task
+// TaskEventListRes get event list of task
+//
 //swagger:model TaskEventListRes
 type TaskEventListRes struct {
 	Events []*model.TaskEvent `json:"events"`
 }
 
-//InitRainbondRegionReq init rainbond region
+// InitRainbondRegionReq init rainbond region
+//
 //swagger:model InitRainbondRegionReq
 type InitRainbondRegionReq struct {
 	Provider  string `json:"providerName" binding:"required"`
@@ -146,93 +169,102 @@ type InitRainbondRegionReq struct {
 	Retry     bool   `json:"retry"`
 }
 
-//InitRainbondTaskRes init rainbond region response
+// InitRainbondTaskRes init rainbond region response
+//
 //swagger:model InitRainbondTaskRes
 type InitRainbondTaskRes struct {
 	model.InitRainbondTask
 }
 
-//GetInitRainbondTaskReq get init rainbond task
+// GetInitRainbondTaskReq get init rainbond task
+//
 //swagger:model GetInitRainbondTaskReq
 type GetInitRainbondTaskReq struct {
 	ProviderName string `form:"provider_name" binding:"required"`
 }
 
 // InitRainbondTaskListRes running init tasks
+//
 //swagger:model InitRainbondTaskListRes
 type InitRainbondTaskListRes struct {
 	Tasks []*model.InitRainbondTask `json:"tasks"`
 }
 
 // GetRegionConfigRes region configs
+//
 //swagger:model GetRegionConfigRes
 type GetRegionConfigRes struct {
 	Configs    map[string]string `json:"configs"`
 	ConfigYaml string            `json:"configs_yaml"`
 }
 
-//GetRegionConfigReq get rainbond region config
+// GetRegionConfigReq get rainbond region config
+//
 //swagger:model GetRegionConfigReq
 type GetRegionConfigReq struct {
 	ProviderName string `form:"provider_name" binding:"required"`
 }
 
-//UpdateInitRainbondTaskStatusReq update init task status
+// UpdateInitRainbondTaskStatusReq update init task status
+//
 //swagger:model UpdateInitRainbondTaskStatusReq
 type UpdateInitRainbondTaskStatusReq struct {
 	Status string `json:"status" binding:"required"`
 }
 
-//InitNodeCmdRes init node cmd
+// InitNodeCmdRes init node cmd
+//
 //swagger:model InitNodeCmdRes
 type InitNodeCmdRes struct {
 	Cmd       string `json:"cmd"`
 	IsOffline bool   `json:"isOffline"`
 }
 
-//GetLogContentRes create kubernetes cluster log
+// GetLogContentRes create kubernetes cluster log
+//
 //swagger:model GetLogContentRes
 type GetLogContentRes struct {
 	Content string `json:"content"`
 }
 
-//GetKubeConfigRes get kubernetes cluster kubeconfig file
+// GetKubeConfigRes get kubernetes cluster kubeconfig file
+//
 //swagger:model GetKubeConfigRes
 type GetKubeConfigRes struct {
 	Config string `json:"config"`
 }
 
-//EventMessage event nsq message
+// EventMessage event nsq message
 type EventMessage struct {
 	EnterpriseID string
 	TaskID       string
 	Message      *Message
 }
 
-//Body make body
+// Body make body
 func (e *EventMessage) Body() []byte {
 	b, _ := json.Marshal(e)
 	return b
 }
 
-//Message task exec log message
+// Message task exec log message
 type Message struct {
 	StepType string `json:"type"`
 	Message  string `json:"message"`
 	Status   string `json:"status"`
 }
 
-//SetRainbondClusterConfigReq -
+// SetRainbondClusterConfigReq -
 type SetRainbondClusterConfigReq struct {
 	Config string `json:"config" binding:"required"`
 }
 
-//UninstallRegionReq -
+// UninstallRegionReq -
 type UninstallRegionReq struct {
 	ProviderName string `json:"provider_name" binding:"required"`
 }
 
-//UpdateKubernetesTask -
+// UpdateKubernetesTask -
 type UpdateKubernetesTask struct {
 	TaskID       string `json:"taskID"`
 	ClusterID    string `json:"clusterID"`

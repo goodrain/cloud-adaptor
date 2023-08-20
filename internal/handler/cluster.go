@@ -50,7 +50,7 @@ func NewClusterHandler(clusterUsecase *usecase.ClusterUsecase) *ClusterHandler {
 //
 // swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/kclusters cloud kcluster
 //
-// ListKubernetesCluster
+// # ListKubernetesCluster
 //
 // Produces:
 // - application/json
@@ -82,7 +82,7 @@ func (e *ClusterHandler) ListKubernetesClusters(ctx *gin.Context) {
 //
 // swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/kclusters cloud kcluster
 //
-// CreateKubernetesReq
+// # CreateKubernetesReq
 //
 // Produces:
 // - application/json
@@ -183,7 +183,7 @@ func (e *ClusterHandler) GetUpdateKubernetesTask(ctx *gin.Context) {
 //
 // swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/kclusters/{clusterID} cloud kcluster
 //
-// DeleteKubernetesClusterReq
+// # DeleteKubernetesClusterReq
 //
 // Produces:
 // - application/json
@@ -216,7 +216,7 @@ func (e *ClusterHandler) DeleteKubernetesCluster(ctx *gin.Context) {
 //
 // swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/last-ck-task cloud kcluster
 //
-// GetLastCreateKubernetesClusterTaskReq
+// # GetLastCreateKubernetesClusterTaskReq
 //
 // Produces:
 // - application/json
@@ -248,7 +248,7 @@ func (e *ClusterHandler) GetLastAddKubernetesClusterTask(ctx *gin.Context) {
 //
 // swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/ck-task/{taskID} cloud kcluster
 //
-// GetLastCreateKubernetesClusterTaskReq
+// # GetLastCreateKubernetesClusterTaskReq
 //
 // Produces:
 // - application/json
@@ -275,7 +275,7 @@ func (e *ClusterHandler) GetAddKubernetesClusterTask(ctx *gin.Context) {
 //
 // swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/ck-task/{taskID}/events cloud kcluster
 //
-// GetTaskEventListReq
+// # GetTaskEventListReq
 //
 // Produces:
 // - application/json
@@ -298,7 +298,7 @@ func (e *ClusterHandler) GetTaskEventList(ctx *gin.Context) {
 	ginutil.JSON(ctx, v1.TaskEventListRes{Events: events}, nil)
 }
 
-//AddAccessKey add access keys
+// AddAccessKey add access keys
 func (e *ClusterHandler) AddAccessKey(ctx *gin.Context) {
 	var req v1.AddAccessKey
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -315,7 +315,7 @@ func (e *ClusterHandler) AddAccessKey(ctx *gin.Context) {
 	ginutil.JSON(ctx, clusters, nil)
 }
 
-//GetAccessKey add access keys
+// GetAccessKey add access keys
 func (e *ClusterHandler) GetAccessKey(ctx *gin.Context) {
 	var req v1.GetAccessKeyReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -337,7 +337,7 @@ func (e *ClusterHandler) GetAccessKey(ctx *gin.Context) {
 //
 // swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/init-task/{clusterID} cloud init
 //
-// GetInitRainbondTaskReq
+// # GetInitRainbondTaskReq
 //
 // Produces:
 // - application/json
@@ -366,7 +366,7 @@ func (e *ClusterHandler) GetInitRainbondTask(ctx *gin.Context) {
 //
 // swagger:route POST /enterprise-server/api/v1/enterprises/{eid}/init-cluster cloud init
 //
-// InitRainbondRegionReq
+// # InitRainbondRegionReq
 //
 // Produces:
 // - application/json
@@ -398,7 +398,6 @@ func (e *ClusterHandler) CreateInitRainbondTask(ctx *gin.Context) {
 //
 // swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/init-task/{clusterID} cloud init
 //
-//
 // Produces:
 // - application/json
 // Schemes: http
@@ -419,11 +418,11 @@ func (e *ClusterHandler) GetRunningInitRainbondTask(ctx *gin.Context) {
 	ginutil.JSON(ctx, v1.InitRainbondTaskListRes{Tasks: tasks}, nil)
 }
 
-//GetRegionConfig get region config file
+// GetRegionConfig get region config file
 //
 // swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/kclusters/{clusterID}/regionconfig cloud kcluster
 //
-// GetRegionConfigReq
+// # GetRegionConfigReq
 //
 // Produces:
 // - application/json
@@ -453,11 +452,11 @@ func (e *ClusterHandler) GetRegionConfig(ctx *gin.Context) {
 	ginutil.JSON(ctx, v1.GetRegionConfigRes{Configs: configs, ConfigYaml: string(out)}, nil)
 }
 
-//UpdateInitRainbondTaskStatus get region config file
+// UpdateInitRainbondTaskStatus get region config file
 //
 // swagger:route PUT /enterprise-server/api/v1/enterprises/{eid}/init-tasks/{taskID}/status cloud init
 //
-// UpdateInitRainbondTaskStatusReq
+// # UpdateInitRainbondTaskStatusReq
 //
 // Produces:
 // - application/json
@@ -486,10 +485,9 @@ func (e *ClusterHandler) UpdateInitRainbondTaskStatus(ctx *gin.Context) {
 	ginutil.JSON(ctx, task, nil)
 }
 
-//GetInitNodeCmd get node init cmd shell
+// GetInitNodeCmd get node init cmd shell
 //
 // swagger:route GET /enterprise-server/api/v1/init_node_cmd cloud init
-//
 //
 // Produces:
 // - application/json
@@ -504,10 +502,35 @@ func (e *ClusterHandler) GetInitNodeCmd(c *gin.Context) {
 	ginutil.JSONv2(c, res, err)
 }
 
-//GetLogContent get rke create kubernetes log
+// check ssh connect
+//
+// swagger:route GET /enterprise-server/api/v1/check_ssh
+//
+// Produces:
+// - application/json
+// Schemes: http
+// Consumes:
+// - application/json
+//
+// Responses:
+// 200: body:bool
+func (e *ClusterHandler) CheckSSH(ctx *gin.Context) {
+	var req v1.CheckSSHReq
+	err := ctx.ShouldBindJSON(&req)
+	if err != nil {
+		ginutil.JSON(ctx, nil, bcode.BadRequest)
+	}
+	r, err := e.cluster.CheckSSHConnect(req.Host, req.Port)
+	if err != nil {
+		ginutil.JSON(ctx, r, err)
+		return
+	}
+	ginutil.JSON(ctx, r)
+}
+
+// GetLogContent get rke create kubernetes log
 //
 // swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/kclusters/{clusterID}/create_log cloud init
-//
 //
 // Produces:
 // - application/json
@@ -534,7 +557,6 @@ func (e *ClusterHandler) GetLogContent(ctx *gin.Context) {
 //
 // swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/kclusters/{clusterID}/reinstall cloud kcluster
 //
-//
 // Produces:
 // - application/json
 // Schemes: http
@@ -554,11 +576,11 @@ func (e *ClusterHandler) ReInstallKubernetesCluster(ctx *gin.Context) {
 	ginutil.JSON(ctx, task, nil)
 }
 
-//GetKubeConfig get kubernetes cluster config
+// GetKubeConfig get kubernetes cluster config
 //
 // swagger:route GET /enterprise-server/api/v1/enterprises/{eid}/kclusters/{clusterID}/kubeconfig cloud init
 //
-// GetRegionConfigReq
+// # GetRegionConfigReq
 //
 // Produces:
 // - application/json
@@ -586,7 +608,7 @@ func (e *ClusterHandler) GetKubeConfig(ctx *gin.Context) {
 	ginutil.JSON(ctx, v1.GetKubeConfigRes{Config: kubeconfig}, nil)
 }
 
-//GetRainbondClusterConfig -
+// GetRainbondClusterConfig -
 func (e *ClusterHandler) GetRainbondClusterConfig(ctx *gin.Context) {
 	eid := ctx.Param("eid")
 	clusterID := ctx.Param("clusterID")
@@ -652,7 +674,7 @@ func (e *ClusterHandler) GetRainbondClusterConfig(ctx *gin.Context) {
 	ginutil.JSON(ctx, re, nil)
 }
 
-//SetRainbondClusterConfig -
+// SetRainbondClusterConfig -
 func (e *ClusterHandler) SetRainbondClusterConfig(ctx *gin.Context) {
 	eid := ctx.Param("eid")
 	clusterID := ctx.Param("clusterID")
@@ -670,7 +692,7 @@ func (e *ClusterHandler) SetRainbondClusterConfig(ctx *gin.Context) {
 	ginutil.JSON(ctx, nil, nil)
 }
 
-//UninstallRegion -
+// UninstallRegion -
 func (e *ClusterHandler) UninstallRegion(ctx *gin.Context) {
 	eid := ctx.Param("eid")
 	clusterID := ctx.Param("clusterID")
