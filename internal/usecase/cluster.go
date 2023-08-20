@@ -219,7 +219,7 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 	if err := c.CreateKubernetesTaskRepo.Create(newTask); err != nil {
 		return nil, errors.Wrap(err, "create kubernetes task")
 	}
-	//send task
+	// send task
 	taskReq := types.KubernetesConfigMessage{
 		EnterpriseID: eid,
 		TaskID:       newTask.TaskID,
@@ -397,7 +397,7 @@ func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubern
 		return nil, errors.Wrap(err, "save update kubernetes task failure")
 	}
 
-	//send task
+	// send task
 	taskReq := types.UpdateKubernetesConfigMessage{
 		EnterpriseID: eid,
 		TaskID:       newTask.TaskID,
@@ -1033,7 +1033,7 @@ func (c *ClusterUsecase) InstallCluster(eid, clusterID string) (*model.CreateKub
 		return nil, err
 	}
 
-	//send task
+	// send task
 	taskReq := types.KubernetesConfigMessage{
 		EnterpriseID: eid,
 		TaskID:       newTask.TaskID,
@@ -1128,6 +1128,7 @@ func (c *ClusterUsecase) UninstallRainbondRegion(eid, clusterID, provider string
 func (c *ClusterUsecase) PruneUpdateRKEConfig(req *v1.PruneUpdateRKEConfigReq) (*v1.PruneUpdateRKEConfigResp, error) {
 	var rkeConfig *v3.RancherKubernetesEngineConfig
 	if req.EncodedRKEConfig == "" {
+
 		rkeConfig = v1alpha1.GetDefaultRKECreateClusterConfig(v1alpha1.KubernetesClusterConfig{
 			Nodes: req.Nodes,
 		}).(*v3.RancherKubernetesEngineConfig)
@@ -1223,7 +1224,7 @@ func (c *ClusterUsecase) CheckSSHConnect(host string, port uint) (bool, error) {
 
 	// 配置SSH客户端参数
 	config := &checckssh.ClientConfig{
-		User: "root",
+		User: "docker",
 		Auth: []checckssh.AuthMethod{
 			checckssh.PublicKeys(signer),
 		},

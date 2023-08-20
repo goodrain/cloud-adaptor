@@ -519,6 +519,7 @@ func (e *ClusterHandler) CheckSSH(ctx *gin.Context) {
 	err := ctx.ShouldBindJSON(&req)
 	if err != nil {
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
+		return
 	}
 	r, err := e.cluster.CheckSSHConnect(req.Host, req.Port)
 	if err != nil {
