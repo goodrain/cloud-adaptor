@@ -72,6 +72,10 @@ type CheckSSHReq struct {
 	Port uint   `json:"port"`
 }
 
+type CheckSSHRes struct {
+	Status bool `json:"status"`
+}
+
 // AccessKeyResponse access key
 //
 //swagger:model AccessKeyResponse

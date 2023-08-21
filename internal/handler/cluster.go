@@ -527,7 +527,10 @@ func (e *ClusterHandler) CheckSSH(ctx *gin.Context) {
 		ginutil.JSON(ctx, r, err)
 		return
 	}
-	ginutil.JSON(ctx, r)
+	var res = v1.CheckSSHRes{
+		Status: r,
+	}
+	ginutil.JSON(ctx, res)
 }
 
 // GetLogContent get rke create kubernetes log
