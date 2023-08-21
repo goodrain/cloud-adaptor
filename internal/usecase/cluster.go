@@ -36,7 +36,6 @@ import (
 	"github.com/pkg/errors"
 	v3 "github.com/rancher/rke/types"
 	"github.com/sirupsen/logrus"
-	checckssh "golang.org/x/crypto/ssh"
 	v1 "goodrain.com/cloud-adaptor/api/cloud-adaptor/v1"
 	"goodrain.com/cloud-adaptor/cmd/cloud-adaptor/config"
 	"goodrain.com/cloud-adaptor/internal/adaptor"
@@ -1207,39 +1206,6 @@ func (c *ClusterUsecase) GetInitNodeCmd(ctx context.Context) (*v1.InitNodeCmdRes
 	return &v1.InitNodeCmdRes{
 		Cmd: fmt.Sprintf(`export SSH_RSA="%s" && curl -sfL https://get.rainbond.com/init_node | bash`, strings.Replace(pub, "\n", "", -1)),
 	}, nil
-}
-
-func (c *ClusterUsecase) CheckSSHConnect(host string, port uint) (bool, error) {
-	// 读取私钥文件
-	key, err := ioutil.ReadFile("/root/.ssh/id_rsa")
-	if err != nil {
-		return false, bcode.ErrSSHFileNotFond
-	}
-
-	// 使用私钥创建一个Signer
-	signer, err := checckssh.ParsePrivateKey(key)
-	if err != nil {
-		return false, bcode.ErrParseSSH
-	}
-
-	// 配置SSH客户端参数
-	config := &checckssh.ClientConfig{
-		User: "docker",
-		Auth: []checckssh.AuthMethod{
-			checckssh.PublicKeys(signer),
-		},
-		Timeout:         5 * time.Second,
-		HostKeyCallback: checckssh.InsecureIgnoreHostKey(),
-	}
-
-	// 尝试连接目标主机
-	conn, err := checckssh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), config)
-
-	if err != nil {
-		return false, bcode.ErrConnect
-	}
-	defer conn.Close()
-	return true, nil
 }
 
 // ListRainbondComponents -

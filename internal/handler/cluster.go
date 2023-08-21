@@ -19,6 +19,7 @@
 package handler
 
 import (
+	"goodrain.com/cloud-adaptor/pkg/util/ssh"
 	"io/ioutil"
 	"strings"
 
@@ -521,7 +522,7 @@ func (e *ClusterHandler) CheckSSH(ctx *gin.Context) {
 		ginutil.JSON(ctx, nil, bcode.BadRequest)
 		return
 	}
-	r, err := e.cluster.CheckSSHConnect(req.Host, req.Port)
+	r, err := ssh.CheckSSHConnect(req.Host, req.Port)
 	if err != nil {
 		ginutil.JSON(ctx, r, err)
 		return
