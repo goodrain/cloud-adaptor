@@ -102,7 +102,7 @@ func NewClusterUsecase(db *gorm.DB,
 	}
 }
 
-//ListKubernetesCluster list kubernetes cluster
+// ListKubernetesCluster list kubernetes cluster
 func (c *ClusterUsecase) ListKubernetesCluster(eid string, re v1.ListKubernetesCluster) ([]*v1alpha1.Cluster, error) {
 	var ad adaptor.RainbondClusterAdaptor
 	var err error
@@ -138,7 +138,7 @@ func (c *ClusterUsecase) ListKubernetesCluster(eid string, re v1.ListKubernetesC
 	return clusters, nil
 }
 
-//CreateKubernetesCluster create kubernetes cluster task
+// CreateKubernetesCluster create kubernetes cluster task
 func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubernetesReq) (*model.CreateKubernetesTask, error) {
 	if c.TaskProducer == nil {
 		return nil, errors.New("TaskProducer is nil")
@@ -218,7 +218,7 @@ func (c *ClusterUsecase) CreateKubernetesCluster(eid string, req v1.CreateKubern
 	if err := c.CreateKubernetesTaskRepo.Create(newTask); err != nil {
 		return nil, errors.Wrap(err, "create kubernetes task")
 	}
-	//send task
+	// send task
 	taskReq := types.KubernetesConfigMessage{
 		EnterpriseID: eid,
 		TaskID:       newTask.TaskID,
@@ -302,7 +302,7 @@ func (c *ClusterUsecase) rkeConfigToNodeList(rkeConfig *v3.RancherKubernetesEngi
 	return nodeList, nil
 }
 
-//InitRainbondRegion init rainbond region
+// InitRainbondRegion init rainbond region
 func (c *ClusterUsecase) InitRainbondRegion(ctx context.Context, eid string, req v1.InitRainbondRegionReq) (*model.InitRainbondTask, error) {
 	oldTask, err := c.InitRainbondTaskRepo.GetTaskByClusterID(eid, req.Provider, req.ClusterID)
 	if err != nil && !errors.Is(err, bcode.ErrInitRainbondTaskNotFound) {
@@ -357,7 +357,7 @@ func (c *ClusterUsecase) InitRainbondRegion(ctx context.Context, eid string, req
 	return newTask, nil
 }
 
-//UpdateKubernetesCluster -
+// UpdateKubernetesCluster -
 func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubernetesReq) (*v1.UpdateKubernetesTask, error) {
 	if c.TaskProducer == nil {
 		logrus.Errorf("TaskProducer is nil")
@@ -396,7 +396,7 @@ func (c *ClusterUsecase) UpdateKubernetesCluster(eid string, req v1.UpdateKubern
 		return nil, errors.Wrap(err, "save update kubernetes task failure")
 	}
 
-	//send task
+	// send task
 	taskReq := types.UpdateKubernetesConfigMessage{
 		EnterpriseID: eid,
 		TaskID:       newTask.TaskID,
@@ -449,7 +449,7 @@ func (c *ClusterUsecase) isLastTaskComplete(eid, clusterID string) (int, error) 
 	return 0, nil
 }
 
-//GetInitRainbondTaskByClusterID get init rainbond task
+// GetInitRainbondTaskByClusterID get init rainbond task
 func (c *ClusterUsecase) GetInitRainbondTaskByClusterID(eid, clusterID, providerName string) (*model.InitRainbondTask, error) {
 	task, err := c.InitRainbondTaskRepo.GetTaskByClusterID(eid, providerName, clusterID)
 	if err != nil {
@@ -474,7 +474,7 @@ func (c *ClusterUsecase) GetInitRainbondTaskByClusterID(eid, clusterID, provider
 	return task, nil
 }
 
-//GetUpdateKubernetesTask get update kubernetes task
+// GetUpdateKubernetesTask get update kubernetes task
 func (c *ClusterUsecase) GetUpdateKubernetesTask(eid, clusterID, providerName string) (*v1.UpdateKubernetesRes, error) {
 	var clusterName string
 	if providerName == "rke" {
@@ -565,7 +565,7 @@ func (c *ClusterUsecase) getRKEConfig(eid string, cluster *model.RKECluster) (*v
 	return &rkeConfig, nil
 }
 
-//GetRKENodeList get rke kubernetes node list
+// GetRKENodeList get rke kubernetes node list
 func (c *ClusterUsecase) GetRKENodeList(eid, clusterID string) (v1alpha1.NodeList, error) {
 	cluster, err := repo.NewRKEClusterRepo(c.DB).GetCluster(eid, clusterID)
 	if err != nil {
@@ -578,7 +578,7 @@ func (c *ClusterUsecase) GetRKENodeList(eid, clusterID string) (v1alpha1.NodeLis
 	return nodes, nil
 }
 
-//AddAccessKey add accesskey info to enterprise
+// AddAccessKey add accesskey info to enterprise
 func (c *ClusterUsecase) AddAccessKey(eid string, key v1.AddAccessKey) (*model.CloudAccessKey, error) {
 	ack, err := c.GetByProviderAndEnterprise(key.ProviderName, eid)
 	if err != nil && err != bcode.ErrorNotSetAccessKey {
@@ -600,7 +600,7 @@ func (c *ClusterUsecase) AddAccessKey(eid string, key v1.AddAccessKey) (*model.C
 	return ck, nil
 }
 
-//GetByProviderAndEnterprise get by eid
+// GetByProviderAndEnterprise get by eid
 func (c *ClusterUsecase) GetByProviderAndEnterprise(providerName, eid string) (*model.CloudAccessKey, error) {
 	key, err := c.CloudAccessKeyRepo.GetByProviderAndEnterprise(providerName, eid)
 	if err != nil {
@@ -612,7 +612,7 @@ func (c *ClusterUsecase) GetByProviderAndEnterprise(providerName, eid string) (*
 	return key, nil
 }
 
-//CreateTaskEvent create task event
+// CreateTaskEvent create task event
 func (c *ClusterUsecase) CreateTaskEvent(em *v1.EventMessage) (*model.TaskEvent, error) {
 	if em.Message == nil {
 		return nil, fmt.Errorf("message is nil")
@@ -682,7 +682,7 @@ func (c *ClusterUsecase) reasonFromMessage(message string) string {
 	return ""
 }
 
-//ListTaskEvent list task event list
+// ListTaskEvent list task event list
 func (c *ClusterUsecase) ListTaskEvent(eid, taskID string) ([]*model.TaskEvent, error) {
 	task, err := c.getTask(eid, taskID)
 	if err != nil {
@@ -786,7 +786,7 @@ func (c *ClusterUsecase) getTask(eid, taskID string) (*domain.ClusterTask, error
 	return task, nil
 }
 
-//GetLastCreateKubernetesTask get last create kubernetes task
+// GetLastCreateKubernetesTask get last create kubernetes task
 func (c *ClusterUsecase) GetLastCreateKubernetesTask(eid, providerName string) (*model.CreateKubernetesTask, error) {
 	task, err := c.CreateKubernetesTaskRepo.GetLastTask(eid, providerName)
 	if err != nil {
@@ -816,7 +816,7 @@ func (c *ClusterUsecase) GetLastCreateKubernetesTask(eid, providerName string) (
 	}, nil
 }
 
-//GetCreateKubernetesTask get task
+// GetCreateKubernetesTask get task
 func (c *ClusterUsecase) GetCreateKubernetesTask(eid, taskID string) (*model.CreateKubernetesTask, error) {
 	task, err := c.CreateKubernetesTaskRepo.GetTask(eid, taskID)
 	if err != nil {
@@ -843,7 +843,7 @@ func (c *ClusterUsecase) GetCreateKubernetesTask(eid, taskID string) (*model.Cre
 	return task, err
 }
 
-//GetTaskRunningLists get runinig tasks
+// GetTaskRunningLists get runinig tasks
 func (c *ClusterUsecase) GetTaskRunningLists(eid string) ([]*model.InitRainbondTask, error) {
 	tasks, err := c.InitRainbondTaskRepo.GetTaskRunningLists(eid)
 	if err != nil {
@@ -857,7 +857,7 @@ func (c *ClusterUsecase) GetTaskRunningLists(eid string) ([]*model.InitRainbondT
 	return tasks, nil
 }
 
-//GetKubeConfig get kube config file
+// GetKubeConfig get kube config file
 func (c *ClusterUsecase) GetKubeConfig(eid, clusterID, providerName string) (string, error) {
 	var ad adaptor.RainbondClusterAdaptor
 	var err error
@@ -883,7 +883,7 @@ func (c *ClusterUsecase) GetKubeConfig(eid, clusterID, providerName string) (str
 	return kube.Config, nil
 }
 
-//GetRegionConfig get region config
+// GetRegionConfig get region config
 func (c *ClusterUsecase) GetRegionConfig(eid, clusterID, providerName string) (map[string]string, error) {
 	var ad adaptor.RainbondClusterAdaptor
 	var err error
@@ -928,7 +928,7 @@ func (c *ClusterUsecase) GetRegionConfig(eid, clusterID, providerName string) (m
 	return nil, nil
 }
 
-//UpdateInitRainbondTaskStatus update init rainbond task status
+// UpdateInitRainbondTaskStatus update init rainbond task status
 func (c *ClusterUsecase) UpdateInitRainbondTaskStatus(eid, taskID, status string) (*model.InitRainbondTask, error) {
 	if err := c.InitRainbondTaskRepo.UpdateStatus(eid, taskID, status); err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -946,7 +946,7 @@ func (c *ClusterUsecase) UpdateInitRainbondTaskStatus(eid, taskID, status string
 	return task, nil
 }
 
-//DeleteKubernetesCluster delete provider
+// DeleteKubernetesCluster delete provider
 func (c *ClusterUsecase) DeleteKubernetesCluster(eid, clusterID, providerName string) error {
 	var ad adaptor.RainbondClusterAdaptor
 	var err error
@@ -968,7 +968,7 @@ func (c *ClusterUsecase) DeleteKubernetesCluster(eid, clusterID, providerName st
 	return ad.DeleteCluster(eid, clusterID)
 }
 
-//GetCluster get cluster
+// GetCluster get cluster
 func (c *ClusterUsecase) GetCluster(providerName, eid, clusterID string) (*v1alpha1.Cluster, error) {
 	var ad adaptor.RainbondClusterAdaptor
 	var err error
@@ -990,7 +990,7 @@ func (c *ClusterUsecase) GetCluster(providerName, eid, clusterID string) (*v1alp
 	return ad.DescribeCluster(eid, clusterID)
 }
 
-//InstallCluster install cluster
+// InstallCluster install cluster
 func (c *ClusterUsecase) InstallCluster(eid, clusterID string) (*model.CreateKubernetesTask, error) {
 	if c.TaskProducer == nil {
 		logrus.Errorf("TaskProducer is nil")
@@ -1032,7 +1032,7 @@ func (c *ClusterUsecase) InstallCluster(eid, clusterID string) (*model.CreateKub
 		return nil, err
 	}
 
-	//send task
+	// send task
 	taskReq := types.KubernetesConfigMessage{
 		EnterpriseID: eid,
 		TaskID:       newTask.TaskID,
@@ -1053,7 +1053,7 @@ func (c *ClusterUsecase) InstallCluster(eid, clusterID string) (*model.CreateKub
 	return newTask, nil
 }
 
-//SetRainbondClusterConfig set rainbond cluster config
+// SetRainbondClusterConfig set rainbond cluster config
 func (c *ClusterUsecase) SetRainbondClusterConfig(eid, clusterID, config string) error {
 	var rbcc rainbondv1alpha1.RainbondCluster
 	if err := yaml.Unmarshal([]byte(config), &rbcc); err != nil {
@@ -1068,7 +1068,7 @@ func (c *ClusterUsecase) SetRainbondClusterConfig(eid, clusterID, config string)
 		})
 }
 
-//GetRainbondClusterConfig get rainbond cluster config
+// GetRainbondClusterConfig get rainbond cluster config
 func (c *ClusterUsecase) GetRainbondClusterConfig(eid, clusterID string) (*rainbondv1alpha1.RainbondCluster, string) {
 	rcc, _ := c.RainbondClusterConfigRepo.Get(clusterID)
 	if rcc != nil {
@@ -1082,7 +1082,7 @@ func (c *ClusterUsecase) GetRainbondClusterConfig(eid, clusterID string) (*rainb
 	return nil, ""
 }
 
-//UninstallRainbondRegion uninstall rainbond region
+// UninstallRainbondRegion uninstall rainbond region
 func (c *ClusterUsecase) UninstallRainbondRegion(eid, clusterID, provider string) error {
 	if os.Getenv("DISABLE_UNINSTALL_REGION") == "true" {
 		logrus.Info("uninstall rainbond region is disable")
@@ -1127,6 +1127,7 @@ func (c *ClusterUsecase) UninstallRainbondRegion(eid, clusterID, provider string
 func (c *ClusterUsecase) PruneUpdateRKEConfig(req *v1.PruneUpdateRKEConfigReq) (*v1.PruneUpdateRKEConfigResp, error) {
 	var rkeConfig *v3.RancherKubernetesEngineConfig
 	if req.EncodedRKEConfig == "" {
+
 		rkeConfig = v1alpha1.GetDefaultRKECreateClusterConfig(v1alpha1.KubernetesClusterConfig{
 			Nodes: req.Nodes,
 		}).(*v3.RancherKubernetesEngineConfig)

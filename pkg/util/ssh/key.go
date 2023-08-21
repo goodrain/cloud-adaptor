@@ -24,16 +24,17 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
-	"io/ioutil"
+	"goodrain.com/cloud-adaptor/pkg/bcode"
 	"os"
 	"path"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/ssh"
 	"k8s.io/client-go/util/homedir"
 )
 
-//GenerateKey -
+// GenerateKey -
 func GenerateKey(bits int) (*rsa.PrivateKey, *rsa.PublicKey, error) {
 	private, err := rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
@@ -43,7 +44,7 @@ func GenerateKey(bits int) (*rsa.PrivateKey, *rsa.PublicKey, error) {
 
 }
 
-//EncodePrivateKey -
+// EncodePrivateKey -
 func EncodePrivateKey(private *rsa.PrivateKey) []byte {
 	return pem.EncodeToMemory(&pem.Block{
 		Bytes: x509.MarshalPKCS1PrivateKey(private),
@@ -51,7 +52,7 @@ func EncodePrivateKey(private *rsa.PrivateKey) []byte {
 	})
 }
 
-//EncodePublicKey -
+// EncodePublicKey -
 func EncodePublicKey(public *rsa.PublicKey) ([]byte, error) {
 	publicBytes, err := x509.MarshalPKIXPublicKey(public)
 	if err != nil {
@@ -63,7 +64,7 @@ func EncodePublicKey(public *rsa.PublicKey) ([]byte, error) {
 	}), nil
 }
 
-//EncodeSSHKey -
+// EncodeSSHKey -
 func EncodeSSHKey(public *rsa.PublicKey) ([]byte, error) {
 	publicKey, err := ssh.NewPublicKey(public)
 	if err != nil {
@@ -72,7 +73,7 @@ func EncodeSSHKey(public *rsa.PublicKey) ([]byte, error) {
 	return ssh.MarshalAuthorizedKey(publicKey), nil
 }
 
-//MakeSSHKeyPair -
+// MakeSSHKeyPair -
 func MakeSSHKeyPair() (string, string, error) {
 
 	pkey, pubkey, err := GenerateKey(2048)
@@ -88,7 +89,7 @@ func MakeSSHKeyPair() (string, string, error) {
 	return string(EncodePrivateKey(pkey)), string(pub), nil
 }
 
-//GetOrMakeSSHRSA get or make ssh rsa
+// GetOrMakeSSHRSA get or make ssh rsa
 func GetOrMakeSSHRSA() (string, error) {
 	home := homedir.HomeDir()
 	if _, err := os.Stat(path.Join(home, ".ssh")); err != nil && os.IsNotExist(err) {
@@ -105,10 +106,10 @@ func GetOrMakeSSHRSA() (string, error) {
 			return "", fmt.Errorf("create ssh rsa failure %s", err.Error())
 		}
 		logrus.Infof("init ssh rsa file %s %s ", idRsaPath, idRsaPubPath)
-		if err := ioutil.WriteFile(idRsaPath, []byte(private), 0600); err != nil {
+		if err := os.WriteFile(idRsaPath, []byte(private), 0600); err != nil {
 			return "", fmt.Errorf("write ssh rsa file failure %s", err.Error())
 		}
-		if err := ioutil.WriteFile(idRsaPubPath, []byte(pub), 0644); err != nil {
+		if err := os.WriteFile(idRsaPubPath, []byte(pub), 0644); err != nil {
 			return "", fmt.Errorf("write ssh rsa pub file failure %s", err.Error())
 		}
 		return pub, nil
@@ -116,9 +117,43 @@ func GetOrMakeSSHRSA() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	pub, err := ioutil.ReadFile(idRsaPubPath)
+	pub, err := os.ReadFile(idRsaPubPath)
 	if err != nil {
 		return "", fmt.Errorf("read rsa pub file failure %s", err.Error())
 	}
 	return string(pub), nil
+}
+
+// check ssh connection
+func CheckSSHConnect(host string, port uint) (bool, error) {
+	// 读取私钥文件
+	key, err := os.ReadFile("/root/.ssh/id_rsa")
+	if err != nil {
+		return false, bcode.ErrSSHFileNotFond
+	}
+
+	// 使用私钥创建一个Signer
+	signer, err := ssh.ParsePrivateKey(key)
+	if err != nil {
+		return false, bcode.ErrParseSSH
+	}
+
+	// 配置SSH客户端参数
+	config := &ssh.ClientConfig{
+		User: "docker",
+		Auth: []ssh.AuthMethod{
+			ssh.PublicKeys(signer),
+		},
+		Timeout:         5 * time.Second,
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+	}
+
+	// 尝试连接目标主机
+	conn, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", host, port), config)
+
+	if err != nil {
+		return false, bcode.ErrConnect
+	}
+	defer conn.Close()
+	return true, nil
 }
