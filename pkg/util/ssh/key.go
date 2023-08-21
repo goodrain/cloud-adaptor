@@ -25,7 +25,6 @@ import (
 	"encoding/pem"
 	"fmt"
 	"goodrain.com/cloud-adaptor/pkg/bcode"
-	"io/ioutil"
 	"os"
 	"path"
 	"time"
@@ -107,10 +106,10 @@ func GetOrMakeSSHRSA() (string, error) {
 			return "", fmt.Errorf("create ssh rsa failure %s", err.Error())
 		}
 		logrus.Infof("init ssh rsa file %s %s ", idRsaPath, idRsaPubPath)
-		if err := ioutil.WriteFile(idRsaPath, []byte(private), 0600); err != nil {
+		if err := os.WriteFile(idRsaPath, []byte(private), 0600); err != nil {
 			return "", fmt.Errorf("write ssh rsa file failure %s", err.Error())
 		}
-		if err := ioutil.WriteFile(idRsaPubPath, []byte(pub), 0644); err != nil {
+		if err := os.WriteFile(idRsaPubPath, []byte(pub), 0644); err != nil {
 			return "", fmt.Errorf("write ssh rsa pub file failure %s", err.Error())
 		}
 		return pub, nil
@@ -118,7 +117,7 @@ func GetOrMakeSSHRSA() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	pub, err := ioutil.ReadFile(idRsaPubPath)
+	pub, err := os.ReadFile(idRsaPubPath)
 	if err != nil {
 		return "", fmt.Errorf("read rsa pub file failure %s", err.Error())
 	}
@@ -128,7 +127,7 @@ func GetOrMakeSSHRSA() (string, error) {
 // check ssh connection
 func CheckSSHConnect(host string, port uint) (bool, error) {
 	// 读取私钥文件
-	key, err := ioutil.ReadFile("/root/.ssh/id_rsa")
+	key, err := os.ReadFile("/root/.ssh/id_rsa")
 	if err != nil {
 		return false, bcode.ErrSSHFileNotFond
 	}
