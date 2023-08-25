@@ -32,7 +32,6 @@ import (
 	"github.com/goodrain/rainbond-operator/util/commonutil"
 	"github.com/goodrain/rainbond-operator/util/constants"
 	"github.com/goodrain/rainbond-operator/util/rbdutil"
-	"github.com/goodrain/rainbond-operator/util/retryutil"
 	"github.com/goodrain/rainbond-operator/util/suffixdomain"
 	"github.com/sirupsen/logrus"
 	"goodrain.com/cloud-adaptor/internal/adaptor/v1alpha1"
@@ -62,14 +61,14 @@ func init() {
 	}
 }
 
-//RainbondRegionInit rainbond region init by operator
+// RainbondRegionInit rainbond region init by operator
 type RainbondRegionInit struct {
 	kubeconfig                v1alpha1.KubeConfig
 	namespace                 string
 	rainbondClusterConfigRepo repo.RainbondClusterConfigRepository
 }
 
-//NewRainbondRegionInit new
+// NewRainbondRegionInit new
 func NewRainbondRegionInit(kubeconfig v1alpha1.KubeConfig, rainbondClusterConfigRepo repo.RainbondClusterConfigRepository) *RainbondRegionInit {
 	return &RainbondRegionInit{
 		kubeconfig:                kubeconfig,
@@ -78,7 +77,7 @@ func NewRainbondRegionInit(kubeconfig v1alpha1.KubeConfig, rainbondClusterConfig
 	}
 }
 
-//InitRainbondRegion init rainbond region
+// InitRainbondRegion init rainbond region
 func (r *RainbondRegionInit) InitRainbondRegion(initConfig *v1alpha1.RainbondInitConfig) error {
 	clusterID := initConfig.ClusterID
 	kubeconfigFileName := "/tmp/" + clusterID + ".kubeconfig"
@@ -290,18 +289,8 @@ func (r *RainbondRegionInit) createRainbondCR(kubeClient *kubernetes.Clientset, 
 			ip = initConfig.EIPs[0]
 		}
 		if ip != "" {
-			err := retryutil.Retry(1*time.Second, 3, func() (bool, error) {
-				domain, err := r.genSuffixHTTPHost(kubeClient, ip)
-				if err != nil {
-					return false, err
-				}
-				cluster.Spec.SuffixHTTPHost = domain
-				return true, nil
-			})
-			if err != nil {
-				logrus.Warningf("generate suffix http host: %v", err)
-				cluster.Spec.SuffixHTTPHost = constants.DefHTTPDomainSuffix
-			}
+			cluster.Spec.SuffixHTTPHost = ip + rbdutil.GetenvDefault("DNS_SERVER", ".nip.io")
+
 		} else {
 			cluster.Spec.SuffixHTTPHost = constants.DefHTTPDomainSuffix
 		}
@@ -367,7 +356,7 @@ func generateSuffixConfigMap(name, namespace string) *v1.ConfigMap {
 	return cm
 }
 
-//GetRainbondRegionStatus get rainbond region status
+// GetRainbondRegionStatus get rainbond region status
 func (r *RainbondRegionInit) GetRainbondRegionStatus(clusterID string) (*v1alpha1.RainbondRegionStatus, error) {
 	coreClient, rainbondClient, err := r.kubeconfig.GetKubeClient()
 	if err != nil {
@@ -429,7 +418,7 @@ func (r *RainbondRegionInit) GetRainbondRegionStatus(clusterID string) (*v1alpha
 	return status, nil
 }
 
-//UninstallRegion uninstall
+// UninstallRegion uninstall
 func (r *RainbondRegionInit) UninstallRegion(clusterID string) error {
 	deleteOpts := metav1.DeleteOptions{
 		GracePeriodSeconds: commonutil.Int64(0),
