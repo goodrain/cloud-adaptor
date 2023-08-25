@@ -289,7 +289,7 @@ func (r *RainbondRegionInit) createRainbondCR(kubeClient *kubernetes.Clientset, 
 			ip = initConfig.EIPs[0]
 		}
 		if ip != "" {
-			cluster.Spec.SuffixHTTPHost = rbdutil.GetenvDefault("DNS_SERVER", ".nip.io")
+			cluster.Spec.SuffixHTTPHost = ip + rbdutil.GetenvDefault("DNS_SERVER", ".nip.io")
 		} else {
 			cluster.Spec.SuffixHTTPHost = constants.DefHTTPDomainSuffix
 		}
