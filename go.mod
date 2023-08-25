@@ -11,7 +11,7 @@ require (
 	github.com/go-playground/validator/v10 v10.5.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/goodrain/rainbond v0.0.0-00010101000000-000000000000
-	github.com/goodrain/rainbond-operator v1.3.1-0.20210401055914-f8fe4bf89a21
+	github.com/goodrain/rainbond-operator v1.3.1-0.20230824023738-77dcd7cc53b7
 	github.com/google/wire v0.5.0
 	github.com/helm/helm v2.17.0+incompatible
 	github.com/nsqio/go-nsq v1.0.8
@@ -52,7 +52,7 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
 	github.com/Masterminds/squirrel v1.5.3 // indirect
 	github.com/Microsoft/go-winio v0.5.2 // indirect
-	github.com/Microsoft/hcsshim v0.9.3 // indirect
+	github.com/Microsoft/hcsshim v0.9.4 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
 	github.com/apparentlymart/go-cidr v1.0.1 // indirect
@@ -144,7 +144,7 @@ require (
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.3-0.20211202183452-c5a74bcca799 // indirect
-	github.com/opencontainers/runc v1.1.3 // indirect
+	github.com/opencontainers/runc v1.1.4 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.12.1 // indirect
