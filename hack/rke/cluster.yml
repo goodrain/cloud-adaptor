@@ -152,7 +152,7 @@ ssh_agent_auth: false
 authorization:
   mode: rbac
   options: {}
-ignore_docker_version: null
+ignore_docker_version: true
 kubernetes_version: ''
 private_registries: []
 prefix_path: ''
