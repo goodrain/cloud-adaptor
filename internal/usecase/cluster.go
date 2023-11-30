@@ -1145,7 +1145,8 @@ func (c *ClusterUsecase) PruneUpdateRKEConfig(req *v1.PruneUpdateRKEConfigReq) (
 		}
 		rkeConfig = &rkeConfig2
 	}
-
+	ignoreDockerVersion := true
+	rkeConfig.IgnoreDockerVersion = &ignoreDockerVersion
 	rkeConfigBytes, err := yaml.Marshal(rkeConfig)
 	if err != nil {
 		return nil, errors.WithStack(err)
