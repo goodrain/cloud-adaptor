@@ -60,7 +60,7 @@ func (h *helmAppTemplate) fetch(ctx context.Context, appStore *domain.AppStore) 
 	}
 
 	req = req.WithContext(ctx)
-
+	req.SetBasicAuth(appStore.Username, appStore.Password)
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
