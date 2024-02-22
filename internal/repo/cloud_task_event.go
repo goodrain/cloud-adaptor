@@ -40,6 +40,13 @@ func (t *TaskEventRepo) Transaction(tx *gorm.DB) TaskEventRepository {
 	return &TaskEventRepo{DB: tx}
 }
 
+func (t *TaskEventRepo) CreateEvent(te *model.TaskEvent) error {
+	if err := t.DB.Debug().Save(te).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 //Create create an event
 func (t *TaskEventRepo) Create(te *model.TaskEvent) error {
 	if len(te.Message) > 512 {
@@ -76,6 +83,14 @@ func (t *TaskEventRepo) ListEvent(eid, taskID string) ([]*model.TaskEvent, error
 		return nil, err
 	}
 	return list, nil
+}
+
+//DeleteEvent delete task events
+func (t *TaskEventRepo) DeleteEvent(eid, taskID string) error {
+	if err := t.DB.Where("eid = ? and task_id=?", eid, taskID).Delete(&model.TaskEvent{}).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 // UpdateStatusInBatch -
