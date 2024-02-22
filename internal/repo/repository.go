@@ -65,8 +65,10 @@ type UpdateKubernetesTaskRepository interface {
 type TaskEventRepository interface {
 	Transaction(tx *gorm.DB) TaskEventRepository
 	Create(ent *model.TaskEvent) error
+	CreateEvent(te *model.TaskEvent) error
 	ListEvent(eid, taskID string) ([]*model.TaskEvent, error)
 	UpdateStatusInBatch(eventIDs []string, status string) error
+	DeleteEvent(eid, taskID string) error
 }
 
 //RainbondClusterConfigRepository -

@@ -19,6 +19,8 @@
 package handler
 
 import (
+	"encoding/json"
+	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/pkg/util/ssh"
 	"io/ioutil"
 	"strings"
@@ -783,4 +785,69 @@ func (e *ClusterHandler) listPodEvents(c *gin.Context) {
 	providerName := c.Query("providerName")
 	components, err := e.cluster.ListPodEvents(c.Request.Context(), eid, clusterID, providerName, c.Param("podName"))
 	ginutil.JSONv2(c, components, err)
+}
+
+func (e *ClusterHandler) GetInstallHelmRegionEvent(ctx *gin.Context) {
+	eid := ctx.Param("eid")
+	events, err := e.cluster.TaskEventRepo.ListEvent(eid, "helm_install_region")
+	if err != nil {
+		ginutil.JSON(ctx, nil, err)
+		return
+	}
+	type Ret struct {
+		CreatStatus bool `json:"create_status"`
+		v1.AddHelmInstallCluster
+	}
+	ret := Ret{CreatStatus: false}
+	if events != nil && len(events) > 0 {
+		ret.CreatStatus = true
+		var ren v1.AddHelmInstallCluster
+		err = json.Unmarshal([]byte(events[0].Message), &ren)
+		if err != nil {
+			ginutil.JSON(ctx, nil, err)
+			return
+		}
+		ret.Token = ren.Token
+		ret.APIHost = ren.APIHost
+		ginutil.JSON(ctx, ret, nil)
+		return
+	}
+	ginutil.JSON(ctx, ret, err)
+}
+
+func (e *ClusterHandler) InitInstallHelmRegionEvent(ctx *gin.Context) {
+	eid := ctx.Param("eid")
+	var req v1.AddHelmInstallCluster
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		logrus.Errorf("bind update init status failure %s", err.Error())
+		ginutil.JSON(ctx, nil, bcode.BadRequest)
+		return
+	}
+	message, err := json.Marshal(req)
+	if err != nil {
+		ginutil.JSON(ctx, nil, err)
+		return
+	}
+	ent := &model.TaskEvent{
+		TaskID:       "helm_install_region",
+		EnterpriseID: eid,
+		Message:      string(message),
+	}
+	type Ret struct {
+		CreateStatus bool `json:"create_status"`
+	}
+	ret := Ret{CreateStatus: true}
+	err = e.cluster.TaskEventRepo.CreateEvent(ent)
+	if err != nil {
+		ret.CreateStatus = false
+		ginutil.JSON(ctx, ret, err)
+		return
+	}
+	ginutil.JSON(ctx, ret, err)
+}
+
+func (e *ClusterHandler) DeleteInstallHelmRegionEvent(ctx *gin.Context) {
+	eid := ctx.Param("eid")
+	err := e.cluster.TaskEventRepo.DeleteEvent(eid, "helm_install_region")
+	ginutil.JSON(ctx, nil, err)
 }

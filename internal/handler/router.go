@@ -109,6 +109,11 @@ func (r *Router) NewRouter() *gin.Engine {
 	entv1.GET("/accesskey", r.cluster.GetAccessKey)
 	entv1.GET("/last-ck-task", r.cluster.GetLastAddKubernetesClusterTask)
 	entv1.GET("/ck-task/:taskID", r.cluster.GetAddKubernetesClusterTask)
+
+	entv1.GET("/tasks/helm_region_install", r.cluster.GetInstallHelmRegionEvent)
+	entv1.POST("/tasks/helm_region_install", r.cluster.InitInstallHelmRegionEvent)
+	entv1.DELETE("/tasks/helm_region_install", r.cluster.DeleteInstallHelmRegionEvent)
+
 	entv1.GET("/tasks/:taskID/events", r.cluster.GetTaskEventList)
 	entv1.GET("/init-task/:clusterID", r.cluster.GetInitRainbondTask)
 	entv1.GET("/init-tasks", r.cluster.GetRunningInitRainbondTask)

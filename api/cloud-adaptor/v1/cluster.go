@@ -319,3 +319,8 @@ func (a ByRainbondComponentPodPhase) phaseScore(i int) int {
 type RainbondComponentEvent struct {
 	corev1.Event
 }
+
+type AddHelmInstallCluster struct {
+	Token   string `json:"token"`
+	APIHost string `json:"api_host"`
+}
