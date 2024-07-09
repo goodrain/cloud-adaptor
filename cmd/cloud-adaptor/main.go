@@ -98,7 +98,7 @@ func main() {
 			&cli.StringFlag{
 				Name:    "listen",
 				Aliases: []string{"l"},
-				Value:   "127.0.0.1:8080",
+				Value:   "0.0.0.0:8080",
 				Usage:   "daemon server listen address",
 				EnvVars: []string{"LISTEN"},
 			},

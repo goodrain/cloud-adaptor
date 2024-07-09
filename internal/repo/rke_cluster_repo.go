@@ -38,7 +38,7 @@ func NewRKEClusterRepo(db *gorm.DB) RKEClusterRepository {
 	return &RKEClusterRepo{DB: db}
 }
 
-//Create create an event
+// Create create an event
 func (t *RKEClusterRepo) Create(te *model.RKECluster) error {
 	if te.Name == "" || te.EnterpriseID == "" {
 		return fmt.Errorf("rke cluster name or eid can not be empty")
@@ -60,12 +60,12 @@ func (t *RKEClusterRepo) Create(te *model.RKECluster) error {
 	return errors.WithStack(bcode.ErrRKEClusterExists)
 }
 
-//Update -
+// Update -
 func (t *RKEClusterRepo) Update(te *model.RKECluster) error {
 	return t.DB.Save(te).Error
 }
 
-//GetCluster -
+// GetCluster -
 func (t *RKEClusterRepo) GetCluster(eid, name string) (*model.RKECluster, error) {
 	var rc model.RKECluster
 	if err := t.DB.Where("eid=? and (name=? or clusterID=?)", eid, name, name).Take(&rc).Error; err != nil {
@@ -74,7 +74,7 @@ func (t *RKEClusterRepo) GetCluster(eid, name string) (*model.RKECluster, error)
 	return &rc, nil
 }
 
-//ListCluster -
+// ListCluster -
 func (t *RKEClusterRepo) ListCluster(eid string) ([]*model.RKECluster, error) {
 	var list []*model.RKECluster
 	if err := t.DB.Where("eid=?", eid).Order("created_at desc").Find(&list).Error; err != nil {
@@ -83,7 +83,16 @@ func (t *RKEClusterRepo) ListCluster(eid string) ([]*model.RKECluster, error) {
 	return list, nil
 }
 
-//DeleteCluster delete cluster
+// ListInitCluster - 查找到所有正在初始化的集群
+func (t *RKEClusterRepo) ListInitCluster() []*model.RKECluster {
+	var list = make([]*model.RKECluster, 0)
+	if err := t.DB.Where("stats=?", "initial").Order("id desc").Find(&list).Error; err != nil {
+		return list
+	}
+	return list
+}
+
+// DeleteCluster delete cluster
 func (t *RKEClusterRepo) DeleteCluster(eid, name string) error {
 	var rc model.RKECluster
 	if err := t.DB.Where("eid=? and (name=? or clusterID=?)", eid, name, name).Delete(&rc).Error; err != nil {

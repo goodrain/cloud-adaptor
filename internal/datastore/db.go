@@ -100,7 +100,7 @@ func NewDB() *gorm.DB {
 	return db
 }
 
-//GetGDB -
+// GetGDB -
 func GetGDB() *gorm.DB {
 	return gdb
 }
@@ -108,18 +108,20 @@ func GetGDB() *gorm.DB {
 // AutoMigrate run auto migration for given models
 func AutoMigrate(db *gorm.DB) error {
 	models := map[string]interface{}{
-		"CloudAccessKey": model.CloudAccessKey{},
-		"CreateKubernetesTask": model.CreateKubernetesTask{},
-		"InitRainbondTask": model.InitRainbondTask{},
-		"RKECluster": model.RKECluster{},
-		"CustomCluster": model.CustomCluster{},
-		"UpdateKubernetesTask": model.UpdateKubernetesTask{},
+		"CloudAccessKey":        model.CloudAccessKey{},
+		"CreateKubernetesTask":  model.CreateKubernetesTask{},
+		"InitRainbondTask":      model.InitRainbondTask{},
+		"RKECluster":            model.RKECluster{},
+		"CustomCluster":         model.CustomCluster{},
+		"UpdateKubernetesTask":  model.UpdateKubernetesTask{},
 		"RainbondClusterConfig": model.RainbondClusterConfig{},
-		"AppStore": model.AppStore{},
-		"TaskEvent": model.TaskEvent{},
+		"AppStore":              model.AppStore{},
+		"TaskEvent":             model.TaskEvent{},
+		"RKE2Nodes":             model.RKE2Nodes{},
 	}
 
 	for name, mod := range models {
+		logrus.Infof("Auto migrate %s", name)
 		if err := db.AutoMigrate(mod); err != nil {
 			return fmt.Errorf("auto migrate %s: %v", name, err)
 		}

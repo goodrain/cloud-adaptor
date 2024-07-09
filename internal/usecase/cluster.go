@@ -23,6 +23,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"goodrain.com/cloud-adaptor/internal/adaptor/rke"
+	"goodrain.com/cloud-adaptor/internal/adaptor/rke2"
+	"goodrain.com/cloud-adaptor/internal/datastore"
 	"io/ioutil"
 	"os"
 	"sort"
@@ -102,6 +105,59 @@ func NewClusterUsecase(db *gorm.DB,
 	}
 }
 
+func (c *ClusterUsecase) clientset(eid, clusterID string) (*kubernetes.Clientset, error) {
+	adapter, _ := rke.Create()
+	kubeConfig, err := adapter.GetKubeConfig(eid, clusterID)
+	if err != nil {
+		return nil, err
+	}
+	clientset, _, err := kubeConfig.GetKubeClient()
+	if err != nil {
+		return nil, err
+	}
+	return clientset, nil
+}
+
+// KubernetesNodePodStatus 获取k8s命名空间下的node或者pod的状态
+func (c *ClusterUsecase) KubernetesNodePodStatus(eid, clusterID string) ([]corev1.Node, []corev1.Pod, error) {
+	clientset, err := c.clientset(eid, clusterID)
+	if err != nil {
+		return nil, nil, err
+	}
+	nodes, _ := clientset.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+
+	pods, _ := clientset.CoreV1().Pods("kube-system").List(context.Background(), metav1.ListOptions{})
+
+	return nodes.Items, pods.Items, nil
+}
+
+// DeleteKubernetesNode 删除k8s中的node
+func (c *ClusterUsecase) DeleteKubernetesNode(id, eid, clusterID string) error {
+	clientset, err := c.clientset(eid, clusterID)
+	if err != nil {
+		return err
+	}
+	list, err := clientset.CoreV1().Nodes().List(context.Background(), metav1.ListOptions{})
+	if err != nil {
+		return err
+	}
+	var node model.RKE2Nodes
+	err = c.DB.First(&node, "id = ?", id).Error
+	for _, item := range list.Items {
+		if node.Host == item.Annotations["rke2.io/external-ip"] {
+			err2 := clientset.CoreV1().Nodes().Delete(context.Background(), item.Name, metav1.DeleteOptions{})
+			if err2 != nil {
+				logrus.Errorf("delete node %s failure %s", item.Name, err2.Error())
+			}
+		}
+	}
+
+	// 前往服务器执行卸载脚本
+	go rke2.UninstallRKE2Node(&node)
+	c.DB.Delete(&node)
+	return nil
+}
+
 // ListKubernetesCluster list kubernetes cluster
 func (c *ClusterUsecase) ListKubernetesCluster(eid string, re v1.ListKubernetesCluster) ([]*v1alpha1.Cluster, error) {
 	var ad adaptor.RainbondClusterAdaptor
@@ -136,6 +192,35 @@ func (c *ClusterUsecase) ListKubernetesCluster(eid string, re v1.ListKubernetesC
 		return nil, bcode.ServerErr
 	}
 	return clusters, nil
+}
+
+// CreateKubernetesClusterByRKE2 create kubernetes cluster task
+func (c *ClusterUsecase) CreateKubernetesClusterByRKE2(eid, name string, nodes []model.RKE2Nodes, version string) error {
+	clusterID := uuidutil.NewUUID()
+
+	if version == "" {
+		version = "v1.27.12+rke2r1"
+	}
+	rkeCluster := &model.RKECluster{
+		Name:              name,
+		KubernetesVersion: version,
+		NetworkMode:       "flannel",
+		ServiceCIDR:       "10.43.0.0/16",
+		PodCIDR:           "10.42.0.0/16",
+		Stats:             v1alpha1.InitState,
+		EnterpriseID:      eid,
+		ClusterID:         clusterID,
+	}
+	if err := c.rkeClusterRepo.Create(rkeCluster); err != nil {
+		return err
+	}
+	for i := range nodes {
+		nodes[i].ClusterID = clusterID
+		nodes[i].Stats = v1alpha1.InitState
+	}
+	datastore.GetGDB().CreateInBatches(&nodes, 10)
+
+	return nil
 }
 
 // CreateKubernetesCluster create kubernetes cluster task
@@ -877,6 +962,7 @@ func (c *ClusterUsecase) GetKubeConfig(eid, clusterID, providerName string) (str
 		}
 	}
 	kube, err := ad.GetKubeConfig(eid, clusterID)
+
 	if err != nil {
 		return "", err
 	}

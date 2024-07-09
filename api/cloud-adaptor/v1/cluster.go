@@ -68,12 +68,21 @@ type KubernetesClustersResponse struct {
 //
 //swagger:model CheckSSHReq
 type CheckSSHReq struct {
-	Host string `json:"host"`
-	Port uint   `json:"port"`
+	Host     string `json:"host"`
+	Port     uint   `json:"port"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 type CheckSSHRes struct {
 	Status bool `json:"status"`
+}
+
+// CreateRke2ClusterRequest 创建rke2 集群请求体
+type CreateRke2ClusterRequest struct {
+	Name    string            `json:"name"`    // 集群名称
+	Version string            `json:"version"` // 集群版本·
+	Nodes   []model.RKE2Nodes `json:"nodes"`   // 节点信息
 }
 
 // AccessKeyResponse access key

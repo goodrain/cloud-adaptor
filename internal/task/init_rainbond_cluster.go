@@ -44,7 +44,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-//InitRainbondCluster init rainbond cluster
+// InitRainbondCluster init rainbond cluster
 type InitRainbondCluster struct {
 	config *types.InitRainbondConfig
 	result chan apiv1.Message
@@ -57,7 +57,7 @@ func (c *InitRainbondCluster) rollback(step, message, status string) {
 	c.result <- apiv1.Message{StepType: step, Message: message, Status: status}
 }
 
-//Run run take time 214.10s
+// Run run take time 214.10s
 func (c *InitRainbondCluster) Run(ctx context.Context) {
 	defer c.rollback("Close", "", "")
 	c.rollback("Init", "", "start")
@@ -86,7 +86,7 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 	}
 	// check cluster version
 	if !versionutil.CheckVersion(cluster.KubernetesVersion) {
-		c.rollback("CheckCluster", fmt.Sprintf("current cluster version is %s, init rainbond support kubernetes version is 1.16.x-1.22.x", cluster.KubernetesVersion), "failure")
+		c.rollback("CheckCluster", fmt.Sprintf("current cluster version is %s, init rainbond support kubernetes version is 1.19.x-1.29.x", cluster.KubernetesVersion), "failure")
 		return
 	}
 	// check cluster connection status
@@ -215,7 +215,7 @@ func (c *InitRainbondCluster) Run(ctx context.Context) {
 	c.rollback("InitRainbondRegion", cluster.ClusterID, "success")
 }
 
-//GetRainbondGatewayNodeAndChaosNodes get gateway nodes
+// GetRainbondGatewayNodeAndChaosNodes get gateway nodes
 func (c *InitRainbondCluster) GetRainbondGatewayNodeAndChaosNodes(nodes []v1.Node) (gatewayNodes, chaosNodes []*rainbondv1alpha1.K8sNode) {
 	for _, node := range nodes {
 		if node.Annotations["rainbond.io/gateway-node"] == "true" {
@@ -257,7 +257,7 @@ func (c *InitRainbondCluster) Stop() error {
 	return nil
 }
 
-//GetChan get message chan
+// GetChan get message chan
 func (c *InitRainbondCluster) GetChan() chan apiv1.Message {
 	return c.result
 }
@@ -282,7 +282,7 @@ func getK8sNode(node v1.Node) *rainbondv1alpha1.K8sNode {
 	return &Knode
 }
 
-//cloudInitTaskHandler cloud init task handler
+// cloudInitTaskHandler cloud init task handler
 type cloudInitTaskHandler struct {
 	eventHandler *CallBackEvent
 	handledTask  map[string]string

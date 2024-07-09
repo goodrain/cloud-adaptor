@@ -18,7 +18,7 @@
 
 package model
 
-//CloudAccessKey cloud access key
+// CloudAccessKey cloud access key
 type CloudAccessKey struct {
 	Model
 	EnterpriseID string `gorm:"column:eid" json:"enterprise_id"`
@@ -27,7 +27,7 @@ type CloudAccessKey struct {
 	SecretKey    string `gorm:"column:secret_key" json:"secret_key"`
 }
 
-//CreateKubernetesTask create kubernetes task model
+// CreateKubernetesTask create kubernetes task model
 type CreateKubernetesTask struct {
 	Model
 	Name               string `gorm:"column:name" json:"name"`
@@ -41,7 +41,7 @@ type CreateKubernetesTask struct {
 	ClusterID          string `gorm:"column:cluster_id" json:"clusterID"`
 }
 
-//InitRainbondTask init rainbond task
+// InitRainbondTask init rainbond task
 type InitRainbondTask struct {
 	Model
 	TaskID       string `gorm:"column:task_id" json:"taskID"`
@@ -51,7 +51,7 @@ type InitRainbondTask struct {
 	Status       string `gorm:"column:status" json:"status"`
 }
 
-//UpdateKubernetesTask -
+// UpdateKubernetesTask -
 type UpdateKubernetesTask struct {
 	Model
 	TaskID    string `gorm:"column:task_id" json:"taskID"`
@@ -64,7 +64,7 @@ type UpdateKubernetesTask struct {
 	Status       string `gorm:"column:status" json:"status"`
 }
 
-//TaskEvent task event
+// TaskEvent task event
 type TaskEvent struct {
 	Model
 	TaskID       string `gorm:"column:task_id" json:"taskID"`
@@ -87,4 +87,18 @@ type BackupListModelData struct {
 	RKEClusters            []RKECluster            `json:"rke_clusters"`
 	RainbondClusterConfigs []RainbondClusterConfig `json:"rainbond_cluster_configs"`
 	AppStores              []AppStore              `json:"app_stores"`
+}
+
+// RKE2Nodes -
+type RKE2Nodes struct {
+	Model
+	Role       string `gorm:"column:role" json:"role"`
+	Host       string `gorm:"column:host" json:"host"`
+	Port       uint   `gorm:"column:port" json:"port"`
+	User       string `gorm:"column:user" json:"user"`
+	Pass       string `gorm:"column:pass" json:"pass"`
+	ClusterID  string `gorm:"column:cluster_id" json:"cluster_id"`
+	ConfigFile string `gorm:"column:config_file" json:"config_file"`
+	Stats      string `gorm:"column:stats" json:"stats"`
+	Result     string `gorm:"column:result" json:"result"`
 }

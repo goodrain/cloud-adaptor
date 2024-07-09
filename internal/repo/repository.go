@@ -23,13 +23,13 @@ import (
 	"gorm.io/gorm"
 )
 
-//CloudAccesskeyRepository enterprise accesskey repository
+// CloudAccesskeyRepository enterprise accesskey repository
 type CloudAccesskeyRepository interface {
 	Create(ent *model.CloudAccessKey) error
 	GetByProviderAndEnterprise(providerName, eid string) (*model.CloudAccessKey, error)
 }
 
-//CreateKubernetesTaskRepository enterprise create kubernetes task
+// CreateKubernetesTaskRepository enterprise create kubernetes task
 type CreateKubernetesTaskRepository interface {
 	Transaction(tx *gorm.DB) CreateKubernetesTaskRepository
 	Create(ent *model.CreateKubernetesTask) error
@@ -40,7 +40,7 @@ type CreateKubernetesTaskRepository interface {
 	GetLatestOneByClusterID(clusterID string) (*model.CreateKubernetesTask, error)
 }
 
-//InitRainbondTaskRepository init rainbond region task
+// InitRainbondTaskRepository init rainbond region task
 type InitRainbondTaskRepository interface {
 	Transaction(tx *gorm.DB) InitRainbondTaskRepository
 	Create(ent *model.InitRainbondTask) error
@@ -51,7 +51,7 @@ type InitRainbondTaskRepository interface {
 	GetTaskRunningLists(eid string) ([]*model.InitRainbondTask, error)
 }
 
-//UpdateKubernetesTaskRepository -
+// UpdateKubernetesTaskRepository -
 type UpdateKubernetesTaskRepository interface {
 	Transaction(tx *gorm.DB) UpdateKubernetesTaskRepository
 	Create(ent *model.UpdateKubernetesTask) error
@@ -61,7 +61,7 @@ type UpdateKubernetesTaskRepository interface {
 	GetLastTask(eid string, providerName string) (*model.UpdateKubernetesTask, error)
 }
 
-//TaskEventRepository task event
+// TaskEventRepository task event
 type TaskEventRepository interface {
 	Transaction(tx *gorm.DB) TaskEventRepository
 	Create(ent *model.TaskEvent) error
@@ -71,7 +71,7 @@ type TaskEventRepository interface {
 	DeleteEvent(eid, taskID string) error
 }
 
-//RainbondClusterConfigRepository -
+// RainbondClusterConfigRepository -
 type RainbondClusterConfigRepository interface {
 	Create(ent *model.RainbondClusterConfig) error
 	Get(clusterID string) (*model.RainbondClusterConfig, error)
@@ -83,6 +83,8 @@ type RKEClusterRepository interface {
 	Update(te *model.RKECluster) error
 	GetCluster(eid, name string) (*model.RKECluster, error)
 	ListCluster(eid string) ([]*model.RKECluster, error)
+	ListInitCluster() []*model.RKECluster
+
 	DeleteCluster(eid, name string) error
 }
 

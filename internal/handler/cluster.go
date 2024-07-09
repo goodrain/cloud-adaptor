@@ -20,9 +20,14 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
+	"goodrain.com/cloud-adaptor/internal/adaptor/rke2"
+	"goodrain.com/cloud-adaptor/internal/datastore"
 	"goodrain.com/cloud-adaptor/internal/model"
 	"goodrain.com/cloud-adaptor/pkg/util/ssh"
 	"io/ioutil"
+	"net/http"
+	"os/exec"
 	"strings"
 
 	"github.com/ghodss/yaml"
@@ -533,6 +538,162 @@ func (e *ClusterHandler) CheckSSH(ctx *gin.Context) {
 		Status: r,
 	}
 	ginutil.JSON(ctx, res)
+}
+
+// CheckSSHPassword 检查账号密码是否正确
+func (e *ClusterHandler) CheckSSHPassword(ctx *gin.Context) {
+	var node model.RKE2Nodes
+	err := ctx.ShouldBindJSON(&node)
+	if err != nil {
+		ginutil.JSON(ctx, nil, bcode.BadRequest)
+		return
+	}
+	_, err = rke2.InitConn(&node)
+	var res = v1.CheckSSHRes{
+		Status: err == nil,
+	}
+	ginutil.JSON(ctx, res)
+}
+
+// RKE2DeleteCluster 安装rainbond
+func (e *ClusterHandler) InstallRainbond(ctx *gin.Context) {
+	go func() {
+		var cluster model.RKECluster
+		err := datastore.GetGDB().Find(&cluster, "clusterID = ?", ctx.Param("clusterID")).Error
+		if err != nil {
+			logrus.Errorf("Failed to get cluster: %s", err)
+			ginutil.JSON(ctx, nil, err)
+			return
+		}
+		c := exec.Command("sh", "-c", fmt.Sprintf(`echo '%s' > kube.config`, cluster.KubeConfig))
+		_, err = c.Output()
+		if err != nil {
+			return
+		}
+
+		c1 := exec.Command("sh", "-c", "helm repo add rainbond https://openchart.goodrain.com/goodrain/rainbond && helm repo update")
+		_, err = c1.Output()
+		if err != nil {
+			return
+		}
+
+		c2 := exec.Command("sh", "-c", "helm install rainbond rainbond/rainbond-cluster -n rbd-system --kubeconfig kube.config --set Component.rbd_app_ui.enable=false")
+		_, err = c2.Output()
+		if err != nil {
+			return
+		}
+		datastore.GetGDB().Delete(&model.RKECluster{}, "clusterID = ?", ctx.Param("clusterID"))
+	}()
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"msg":  "安装rainbond集群成功",
+	})
+}
+
+// RKE2DeleteCluster 删除集群
+func (e *ClusterHandler) RKE2DeleteCluster(ctx *gin.Context) {
+	var nodes []model.RKE2Nodes
+	err := datastore.GetGDB().Find(&nodes, "cluster_id = ?", ctx.Param("clusterID")).Error
+	if err != nil {
+		logrus.Errorf("Failed to get nodes: %s", err)
+		ginutil.JSON(ctx, nil, err)
+		return
+	}
+	for i := range nodes {
+		go rke2.UninstallRKE2Node(&nodes[i])
+		datastore.GetGDB().Delete(nodes[i])
+	}
+	datastore.GetGDB().Delete(&model.RKECluster{}, "clusterID = ?", ctx.Param("clusterID"))
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"msg":  "删除集群成功",
+	})
+}
+
+// RKE2DeleteNode 删除节点
+func (e *ClusterHandler) RKE2DeleteNode(ctx *gin.Context) {
+	err := e.cluster.DeleteKubernetesNode(ctx.Param("id"), ctx.Param("eid"), ctx.Query("cluster_id"))
+	if err != nil {
+		ginutil.JSON(ctx, nil, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"msg":  "删除成功",
+	})
+}
+
+// NodeStatus 获取节点状态
+func (e *ClusterHandler) NodeStatus(ctx *gin.Context) {
+	nodes, pods, err := e.cluster.KubernetesNodePodStatus(ctx.Param("eid"), ctx.Query("cluster_id"))
+	if err != nil {
+		ginutil.JSON(ctx, nil, bcode.BadRequest)
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code":  http.StatusOK,
+		"nodes": nodes,
+		"pods":  pods,
+	})
+}
+
+// RKE2GetNodes 获取集群的节点列表
+func (e *ClusterHandler) RKE2GetNodes(ctx *gin.Context) {
+	clusterId := ctx.Query("cluster_id")
+	var nodes []model.RKE2Nodes
+	err := datastore.GetGDB().Find(&nodes, "cluster_id = ?", clusterId).Error
+	if err != nil {
+		ginutil.JSON(ctx, nil, bcode.BadRequest)
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"data": nodes,
+	})
+}
+
+func (e *ClusterHandler) RKE2AddNodes(ctx *gin.Context) {
+	clusterId := ctx.Query("cluster_id")
+	var nodes []model.RKE2Nodes
+	err := ctx.ShouldBindJSON(&nodes)
+	if err != nil {
+		ginutil.JSON(ctx, nil, bcode.BadRequest)
+		return
+	}
+	for i := range nodes {
+		nodes[i].ClusterID = clusterId
+		nodes[i].Stats = v1alpha1.InitState
+	}
+
+	datastore.GetGDB().CreateInBatches(&nodes, 10)
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"code": http.StatusOK,
+		"msg":  "添加节点成功",
+	})
+}
+
+func (e *ClusterHandler) RKE2(ctx *gin.Context) {
+	var req v1.CreateRke2ClusterRequest
+	err := ctx.ShouldBindJSON(&req)
+	if err != nil {
+		ginutil.JSON(ctx, nil, bcode.BadRequest)
+		return
+	}
+
+	err = e.cluster.CreateKubernetesClusterByRKE2(ctx.Param("eid"), req.Name, req.Nodes, req.Version)
+	if err != nil {
+		logrus.Errorf("create rke2 cluster failure %s", err.Error())
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"code": http.StatusBadRequest,
+			"msg":  err.Error(),
+		})
+	} else {
+		ctx.JSON(http.StatusOK, gin.H{
+			"code": http.StatusOK,
+			"msg":  "创建成功",
+		})
+	}
 }
 
 // GetLogContent get rke create kubernetes log

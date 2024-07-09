@@ -83,10 +83,20 @@ func (r *Router) NewRouter() *gin.Engine {
 	apiv1.POST("/recover", r.system.Recover)
 	apiv1.GET("/init_node_cmd", r.cluster.GetInitNodeCmd)
 	apiv1.POST("/check_ssh", r.cluster.CheckSSH)
+	apiv1.POST("/check_ssh_pwd", r.cluster.CheckSSHPassword)
 
 	apiv1.POST("/helm/chart", CORSMidle(r.helm.GetHelmCommand))
 	entv1 := apiv1.Group("/enterprises/:eid")
 	// cluster
+	entv1.POST("/rke2", r.cluster.RKE2)                                       // 安装集群
+	entv1.DELETE("/rke2/:clusterID", r.cluster.RKE2DeleteCluster)             //卸载rke2集群
+	entv1.GET("/rke2/install/rainbond/:clusterID", r.cluster.InstallRainbond) //安装rainbond集群
+
+	entv1.GET("/rke2/nodes", r.cluster.RKE2GetNodes)          //从数据库中获取所有的节点信息
+	entv1.GET("/rke2/node/status", r.cluster.NodeStatus)      //从k8s中获取节点信息，pod信息
+	entv1.PUT("/rke2/nodes", r.cluster.RKE2AddNodes)          //增加节点
+	entv1.DELETE("/rke2/nodes/:id", r.cluster.RKE2DeleteNode) //删除节点
+
 	entv1.GET("/kclusters", r.cluster.ListKubernetesClusters)
 	entv1.POST("/kclusters", r.cluster.AddKubernetesCluster)
 	entv1.GET("/kclusters/:clusterID/regionconfig", r.cluster.GetRegionConfig)
