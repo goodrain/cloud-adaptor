@@ -29,4 +29,6 @@ const (
 	CloudUpdate = "cloud-update"
 	// Namespace is the namespace for rainbond-operator and rainbond components
 	Namespace = "rbd-system"
+	// RainbondCluster -
+	RainbondCluster = "rainbondcluster"
 )

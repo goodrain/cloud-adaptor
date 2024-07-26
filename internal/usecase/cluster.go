@@ -733,6 +733,13 @@ func (c *ClusterUsecase) CreateTaskEvent(em *v1.EventMessage) (*model.TaskEvent,
 		}
 		logrus.Infof("set init task %s status is inited", em.TaskID)
 	}
+	if em.Message.StepType == "InitRainbondCluster" && em.Message.Status == "success" {
+		if err := initRainbondTaskRepo.UpdateStatus(em.EnterpriseID, em.TaskID, "inited"); err != nil && err != gorm.ErrRecordNotFound {
+			ctx.Rollback()
+			return nil, err
+		}
+		logrus.Infof("set init task %s status is inited", em.TaskID)
+	}
 	if em.Message.StepType == "UpdateKubernetes" && em.Message.Status == "success" {
 		if err := c.UpdateKubernetesTaskRepo.Transaction(ctx).UpdateStatus(em.EnterpriseID, em.TaskID, "complete"); err != nil && err != gorm.ErrRecordNotFound {
 			ctx.Rollback()
